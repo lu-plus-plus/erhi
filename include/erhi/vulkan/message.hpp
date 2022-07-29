@@ -1,13 +1,14 @@
 #ifndef ERHI_VULKAN_MESSAGE_HPP
 #define ERHI_VULKAN_MESSAGE_HPP
 
-#include <vulkan/vulkan.h>
+#include "erhi/vulkan/native.hpp"
+#include "erhi/common/message.hpp"
 
 
 
 namespace erhi::vk {
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL ForwardDebugUtilsCallback(
+	VKAPI_ATTR VkBool32 VKAPI_CALL adaptToMessageCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT * pCallbackData,

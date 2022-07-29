@@ -1,6 +1,6 @@
-#include <vulkan/vulkan.h>
+#include "erhi/vulkan/message.hpp"
 
-#include "erhi/common/message.hpp"
+
 
 namespace erhi::vk {
 
@@ -17,15 +17,15 @@ namespace erhi::vk {
 		return MessageType::Performance;
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL ForwardDebugUtilsCallback(
+	VKAPI_ATTR VkBool32 VKAPI_CALL adaptToMessageCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT * pCallbackData,
 		void * pUserData) {
 
-		MessageCallback const * pCallback{ static_cast<MessageCallback const *>(pUserData) };
+		IMessageCallback const * pCallback{ static_cast<IMessageCallback const *>(pUserData) };
 
-		(*pCallback)(MapMessageType(messageType), MapMessageSeverity(messageSeverity));
+		(*pCallback)(MapMessageType(messageType), MapMessageSeverity(messageSeverity), pCallbackData->pMessage);
 
 		return VK_FALSE;
 	}

@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <atomic>
 
+#include "handle.hpp"
+
 
 
 namespace erhi {
@@ -24,63 +26,18 @@ namespace erhi {
 		IObject(IObject && other) = delete;
 		IObject operator=(IObject &&) = delete;
 
-		virtual ~IObject() = 0;
+		virtual ~IObject() = default;
 
 	public:
 
 		uint32_t incRef() { return ++mCount; }
 
 		uint32_t release() {
-			if (--mCount == 0u) {
+			uint32_t const rest{ --mCount };
+			if (rest == 0u) {
 				delete this;
 			}
-		}
-
-	};
-
-
-
-	template <typename T>
-	struct Handle {
-
-	private:
-
-		T * pRaw;
-
-	public:
-
-		Handle() : pRaw(nullptr) {}
-		
-		Handle(nullptr_t) : pRaw(nullptr) {}
-
-		Handle(T * ptr) : pRaw(ptr) {
-			pRaw->incRef();
-		}
-
-		Handle(Handle const & other) : pRaw(other.pRaw) {
-			pRaw->incRef();
-		}
-
-		Handle & operator=(Handle const & other) {
-			pRaw->release();
-
-			pRaw = other.pRaw;
-			pRaw->incRef();
-		}
-
-		Handle(Handle && other) : pRaw(other.pRaw) {
-			other.pRaw = nullptr;
-		}
-
-		Handle & operator=(Handle && other) {
-			pRaw->release();
-
-			pRaw = other.pRaw;
-			other.pRaw = nullptr;
-		}
-
-		~Handle() {
-			if (pRaw) pRaw->release();
+			return rest;
 		}
 
 	};
