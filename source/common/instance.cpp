@@ -1,4 +1,5 @@
 #include "erhi/common/instance.hpp"
+#include "erhi/common/message.hpp"
 
 
 

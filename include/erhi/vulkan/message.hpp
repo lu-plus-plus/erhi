@@ -1,8 +1,8 @@
 #ifndef ERHI_VULKAN_MESSAGE_HPP
 #define ERHI_VULKAN_MESSAGE_HPP
 
-#include "erhi/vulkan/native.hpp"
-#include "erhi/common/message.hpp"
+#include "../common/message.hpp"
+#include "native.hpp"
 
 
 

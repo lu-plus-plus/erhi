@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "handle.hpp"
 #include "object.hpp"
 
 
@@ -41,8 +42,6 @@ namespace erhi {
 		virtual ~IMessageCallback();
 
 	};
-
-	using MessageCallbackHandle = Handle<IMessageCallback>;
 
 }
 

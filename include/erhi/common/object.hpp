@@ -42,8 +42,6 @@ namespace erhi {
 
 	};
 
-	using ObjectHandle = Handle<IObject>;
-
 }
 
 

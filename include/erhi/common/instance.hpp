@@ -3,9 +3,8 @@
 
 #include <vector>
 
+#include "handle.hpp"
 #include "object.hpp"
-#include "message.hpp"
-#include "physical_device.hpp"
 
 
 
@@ -26,9 +25,9 @@ namespace erhi {
 
 		virtual std::vector<PhysicalDeviceHandle> listPhysicalDevices() const = 0;
 
-	};
+		virtual PhysicalDeviceHandle selectDefaultPhysicalDevice() const = 0;
 
-	using InstanceHandle = Handle<IInstance>;
+	};
 
 
 

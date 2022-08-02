@@ -3,9 +3,8 @@
 
 #include <vector>
 
-#include "native.hpp"
-
 #include "../common/physical_device.hpp"
+#include "native.hpp"
 
 
 
@@ -14,6 +13,8 @@ namespace erhi::vk {
 	struct PhysicalDevice : IPhysicalDevice {
 	
 	private:
+
+		VkInstance								mInstance;
 
 		VkPhysicalDevice						mNativeDevice;
 		VkPhysicalDeviceProperties2				mProperties;
@@ -27,9 +28,10 @@ namespace erhi::vk {
 
 		~PhysicalDevice();
 
-		virtual uint32_t deviceID() const override;
-		virtual char const * deviceName() const override;
-		virtual PhysicalDeviceType deviceType() const override;
+		virtual char const * name() const override;
+		virtual PhysicalDeviceType type() const override;
+
+		virtual DeviceHandle createDevice() const override;
 
 	};
 

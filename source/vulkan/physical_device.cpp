@@ -1,4 +1,5 @@
 #include "erhi/vulkan/physical_device.hpp"
+#include "erhi/vulkan/device.hpp"
 
 
 
@@ -6,6 +7,7 @@ namespace erhi::vk {
 
 	PhysicalDevice::PhysicalDevice(VkInstance instance, VkPhysicalDevice nativeDevice) :
 		IPhysicalDevice{},
+		mInstance{ instance },
 		mNativeDevice{ nativeDevice },
 		mProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = nullptr, .properties = {} },
 		mFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = nullptr, .features = {} },
@@ -24,21 +26,24 @@ namespace erhi::vk {
 		vkGetPhysicalDeviceQueueFamilyProperties2(mNativeDevice, &queueFamilyCount, nullptr);
 		mQueueFamilies.resize(queueFamilyCount, VkQueueFamilyProperties2{ VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 });
 		vkGetPhysicalDeviceQueueFamilyProperties2(mNativeDevice, &queueFamilyCount, mQueueFamilies.data());
-
 	}
 
 	PhysicalDevice::~PhysicalDevice() = default;
 
-	uint32_t PhysicalDevice::deviceID() const {
-		return mProperties.properties.deviceID;
-	}
 
-	char const * PhysicalDevice::deviceName() const {
+
+	char const * PhysicalDevice::name() const {
 		return mProperties.properties.deviceName;
 	}
 
-	PhysicalDeviceType PhysicalDevice::deviceType() const {
+	PhysicalDeviceType PhysicalDevice::type() const {
 		return mProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ? PhysicalDeviceType::Integrated : PhysicalDeviceType::Discrete;
+	}
+
+
+
+	DeviceHandle PhysicalDevice::createDevice() const {
+		return nullptr;
 	}
 
 }

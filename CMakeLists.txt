@@ -33,22 +33,30 @@ add_library(erhi SHARED
 	${ERHI_INCLUDE_DIR}/erhi/common/message.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/instance.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/physical_device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/common/device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/common/queue.hpp
 
 	${ERHI_SOURCE_DIR}/common/message.cpp
 	${ERHI_SOURCE_DIR}/common/instance.cpp
 	${ERHI_SOURCE_DIR}/common/physical_device.cpp
+	${ERHI_SOURCE_DIR}/common/device.cpp
+	${ERHI_SOURCE_DIR}/common/queue.cpp
 
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/native.hpp
 	
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/message.hpp
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/instance.hpp
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/physical_device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/queue.hpp
 
 	${ERHI_SOURCE_DIR}/vulkan/native.cpp
 	
 	${ERHI_SOURCE_DIR}/vulkan/message.cpp
 	${ERHI_SOURCE_DIR}/vulkan/instance.cpp
 	${ERHI_SOURCE_DIR}/vulkan/physical_device.cpp
+	${ERHI_SOURCE_DIR}/vulkan/device.cpp
+	${ERHI_SOURCE_DIR}/vulkan/queue.cpp
 )
 
 target_include_directories(erhi

@@ -1,13 +1,13 @@
 #ifndef ERHI_HANDLE_HPP
 #define ERHI_HANDLE_HPP
 
-#include <utility>
 #include <concepts>
+#include <utility>
 
 
 
 namespace erhi {
-
+	
 	template <typename T>
 	struct Handle {
 
@@ -80,10 +80,27 @@ namespace erhi {
 
 	};
 
+
+
 	template <typename T, typename ... Args>
 	Handle<T> create(Args && ... args) {
 		return Handle<T>{ new T{ std::forward<Args>(args) ... } };
 	}
+
+
+
+#define DeclareHandle(type) struct I ## type; using type ## Handle = Handle<I ## type>;
+
+	DeclareHandle(Object);
+
+	DeclareHandle(Instance);
+	DeclareHandle(PhysicalDevice);
+	DeclareHandle(Device);
+	DeclareHandle(MessageCallback);
+
+	DeclareHandle(Queue);
+
+#undef DeclareHandle
 
 }
 

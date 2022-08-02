@@ -3,6 +3,7 @@
 #include <format>
 
 #include "erhi/vulkan/instance.hpp"
+#include "erhi/vulkan/physical_device.hpp"
 #include "erhi/vulkan/message.hpp"
 
 
@@ -97,6 +98,19 @@ namespace erhi::vk {
 
 		volkLoadInstance(mInstance);
 
+		uint32_t physicalDeviceCount{ 0u };
+		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
+		std::vector<VkPhysicalDevice> physicalDevices{ physicalDeviceCount };
+		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices.data());
+
+		mpPhysicalDevices.resize(physicalDeviceCount);
+		for (uint32_t i = 0; i < physicalDeviceCount; ++i) mpPhysicalDevices[i] = create<PhysicalDevice>(mInstance, physicalDevices[i]);
+
+		mpMessageCallback->verbose("physical devices:");
+		for (auto const & ptr : mpPhysicalDevices) {
+			mpMessageCallback->verbose(std::format("{} physical device '{}'", ptr->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", ptr->name()));
+		}
+		mpMessageCallback->verbose("");
 	}
 
 
@@ -106,23 +120,18 @@ namespace erhi::vk {
 
 
 	std::vector<PhysicalDeviceHandle> Instance::listPhysicalDevices() const {
+		return mpPhysicalDevices;
+	}
 
-		uint32_t physicalDeviceCount{ 0u };
-		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
-		std::vector<VkPhysicalDevice> physicalDevices{ physicalDeviceCount };
-		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices.data());
+	PhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() const {
+		if (mpPhysicalDevices.size() == 0) return nullptr;
 
-		std::vector<PhysicalDeviceHandle> pPhysicalDevices{ physicalDeviceCount };
-		for (uint32_t i = 0; i < physicalDeviceCount; ++i) pPhysicalDevices[i] = create<PhysicalDevice>(mInstance, physicalDevices[i]);
+		auto ppDefault{ std::find_if(mpPhysicalDevices.begin(), mpPhysicalDevices.end(), [] (PhysicalDeviceHandle const & ptr) -> bool {
+			return ptr->type() == PhysicalDeviceType::Discrete;
+		}) };
+		if (ppDefault != mpPhysicalDevices.end()) return *ppDefault;
 		
-		mpMessageCallback->verbose("physical devices:");
-		for (auto const & ptr : pPhysicalDevices) {
-			mpMessageCallback->verbose(std::format("{} physical device '{}', id = {}", ptr->deviceType() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", ptr->deviceName(), ptr->deviceID()));
-		}
-		mpMessageCallback->verbose("");
-
-		return pPhysicalDevices;
-
+		return mpPhysicalDevices[0];
 	}
 
 }

@@ -4,7 +4,6 @@
 #include "../common/instance.hpp"
 #include "../common/message.hpp"
 #include "native.hpp"
-#include "physical_device.hpp"
 
 
 
@@ -23,6 +22,8 @@ namespace erhi::vk {
 		
 		virtual std::vector<PhysicalDeviceHandle> listPhysicalDevices() const override;
 		
+		virtual PhysicalDeviceHandle selectDefaultPhysicalDevice() const override;
+
 	};
 
 }
