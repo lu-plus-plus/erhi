@@ -16,13 +16,44 @@ set(ERHI_EXAMPLES_DIR		${PROJECT_SOURCE_DIR}/examples)
 
 
 
-add_subdirectory(${ERHI_PACKAGES_DIR}/spdlog EXCLUDE_FROM_ALL)
-
 set(VOLK_STATIC_DEFINES)
 if(WIN32)
 	set(VK_USE_PLATFORM_WIN32_KHR)
 endif()
 add_subdirectory(${ERHI_PACKAGES_DIR}/volk EXCLUDE_FROM_ALL)
+
+
+
+add_library(erhi_headers INTERFACE)
+
+target_include_directories(erhi_headers
+	INTERFACE ${ERHI_INCLUDE_DIR}
+)
+
+
+
+add_library(erhi_vulkan STATIC
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/native.hpp
+	
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/message.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/instance.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/physical_device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/queue.hpp
+
+	${ERHI_SOURCE_DIR}/vulkan/native.cpp
+	
+	${ERHI_SOURCE_DIR}/vulkan/message.cpp
+	${ERHI_SOURCE_DIR}/vulkan/instance.cpp
+	${ERHI_SOURCE_DIR}/vulkan/physical_device.cpp
+	${ERHI_SOURCE_DIR}/vulkan/device.cpp
+	${ERHI_SOURCE_DIR}/vulkan/queue.cpp
+)
+
+target_link_libraries(erhi_vulkan
+	PRIVATE erhi_headers
+	PUBLIC volk::volk
+)
 
 
 
@@ -41,30 +72,11 @@ add_library(erhi SHARED
 	${ERHI_SOURCE_DIR}/common/physical_device.cpp
 	${ERHI_SOURCE_DIR}/common/device.cpp
 	${ERHI_SOURCE_DIR}/common/queue.cpp
-
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/native.hpp
-	
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/message.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/instance.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/physical_device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/queue.hpp
-
-	${ERHI_SOURCE_DIR}/vulkan/native.cpp
-	
-	${ERHI_SOURCE_DIR}/vulkan/message.cpp
-	${ERHI_SOURCE_DIR}/vulkan/instance.cpp
-	${ERHI_SOURCE_DIR}/vulkan/physical_device.cpp
-	${ERHI_SOURCE_DIR}/vulkan/device.cpp
-	${ERHI_SOURCE_DIR}/vulkan/queue.cpp
-)
-
-target_include_directories(erhi
-	PRIVATE ${ERHI_INCLUDE_DIR}
 )
 
 target_link_libraries(erhi
-	PRIVATE volk::volk
+	PRIVATE erhi_headers
+	PUBLIC erhi_vulkan
 )
 
 
@@ -80,7 +92,6 @@ target_include_directories(erhi_examples_utils
 
 target_link_libraries(erhi_examples_utils
 	PRIVATE erhi
-	PRIVATE spdlog::spdlog_header_only
 )
 
 

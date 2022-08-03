@@ -1,6 +1,3 @@
-[submodule "packages/spdlog"]
-	path = packages/spdlog
-	url = git@github.com:gabime/spdlog.git
 [submodule "packages/volk"]
 	path = packages/volk
 	url = git@github.com:zeux/volk.git
