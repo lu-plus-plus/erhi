@@ -14,12 +14,12 @@ using namespace erhi::vk;
 
 int main() {
 
-	InstanceHandle pInstance{ createInstance(InstanceDesc{
+	auto pInstance{ createInstance(InstanceDesc{
 		.enableDebug = true,
 		.pMessageCallback = create<DefaultMessageCallback>(MessageSeverity::Verbose)
 	}) };
 
-	PhysicalDeviceHandle pPhysicalDevice{ pInstance->selectDefaultPhysicalDevice() };
+	auto pPhysicalDevice{ pInstance->selectDefaultPhysicalDevice() };
 
 	return 0;
 }

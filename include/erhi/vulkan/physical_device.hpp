@@ -5,6 +5,7 @@
 
 #include "../common/physical_device.hpp"
 #include "native.hpp"
+#include "instance.hpp"
 
 
 
@@ -13,7 +14,7 @@ namespace erhi::vk {
 	struct PhysicalDevice : IPhysicalDevice {
 	
 	private:
-
+		
 		VkInstance								mInstance;
 
 		VkPhysicalDevice						mNativeDevice;
@@ -31,7 +32,7 @@ namespace erhi::vk {
 		virtual char const * name() const override;
 		virtual PhysicalDeviceType type() const override;
 
-		virtual DeviceHandle createDevice() const override;
+		virtual IDeviceHandle createDevice() const override;
 
 	};
 

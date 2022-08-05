@@ -12,27 +12,31 @@ namespace erhi {
 
 	struct InstanceDesc {
 		bool					enableDebug;
-		MessageCallbackHandle	pMessageCallback;
+		IMessageCallbackHandle	pMessageCallback;
 	};
 
+
+
 	struct IInstance : IObject {
-		
-		MessageCallbackHandle const mpMessageCallback;
+
+		IMessageCallbackHandle const mpMessageCallback;
 
 		IInstance(InstanceDesc const & desc);
 		
 		virtual ~IInstance();
 
-		virtual std::vector<PhysicalDeviceHandle> listPhysicalDevices() const = 0;
+		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() const = 0;
 
-		virtual PhysicalDeviceHandle selectDefaultPhysicalDevice() const = 0;
+		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() const = 0;
 
 	};
 
 
 
 	namespace vk {
-		InstanceHandle createInstance(InstanceDesc const & desc);
+
+		IInstanceHandle createInstance(InstanceDesc const & desc);
+	
 	}
 
 }

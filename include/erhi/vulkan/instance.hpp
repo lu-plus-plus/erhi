@@ -2,7 +2,6 @@
 #define ERHI_VULKAN_INSTANCE_HPP
 
 #include "../common/instance.hpp"
-#include "../common/message.hpp"
 #include "native.hpp"
 
 
@@ -14,15 +13,15 @@ namespace erhi::vk {
 		static std::atomic<bool>			gIsVolkInitialized;
 
 		VkInstance							mInstance;
-		std::vector<PhysicalDeviceHandle>	mpPhysicalDevices;
+		std::vector<VkPhysicalDevice>		mPhysicalDevices;
 
 		Instance(InstanceDesc const & desc);
 
 		~Instance();
 		
-		virtual std::vector<PhysicalDeviceHandle> listPhysicalDevices() const override;
+		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() const override;
 		
-		virtual PhysicalDeviceHandle selectDefaultPhysicalDevice() const override;
+		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() const override;
 
 	};
 

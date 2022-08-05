@@ -23,7 +23,7 @@ namespace erhi {
 		virtual char const * name() const = 0;
 		virtual PhysicalDeviceType type() const = 0;
 
-		virtual DeviceHandle createDevice() const = 0;
+		virtual IDeviceHandle createDevice() const = 0;
 
 	};
 

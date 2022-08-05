@@ -42,7 +42,7 @@ namespace erhi::vk {
 
 
 
-	DeviceHandle PhysicalDevice::createDevice() const {
+	IDeviceHandle PhysicalDevice::createDevice() const {
 		return nullptr;
 	}
 

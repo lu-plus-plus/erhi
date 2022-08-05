@@ -9,7 +9,7 @@
 namespace erhi {
 	
 	template <typename T>
-	struct Handle {
+	struct [[nodiscard]] Handle {
 
 	private:
 
@@ -78,6 +78,10 @@ namespace erhi {
 			return pRaw;
 		}
 
+		operator bool() const {
+			return pRaw != nullptr;
+		}
+
 	};
 
 
@@ -89,18 +93,18 @@ namespace erhi {
 
 
 
-#define DeclareHandle(type) struct I ## type; using type ## Handle = Handle<I ## type>;
+#define DeclareInterfaceHandle(type) struct I ## type; using I ## type ## Handle = Handle<I ## type>;
 
-	DeclareHandle(Object);
+	DeclareInterfaceHandle(Object);
 
-	DeclareHandle(Instance);
-	DeclareHandle(PhysicalDevice);
-	DeclareHandle(Device);
-	DeclareHandle(MessageCallback);
+	DeclareInterfaceHandle(Instance);
+	DeclareInterfaceHandle(PhysicalDevice);
+	DeclareInterfaceHandle(Device);
+	DeclareInterfaceHandle(MessageCallback);
 
-	DeclareHandle(Queue);
+	DeclareInterfaceHandle(Queue);
 
-#undef DeclareHandle
+#undef DeclareInterfaceHandle
 
 }
 

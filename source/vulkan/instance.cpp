@@ -2,15 +2,15 @@
 
 #include <format>
 
+#include "erhi/vulkan/message.hpp"
 #include "erhi/vulkan/instance.hpp"
 #include "erhi/vulkan/physical_device.hpp"
-#include "erhi/vulkan/message.hpp"
 
 
 
 namespace erhi::vk {
 
-	InstanceHandle createInstance(InstanceDesc const & desc) {
+	IInstanceHandle createInstance(InstanceDesc const & desc) {
 		return create<Instance>(desc);
 	}
 
@@ -21,7 +21,7 @@ namespace erhi::vk {
 	Instance::Instance(InstanceDesc const & desc) :
 		IInstance{ desc },
 		mInstance{ VK_NULL_HANDLE },
-		mpPhysicalDevices{} {
+		mPhysicalDevices{} {
 
 		if (bool expected = false; gIsVolkInitialized.compare_exchange_strong(expected, true)) {
 			// <todo> Unsafe operation: once it finds out that volk is not initialized, it immediately tag it as initialized. </todo>
@@ -100,17 +100,8 @@ namespace erhi::vk {
 
 		uint32_t physicalDeviceCount{ 0u };
 		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
-		std::vector<VkPhysicalDevice> physicalDevices{ physicalDeviceCount };
-		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, physicalDevices.data());
-
-		mpPhysicalDevices.resize(physicalDeviceCount);
-		for (uint32_t i = 0; i < physicalDeviceCount; ++i) mpPhysicalDevices[i] = create<PhysicalDevice>(mInstance, physicalDevices[i]);
-
-		mpMessageCallback->verbose("physical devices:");
-		for (auto const & ptr : mpPhysicalDevices) {
-			mpMessageCallback->verbose(std::format("{} physical device '{}'", ptr->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", ptr->name()));
-		}
-		mpMessageCallback->verbose("");
+		mPhysicalDevices.resize(physicalDeviceCount);
+		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, mPhysicalDevices.data());
 	}
 
 
@@ -119,19 +110,32 @@ namespace erhi::vk {
 
 
 
-	std::vector<PhysicalDeviceHandle> Instance::listPhysicalDevices() const {
-		return mpPhysicalDevices;
+	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() const {
+		std::vector<IPhysicalDeviceHandle> pPhysicalDevices(mPhysicalDevices.size(), nullptr);
+
+		for (uint32_t i = 0; i < mPhysicalDevices.size(); ++i)
+			pPhysicalDevices[i] = create<PhysicalDevice>(mInstance, mPhysicalDevices[i]);
+
+		mpMessageCallback->verbose("physical devices:");
+		for (auto const & pPhysicalDevice : pPhysicalDevices) {
+			mpMessageCallback->verbose(std::format("{} physical device '{}'", pPhysicalDevice->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", pPhysicalDevice->name()));
+		}
+		mpMessageCallback->verbose("");
+
+		return pPhysicalDevices;
 	}
 
-	PhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() const {
-		if (mpPhysicalDevices.size() == 0) return nullptr;
+	IPhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() const {
+		if (mPhysicalDevices.size() == 0) return nullptr;
 
-		auto ppDefault{ std::find_if(mpPhysicalDevices.begin(), mpPhysicalDevices.end(), [] (PhysicalDeviceHandle const & ptr) -> bool {
-			return ptr->type() == PhysicalDeviceType::Discrete;
-		}) };
-		if (ppDefault != mpPhysicalDevices.end()) return *ppDefault;
-		
-		return mpPhysicalDevices[0];
+		for (auto physicalDevice : mPhysicalDevices) {
+			IPhysicalDeviceHandle handle{ create<PhysicalDevice>(mInstance, physicalDevice) };
+			if (handle->type() == PhysicalDeviceType::Discrete) {
+				return handle;
+			}
+		}
+
+		return create<PhysicalDevice>(mInstance, mPhysicalDevices[0]);
 	}
 
 }
