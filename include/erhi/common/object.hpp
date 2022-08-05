@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <atomic>
 
-#include "handle.hpp"
-
 
 
 namespace erhi {
