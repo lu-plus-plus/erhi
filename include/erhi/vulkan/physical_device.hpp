@@ -6,6 +6,9 @@
 #include "../common/physical_device.hpp"
 #include "native.hpp"
 
+#include "handle.hpp"
+#include "instance.hpp"
+
 
 
 namespace erhi::vk {
@@ -14,7 +17,7 @@ namespace erhi::vk {
 	
 	private:
 		
-		VkInstance								mInstance;
+		InstanceHandle							mpInstance;
 
 		VkPhysicalDevice						mNativeDevice;
 		VkPhysicalDeviceProperties2				mProperties;
@@ -24,7 +27,7 @@ namespace erhi::vk {
 		
 	public:
 
-		PhysicalDevice(VkInstance instance, VkPhysicalDevice nativeDevice);
+		PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice nativeDevice);
 
 		~PhysicalDevice();
 

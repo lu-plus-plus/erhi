@@ -87,13 +87,22 @@ namespace erhi {
 
 
 	template <typename T, typename ... Args>
-	Handle<T> create(Args && ... args) {
-		return Handle<T>{ new T{ std::forward<Args>(args) ... } };
+	requires std::constructible_from<T, Args...>
+	Handle<T> MakeHandle(Args && ... args) {
+		T * pRaw = new T{ std::forward<Args>(args)... };
+		return Handle<T>{ pRaw };
 	}
 
 
 
-#define DeclareInterfaceHandle(type) struct I ## type; using I ## type ## Handle = Handle<I ## type>;
+	template <typename To, typename From>
+	Handle<To> dynamic_handle_cast(Handle<From> const & from) {
+		return Handle<To>{ dynamic_cast<To *>(from.get()) };
+	}
+
+
+
+#define DeclareInterfaceHandle(type) using I ## type ## Handle = Handle<struct I ## type>;
 
 	DeclareInterfaceHandle(Object);
 

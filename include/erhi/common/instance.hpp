@@ -25,9 +25,9 @@ namespace erhi {
 		
 		virtual ~IInstance();
 
-		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() const = 0;
+		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() = 0;
 
-		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() const = 0;
+		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() = 0;
 
 	};
 

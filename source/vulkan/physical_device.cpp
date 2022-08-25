@@ -5,9 +5,9 @@
 
 namespace erhi::vk {
 
-	PhysicalDevice::PhysicalDevice(VkInstance instance, VkPhysicalDevice nativeDevice) :
+	PhysicalDevice::PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice nativeDevice) :
 		IPhysicalDevice{},
-		mInstance{ instance },
+		mpInstance{ pInstance },
 		mNativeDevice{ nativeDevice },
 		mProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = nullptr, .properties = {} },
 		mFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = nullptr, .features = {} },

@@ -16,7 +16,7 @@ int main() {
 
 	auto pInstance{ createInstance(InstanceDesc{
 		.enableDebug = true,
-		.pMessageCallback = create<DefaultMessageCallback>(MessageSeverity::Verbose)
+		.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Verbose)
 	}) };
 
 	auto pPhysicalDevice{ pInstance->selectDefaultPhysicalDevice() };

@@ -11,7 +11,7 @@
 namespace erhi::vk {
 
 	IInstanceHandle createInstance(InstanceDesc const & desc) {
-		return create<Instance>(desc);
+		return MakeHandle<Instance>(desc);
 	}
 
 
@@ -110,11 +110,11 @@ namespace erhi::vk {
 
 
 
-	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() const {
+	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() {
 		std::vector<IPhysicalDeviceHandle> pPhysicalDevices(mPhysicalDevices.size(), nullptr);
 
 		for (uint32_t i = 0; i < mPhysicalDevices.size(); ++i)
-			pPhysicalDevices[i] = create<PhysicalDevice>(mInstance, mPhysicalDevices[i]);
+			pPhysicalDevices[i] = MakeHandle<PhysicalDevice>(this, mPhysicalDevices[i]);
 
 		mpMessageCallback->verbose("physical devices:");
 		for (auto const & pPhysicalDevice : pPhysicalDevices) {
@@ -125,17 +125,17 @@ namespace erhi::vk {
 		return pPhysicalDevices;
 	}
 
-	IPhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() const {
+	IPhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() {
 		if (mPhysicalDevices.size() == 0) return nullptr;
 
 		for (auto physicalDevice : mPhysicalDevices) {
-			IPhysicalDeviceHandle handle{ create<PhysicalDevice>(mInstance, physicalDevice) };
+			auto handle{ MakeHandle<PhysicalDevice>(this, physicalDevice) };
 			if (handle->type() == PhysicalDeviceType::Discrete) {
 				return handle;
 			}
 		}
 
-		return create<PhysicalDevice>(mInstance, mPhysicalDevices[0]);
+		return MakeHandle<PhysicalDevice>(this, mPhysicalDevices[0]);
 	}
 
 }

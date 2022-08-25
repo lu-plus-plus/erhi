@@ -34,6 +34,7 @@ target_include_directories(erhi_headers
 
 add_library(erhi_vulkan STATIC
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/native.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/handle.hpp
 	
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/message.hpp
 	${ERHI_INCLUDE_DIR}/erhi/vulkan/instance.hpp
