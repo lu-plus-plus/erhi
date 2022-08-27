@@ -12,9 +12,9 @@
 
 namespace erhi::vk {
 
-	Device::Device(DeviceDesc const & desc) :
-		IDevice{ desc },
-		mpPhysicalDevice{ dynamic_handle_cast<PhysicalDevice>(desc.physicalDeviceHandle) },
+	Device::Device(PhysicalDeviceHandle physicalDeviceHandle) :
+		IDevice{ physicalDeviceHandle },
+		mpPhysicalDevice{ physicalDeviceHandle },
 		mDevice{ VK_NULL_HANDLE } {
 	
 		std::optional<uint32_t> primaryQueueFamilyIndex;

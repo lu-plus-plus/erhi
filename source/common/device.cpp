@@ -5,7 +5,7 @@
 
 namespace erhi {
 
-	IDevice::IDevice(DeviceDesc const &) : IObject{} {}
+	IDevice::IDevice(IPhysicalDeviceHandle physicalDeviceHandle) : IObject{} {}
 
 	IDevice::~IDevice() = default;
 

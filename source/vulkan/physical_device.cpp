@@ -43,10 +43,7 @@ namespace erhi::vk {
 
 
 	IDeviceHandle PhysicalDevice::createDevice() {
-		DeviceDesc desc{
-			.physicalDeviceHandle = PhysicalDeviceHandle(this)
-		};
-		return MakeHandle<Device>(desc);
+		return MakeHandle<Device>(PhysicalDeviceHandle(this));
 	}
 
 }

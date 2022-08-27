@@ -8,13 +8,11 @@
 
 namespace erhi {
 
-	struct DeviceDesc {
-		IPhysicalDeviceHandle physicalDeviceHandle;
-	};
-
 	struct IDevice : IObject {
-		IDevice(DeviceDesc const & desc);
+		IDevice(IPhysicalDeviceHandle physicalDeviceHandle);
 		~IDevice();
+
+		IQueueHandle createQueue();
 	};
 
 }

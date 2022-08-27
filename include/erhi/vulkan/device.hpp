@@ -15,7 +15,7 @@ namespace erhi::vk {
 		
 		VkDevice mDevice;
 
-		Device(DeviceDesc const & desc);
+		Device(PhysicalDeviceHandle physicalDeviceHandle);
 
 		~Device();
 
