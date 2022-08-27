@@ -5,27 +5,27 @@
 
 namespace erhi::vk {
 
-	PhysicalDevice::PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice nativeDevice) :
+	PhysicalDevice::PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice physicalDevice) :
 		IPhysicalDevice{},
 		mpInstance{ pInstance },
-		mNativeDevice{ nativeDevice },
+		mPhysicalDevice{ physicalDevice },
 		mProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = nullptr, .properties = {} },
 		mFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = nullptr, .features = {} },
 		mExtensions{},
 		mQueueFamilies{} {
 
-		vkGetPhysicalDeviceProperties2(nativeDevice, &mProperties);
-		vkGetPhysicalDeviceFeatures2(nativeDevice, &mFeatures);
+		vkGetPhysicalDeviceProperties2(physicalDevice, &mProperties);
+		vkGetPhysicalDeviceFeatures2(physicalDevice, &mFeatures);
 
 		uint32_t extensionCount = 0;
-		vkCheckResult(vkEnumerateDeviceExtensionProperties(mNativeDevice, nullptr, &extensionCount, nullptr));
+		vkCheckResult(vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, nullptr));
 		mExtensions.resize(extensionCount);
-		vkCheckResult(vkEnumerateDeviceExtensionProperties(mNativeDevice, nullptr, &extensionCount, mExtensions.data()));
+		vkCheckResult(vkEnumerateDeviceExtensionProperties(mPhysicalDevice, nullptr, &extensionCount, mExtensions.data()));
 
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties2(mNativeDevice, &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties2(mPhysicalDevice, &queueFamilyCount, nullptr);
 		mQueueFamilies.resize(queueFamilyCount, VkQueueFamilyProperties2{ VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 });
-		vkGetPhysicalDeviceQueueFamilyProperties2(mNativeDevice, &queueFamilyCount, mQueueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties2(mPhysicalDevice, &queueFamilyCount, mQueueFamilies.data());
 	}
 
 	PhysicalDevice::~PhysicalDevice() = default;
@@ -42,8 +42,11 @@ namespace erhi::vk {
 
 
 
-	IDeviceHandle PhysicalDevice::createDevice() const {
-		return nullptr;
+	IDeviceHandle PhysicalDevice::createDevice() {
+		DeviceDesc desc{
+			.physicalDeviceHandle = PhysicalDeviceHandle(this)
+		};
+		return MakeHandle<Device>(desc);
 	}
 
 }

@@ -21,6 +21,7 @@ namespace erhi::vk {
 	Instance::Instance(InstanceDesc const & desc) :
 		IInstance{ desc },
 		mInstance{ VK_NULL_HANDLE },
+		mDebugUtilsMessenger{ VK_NULL_HANDLE },
 		mPhysicalDevices{} {
 
 		if (bool expected = false; gIsVolkInitialized.compare_exchange_strong(expected, true)) {
@@ -98,6 +99,10 @@ namespace erhi::vk {
 
 		volkLoadInstance(mInstance);
 
+		if (desc.enableDebug) {
+			vkCheckResult(vkCreateDebugUtilsMessengerEXT(mInstance, &debugUtilsMessengerCreateInfo, nullptr, &mDebugUtilsMessenger));
+		}
+
 		uint32_t physicalDeviceCount{ 0u };
 		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
 		mPhysicalDevices.resize(physicalDeviceCount);
@@ -106,7 +111,12 @@ namespace erhi::vk {
 
 
 
-	Instance::~Instance() = default;
+	Instance::~Instance() {
+		if (mDebugUtilsMessenger != VK_NULL_HANDLE) {
+			vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugUtilsMessenger, nullptr);
+		}
+		vkDestroyInstance(mInstance, nullptr);
+	}
 
 
 

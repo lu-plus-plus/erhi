@@ -13,6 +13,7 @@ namespace erhi::vk {
 		static std::atomic<bool>			gIsVolkInitialized;
 
 		VkInstance							mInstance;
+		VkDebugUtilsMessengerEXT			mDebugUtilsMessenger;
 		std::vector<VkPhysicalDevice>		mPhysicalDevices;
 
 		Instance(InstanceDesc const & desc);
