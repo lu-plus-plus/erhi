@@ -13,7 +13,7 @@ namespace erhi::vk {
 		DeviceHandle	mDeviceHandle;
 		VkQueue			mQueue;
 
-		Queue(DeviceHandle deviceHandle, QueueType queueType, uint32_t queueFamilyIndex);
+		Queue(DeviceHandle deviceHandle, QueueType queueType, VkQueue queue);
 		~Queue();
 	};
 

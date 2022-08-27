@@ -5,9 +5,7 @@
 
 #include "../common/physical_device.hpp"
 #include "native.hpp"
-
 #include "handle.hpp"
-#include "instance.hpp"
 
 
 
@@ -30,7 +28,7 @@ namespace erhi::vk {
 		virtual char const * name() const override;
 		virtual PhysicalDeviceType type() const override;
 
-		virtual IDeviceHandle createDevice() override;
+		virtual IDeviceHandle createDevice(DeviceDesc const & desc) override;
 
 	};
 

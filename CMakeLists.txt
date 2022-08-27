@@ -59,6 +59,7 @@ target_link_libraries(erhi_vulkan
 
 
 add_library(erhi SHARED
+	${ERHI_INCLUDE_DIR}/erhi/common/common.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/handle.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/object.hpp
 

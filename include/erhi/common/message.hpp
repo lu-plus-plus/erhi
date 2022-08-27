@@ -3,26 +3,11 @@
 
 #include <string>
 
-#include "object.hpp"
+#include "common.hpp"
 
 
 
 namespace erhi {
-
-	enum class MessageType : uint32_t {
-		General,
-		Validation,
-		Performance
-	};
-
-	enum class MessageSeverity : uint32_t {
-		Verbose,
-		Info,
-		Warning,
-		Error
-	};
-
-
 
 	struct IMessageCallback : IObject {
 

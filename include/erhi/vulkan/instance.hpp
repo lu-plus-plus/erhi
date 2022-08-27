@@ -3,6 +3,7 @@
 
 #include "../common/instance.hpp"
 #include "native.hpp"
+#include "handle.hpp"
 
 
 
@@ -22,7 +23,7 @@ namespace erhi::vk {
 		
 		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() override;
 		
-		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() override;
+		virtual IPhysicalDeviceHandle selectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
 
 	};
 

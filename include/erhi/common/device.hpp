@@ -1,8 +1,7 @@
 #ifndef ERHI_DEVICE_HPP
 #define ERHI_DEVICE_HPP
 
-#include "handle.hpp"
-#include "object.hpp"
+#include "common.hpp"
 
 
 
@@ -12,7 +11,7 @@ namespace erhi {
 		IDevice(IPhysicalDeviceHandle physicalDeviceHandle);
 		~IDevice();
 
-		IQueueHandle createQueue();
+		virtual IQueueHandle selectQueue(QueueType queueType) = 0;
 	};
 
 }

@@ -3,19 +3,11 @@
 
 #include <vector>
 
-#include "handle.hpp"
-#include "object.hpp"
+#include "common.hpp"
 
 
 
 namespace erhi {
-
-	struct InstanceDesc {
-		bool					enableDebug;
-		IMessageCallbackHandle	pMessageCallback;
-	};
-
-
 
 	struct IInstance : IObject {
 
@@ -27,7 +19,7 @@ namespace erhi {
 
 		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() = 0;
 
-		virtual IPhysicalDeviceHandle selectDefaultPhysicalDevice() = 0;
+		virtual IPhysicalDeviceHandle selectPhysicalDevice(PhysicalDeviceDesc const & desc) = 0;
 
 	};
 

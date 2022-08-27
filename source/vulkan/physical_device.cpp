@@ -1,3 +1,4 @@
+#include "erhi/vulkan/instance.hpp"
 #include "erhi/vulkan/physical_device.hpp"
 #include "erhi/vulkan/device.hpp"
 
@@ -42,7 +43,7 @@ namespace erhi::vk {
 
 
 
-	IDeviceHandle PhysicalDevice::createDevice() {
+	IDeviceHandle PhysicalDevice::createDevice(DeviceDesc const & desc) {
 		return MakeHandle<Device>(PhysicalDeviceHandle(this));
 	}
 

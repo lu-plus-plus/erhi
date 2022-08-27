@@ -135,17 +135,17 @@ namespace erhi::vk {
 		return pPhysicalDevices;
 	}
 
-	IPhysicalDeviceHandle Instance::selectDefaultPhysicalDevice() {
-		if (mPhysicalDevices.size() == 0) return nullptr;
-
+	IPhysicalDeviceHandle Instance::selectPhysicalDevice(PhysicalDeviceDesc const & desc) {
 		for (auto physicalDevice : mPhysicalDevices) {
 			auto handle{ MakeHandle<PhysicalDevice>(this, physicalDevice) };
-			if (handle->type() == PhysicalDeviceType::Discrete) {
+			if (handle->type() == desc.type) {
 				return handle;
 			}
 		}
 
-		return MakeHandle<PhysicalDevice>(this, mPhysicalDevices[0]);
+		throw std::runtime_error("Failed to find a proper physical device.");
+
+		return nullptr;
 	}
 
 }

@@ -1,12 +1,13 @@
-// for optional queue family indices
-#include <optional>
 // for mandatory primary queue family
 #include <stdexcept>
-//#include <format>
-//#include <iostream>
+// for formatting exception log
+#include <format>
+// for debugging
+#include <iostream>
 
-#include "erhi/vulkan/device.hpp"
 #include "erhi/vulkan/physical_device.hpp"
+#include "erhi/vulkan/device.hpp"
+#include "erhi/vulkan/queue.hpp"
 
 
 
@@ -90,10 +91,50 @@ namespace erhi::vk {
 
 		vkCheckResult(vkCreateDevice(mpPhysicalDevice->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
 		
+		auto GetDeviceQueue = [this] (int queueFamilyIndex) {
+			VkDeviceQueueInfo2 queueInfo{
+				.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2,
+				.pNext = nullptr,
+				.flags = 0,
+				.queueFamilyIndex = 0,
+				.queueIndex = 0
+			};
+			VkQueue queue;
+			vkGetDeviceQueue2(mDevice, &queueInfo, &queue);
+			return queue;
+		};
+		
+		mPrimaryQueue = GetDeviceQueue(primaryQueueFamilyIndex.value());
+		if (computeQueueFamilyIndex) mComputeQueue = GetDeviceQueue(computeQueueFamilyIndex.value());
+		if (copyQueueFamilyIndex) mComputeQueue = GetDeviceQueue(copyQueueFamilyIndex.value());
 	}
 
 	Device::~Device() {
 		vkDestroyDevice(mDevice, nullptr);
+	}
+
+	IQueueHandle Device::selectQueue(QueueType queueType) {
+		auto deviceHandle = DeviceHandle(this);
+
+		switch (queueType) {
+			case QueueType::Primary: {
+				return MakeHandle<Queue>(deviceHandle, queueType, mPrimaryQueue);
+			} break;
+
+			case QueueType::Compute: {
+				if (mComputeQueue) return MakeHandle<Queue>(deviceHandle, queueType, mComputeQueue.value());
+				else throw std::runtime_error(std::format("No compute queue is found on device {}.", mpPhysicalDevice->name()));
+			} break;
+
+			case QueueType::Copy: {
+				if (mCopyQueue) return MakeHandle<Queue>(deviceHandle, queueType, mCopyQueue.value());
+				else throw std::runtime_error(std::format("No copy queue is found on device {}.", mpPhysicalDevice->name()));
+			} break;
+
+			default: break;
+		}
+
+		return nullptr;
 	}
 
 }
