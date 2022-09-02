@@ -18,6 +18,7 @@ namespace erhi::vk {
 		VkPhysicalDevice						mPhysicalDevice;
 		VkPhysicalDeviceProperties2				mProperties;
 		VkPhysicalDeviceFeatures2				mFeatures;
+		VkPhysicalDeviceMemoryProperties2		mMemoryProperties;
 		std::vector<VkExtensionProperties>		mExtensions;
 		std::vector<VkQueueFamilyProperties2>	mQueueFamilies;
 
