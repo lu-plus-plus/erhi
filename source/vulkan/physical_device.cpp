@@ -23,6 +23,8 @@ namespace erhi::vk {
 		vkGetPhysicalDeviceFeatures2(physicalDevice, &mFeatures);
 		vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &mMemoryProperties);
 
+		mpInstance->mpMessageCallback->info(mProperties.properties.deviceName);
+
 		for (uint32_t iHeap = 0; iHeap < mMemoryProperties.memoryProperties.memoryHeapCount; ++iHeap) {
 			VkMemoryHeap heap{ mMemoryProperties.memoryProperties.memoryHeaps[iHeap] };
 			std::string output{ std::format("heap {} - {} MB\n", iHeap, float(heap.size) / 1024.0f / 1024.0f) };

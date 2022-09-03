@@ -21,7 +21,7 @@ int main() {
 	});
 
 	auto pPhysicalDevice = pInstance->selectPhysicalDevice(PhysicalDeviceDesc{
-		.type = PhysicalDeviceType::Discrete
+		.type = PhysicalDeviceType::Integrated
 	});
 
 	auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
