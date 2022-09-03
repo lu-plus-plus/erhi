@@ -1,5 +1,3 @@
-#define ERHI_ENABLE_NATIVE_DECLARATION
-
 #include <format>
 
 #include "erhi/vulkan/message.hpp"

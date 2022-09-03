@@ -1,11 +1,7 @@
 #include <format>
 
 #include "erhi/common/common.hpp"
-#include "erhi/common/message.hpp"
-#include "erhi/common/instance.hpp"
-#include "erhi/common/physical_device.hpp"
-#include "erhi/common/device.hpp"
-#include "erhi/common/queue.hpp"
+#include "erhi/common/context.hpp"
 
 #include "utility/default_message_callback.hpp"
 

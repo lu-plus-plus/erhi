@@ -59,10 +59,12 @@ target_link_libraries(erhi_vulkan
 
 
 add_library(erhi SHARED
-	${ERHI_INCLUDE_DIR}/erhi/common/common.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/handle.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/object.hpp
 
+	${ERHI_INCLUDE_DIR}/erhi/common/common.hpp
+
+	${ERHI_INCLUDE_DIR}/erhi/common/context.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/message.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/instance.hpp
 	${ERHI_INCLUDE_DIR}/erhi/common/physical_device.hpp
