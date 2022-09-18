@@ -102,18 +102,36 @@ namespace erhi {
 
 
 
-#define DeclareInterfaceHandle(type) using I ## type ## Handle = Handle<struct I ## type>;
+	#define DeclareHandle(prefix, type) using prefix ## type ## Handle = Handle<struct prefix ## type>
 
-	DeclareInterfaceHandle(Object);
+	#define DeclareContextHandles(prefix)			\
+		DeclareHandle(prefix, MessageCallback);		\
+		DeclareHandle(prefix, Instance);			\
+		DeclareHandle(prefix, PhysicalDevice);		\
+		DeclareHandle(prefix, Device);				\
+		DeclareHandle(prefix, Queue)				\
 
-	DeclareInterfaceHandle(Instance);
-	DeclareInterfaceHandle(PhysicalDevice);
-	DeclareInterfaceHandle(Device);
-	DeclareInterfaceHandle(MessageCallback);
+	#define InterfacePrefix I
+	#define VulkanPrefix
+	#define DX12Prefix
 
-	DeclareInterfaceHandle(Queue);
+	DeclareContextHandles(InterfacePrefix);
 
-#undef DeclareInterfaceHandle
+	namespace vk {
+		DeclareContextHandles(VulkanPrefix);
+	}
+	
+	namespace dx12 {
+		DeclareContextHandles(DX12Prefix);
+	}
+
+	#undef InterfacePrefix
+	#undef VulkanPrefix
+	#undef DX12Prefix
+
+	#undef DeclareContextHandles
+
+	#undef DeclareHandle
 
 }
 
