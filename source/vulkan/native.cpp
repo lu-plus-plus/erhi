@@ -40,7 +40,7 @@ namespace erhi::vk {
 	bad_api_call::bad_api_call(VkResult result, char const * literal, unsigned line, char const * file) : mInfo{} {
 		std::snprintf(
 			mInfo, gInfoSize,
-			"`%s` is returned from vulkan API call\n"
+			"`%s` is returned from Vulkan API call\n"
 			"\t`%s`\n"
 			"\tat line %u, file %s.\n",
 			ErrorCode(result), literal, line, file

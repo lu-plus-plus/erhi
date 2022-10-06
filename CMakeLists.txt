@@ -60,14 +60,23 @@ target_link_libraries(erhi_vulkan
 
 add_library(erhi_dx12 STATIC
 	${ERHI_INCLUDE_DIR}/erhi/dx12/native.hpp
+	${ERHI_SOURCE_DIR}/dx12/native.cpp
 
 	${ERHI_INCLUDE_DIR}/erhi/dx12/instance.hpp
+	${ERHI_INCLUDE_DIR}/erhi/dx12/physical_device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/dx12/device.hpp
+	${ERHI_INCLUDE_DIR}/erhi/dx12/queue.hpp
 
 	${ERHI_SOURCE_DIR}/dx12/instance.cpp
+	${ERHI_SOURCE_DIR}/dx12/physical_device.cpp
+	${ERHI_SOURCE_DIR}/dx12/device.cpp
+	${ERHI_SOURCE_DIR}/dx12/queue.cpp
 )
 
 target_link_libraries(erhi_dx12
 	PRIVATE erhi_headers
+	PRIVATE dxgi
+	PRIVATE d3d12
 )
 
 
@@ -97,6 +106,7 @@ add_library(erhi SHARED
 target_link_libraries(erhi
 	PRIVATE erhi_headers
 	PUBLIC erhi_vulkan
+	PUBLIC erhi_dx12
 )
 
 

@@ -31,6 +31,12 @@ namespace erhi {
 	
 	}
 
+	namespace dx12 {
+
+		IInstanceHandle createInstance(InstanceDesc const & desc);
+
+	}
+
 }
 
 

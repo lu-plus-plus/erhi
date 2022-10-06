@@ -10,14 +10,13 @@ using namespace erhi;
 
 
 int main() {
-
-	auto pInstance = vk::createInstance(InstanceDesc{
+	auto pInstance = dx12::createInstance(InstanceDesc{
 		.enableDebug = true,
 		.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 	});
 
 	auto pPhysicalDevice = pInstance->selectPhysicalDevice(PhysicalDeviceDesc{
-		.type = PhysicalDeviceType::Integrated
+		.type = PhysicalDeviceType::Discrete
 	});
 
 	auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});

@@ -9,7 +9,7 @@ namespace erhi {
 
 	struct IDevice : IObject {
 		IDevice(IPhysicalDeviceHandle physicalDeviceHandle);
-		~IDevice();
+		virtual ~IDevice();
 
 		virtual IQueueHandle selectQueue(QueueType queueType) = 0;
 	};

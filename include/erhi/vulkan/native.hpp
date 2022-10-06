@@ -13,15 +13,11 @@ namespace erhi::vk {
 
 	struct bad_api_call : std::exception {
 
-	private:
-
 		static constexpr unsigned gInfoSize{ 1024u };
 		char mInfo[gInfoSize];
 
-	public:
-
 		bad_api_call(VkResult result, char const * literal, unsigned line, char const * file);
-		~bad_api_call();
+		virtual ~bad_api_call();
 
 		virtual char const * what() const override;
 

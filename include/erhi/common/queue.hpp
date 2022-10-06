@@ -11,7 +11,7 @@ namespace erhi {
 		QueueType mQueueType;
 
 		IQueue(QueueType queueType);
-		~IQueue();
+		virtual ~IQueue();
 	};
 
 }
