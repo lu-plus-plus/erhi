@@ -102,36 +102,38 @@ namespace erhi {
 
 
 
-	#define DeclareHandle(prefix, type) using prefix ## type ## Handle = Handle<struct prefix ## type>
+	using IMessageCallbackHandle	= Handle<struct IMessageCallback>;
+	using IInstanceHandle			= Handle<struct IInstance>;
+	using IPhysicalDeviceHandle		= Handle<struct IPhysicalDevice>;
+	using IDeviceHandle				= Handle<struct IDevice>;
 
-	#define DeclareContextHandles(prefix)			\
-		DeclareHandle(prefix, MessageCallback);		\
-		DeclareHandle(prefix, Instance);			\
-		DeclareHandle(prefix, PhysicalDevice);		\
-		DeclareHandle(prefix, Device);				\
-		DeclareHandle(prefix, Queue)				\
+	using IQueueHandle				= Handle<struct IQueue>;
 
-	#define InterfacePrefix I
-	#define VulkanPrefix
-	#define DX12Prefix
 
-	DeclareContextHandles(InterfacePrefix);
 
 	namespace vk {
-		DeclareContextHandles(VulkanPrefix);
+
+		using MessageCallbackHandle = Handle<struct MessageCallback>;
+		using InstanceHandle = Handle<struct Instance>;
+		using PhysicalDeviceHandle = Handle<struct PhysicalDevice>;
+		using DeviceHandle = Handle<struct Device>;
+
+		using QueueHandle = Handle<struct Queue>;
+
 	}
 	
+
+
 	namespace dx12 {
-		DeclareContextHandles(DX12Prefix);
+
+		using MessageCallbackHandle = Handle<struct MessageCallback>;
+		using InstanceHandle = Handle<struct Instance>;
+		using PhysicalDeviceHandle = Handle<struct PhysicalDevice>;
+		using DeviceHandle = Handle<struct Device>;
+
+		using QueueHandle = Handle<struct Queue>;
+
 	}
-
-	#undef InterfacePrefix
-	#undef VulkanPrefix
-	#undef DX12Prefix
-
-	#undef DeclareContextHandles
-
-	#undef DeclareHandle
 
 }
 

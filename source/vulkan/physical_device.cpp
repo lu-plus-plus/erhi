@@ -9,9 +9,9 @@
 
 namespace erhi::vk {
 
-	PhysicalDevice::PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice physicalDevice) :
+	PhysicalDevice::PhysicalDevice(Instance * pInstance, VkPhysicalDevice physicalDevice) :
 		IPhysicalDevice{},
-		mpInstance{ pInstance },
+		mInstanceHandle{ pInstance },
 		mPhysicalDevice{ physicalDevice },
 		mProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = nullptr, .properties = {} },
 		mFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = nullptr, .features = {} },
@@ -23,7 +23,7 @@ namespace erhi::vk {
 		vkGetPhysicalDeviceFeatures2(physicalDevice, &mFeatures);
 		vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &mMemoryProperties);
 
-		mpInstance->mpMessageCallback->info(mProperties.properties.deviceName);
+		mInstanceHandle->mMessageCallbackHandle->info(mProperties.properties.deviceName);
 
 		for (uint32_t iHeap = 0; iHeap < mMemoryProperties.memoryProperties.memoryHeapCount; ++iHeap) {
 			VkMemoryHeap heap{ mMemoryProperties.memoryProperties.memoryHeaps[iHeap] };
@@ -48,7 +48,7 @@ namespace erhi::vk {
 			}
 
 			output.pop_back();
-			mpInstance->mpMessageCallback->info(output);
+			mInstanceHandle->mMessageCallbackHandle->info(output);
 		}
 
 		uint32_t extensionCount = 0;
@@ -62,9 +62,21 @@ namespace erhi::vk {
 		vkGetPhysicalDeviceQueueFamilyProperties2(mPhysicalDevice, &queueFamilyCount, mQueueFamilies.data());
 	}
 
+
+
 	PhysicalDevice::~PhysicalDevice() = default;
 
 
+
+	PhysicalDevice::operator VkPhysicalDevice() const {
+		return mPhysicalDevice;
+	}
+
+
+
+	IInstance * PhysicalDevice::pInstance() const {
+		return mInstanceHandle.get();
+	}
 
 	char const * PhysicalDevice::name() const {
 		return mProperties.properties.deviceName;
@@ -77,7 +89,7 @@ namespace erhi::vk {
 
 
 	IDeviceHandle PhysicalDevice::createDevice(DeviceDesc const & desc) {
-		return MakeHandle<Device>(PhysicalDeviceHandle(this));
+		return MakeHandle<Device>(this);
 	}
 
 }

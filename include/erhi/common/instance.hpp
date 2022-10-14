@@ -11,10 +11,9 @@ namespace erhi {
 
 	struct IInstance : IObject {
 
-		IMessageCallbackHandle const mpMessageCallback;
+		IMessageCallbackHandle const mMessageCallbackHandle;
 
 		IInstance(InstanceDesc const & desc);
-		
 		virtual ~IInstance();
 
 		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() = 0;

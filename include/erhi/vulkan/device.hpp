@@ -13,14 +13,18 @@ namespace erhi::vk {
 
 	struct Device : IDevice {
 
-		PhysicalDeviceHandle		mpPhysicalDevice;
+		PhysicalDeviceHandle		mPhysicalDeviceHandle;
 		VkDevice					mDevice;
 		VkQueue						mPrimaryQueue;
 		std::optional<VkQueue>		mComputeQueue;
 		std::optional<VkQueue>		mCopyQueue;
 
-		Device(PhysicalDeviceHandle physicalDeviceHandle);
+		Device(PhysicalDevice * pPhysicalDevice);
 		~Device();
+
+		operator VkDevice() const;
+
+		virtual IPhysicalDevice * pPhysicalDevice() const override;
 
 		virtual IQueueHandle selectQueue(QueueType queueType) override;
 

@@ -17,13 +17,13 @@ namespace erhi::vk {
 		std::vector<VkPhysicalDevice>		mPhysicalDevices;
 
 		Instance(InstanceDesc const & desc);
-
 		~Instance();
-		
-		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() override;
-		
-		virtual IPhysicalDeviceHandle selectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
 
+		operator VkInstance() const;
+		
+		virtual std::vector<IPhysicalDeviceHandle>	listPhysicalDevices() override;
+		virtual IPhysicalDeviceHandle				selectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
+		
 	};
 
 }

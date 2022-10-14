@@ -10,8 +10,9 @@ namespace erhi {
 	struct IPhysicalDevice : IObject {
 
 		IPhysicalDevice();
-
 		virtual ~IPhysicalDevice();
+
+		virtual IInstance * pInstance() const = 0;
 
 		virtual char const * name() const = 0;
 		virtual PhysicalDeviceType type() const = 0;

@@ -4,11 +4,19 @@
 
 namespace erhi::dx12 {
 
-	Device::Device(PhysicalDeviceHandle pPhysicalDevice, ID3D12Device * pDevice) : IDevice(pPhysicalDevice), mpDevice(pDevice) {}
+	Device::Device(PhysicalDevice * pPhysicalDevice, ID3D12Device * pDevice) : IDevice(), mPhysicalDeviceHandle(pPhysicalDevice), mpDevice(pDevice) {}
 
 	Device::~Device() {
 		mpDevice->Release();
 	}
+
+
+
+	IPhysicalDevice * Device::pPhysicalDevice() const {
+		return mPhysicalDeviceHandle.get();
+	}
+
+
 
 	IQueueHandle Device::selectQueue(QueueType queueType) {
 		return MakeHandle<Queue>(this, queueType);

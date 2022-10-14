@@ -48,7 +48,10 @@ add_library(erhi_vulkan STATIC
 	${ERHI_SOURCE_DIR}/vulkan/device.cpp
 	${ERHI_SOURCE_DIR}/vulkan/queue.cpp
 
-	# ${ERHI_INCLUDE_DIR}/erhi/vulkan/resource/memory.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/resource/resource.hpp
+	${ERHI_INCLUDE_DIR}/erhi/vulkan/resource/memory.hpp
+
+	# ${ERHI_SOURCE_DIR}/vulkan/resource/memory.cpp
 )
 
 target_link_libraries(erhi_vulkan
@@ -71,6 +74,11 @@ add_library(erhi_dx12 STATIC
 	${ERHI_SOURCE_DIR}/dx12/physical_device.cpp
 	${ERHI_SOURCE_DIR}/dx12/device.cpp
 	${ERHI_SOURCE_DIR}/dx12/queue.cpp
+
+	${ERHI_INCLUDE_DIR}/erhi/dx12/resource/resource.hpp
+	${ERHI_INCLUDE_DIR}/erhi/dx12/resource/memory.hpp
+
+	# ${ERHI_SOURCE_DIR}/dx12/resource/memory.cpp
 )
 
 target_link_libraries(erhi_dx12
@@ -100,7 +108,10 @@ add_library(erhi SHARED
 	${ERHI_SOURCE_DIR}/common/device.cpp
 	${ERHI_SOURCE_DIR}/common/queue.cpp
 
-	# ${ERHI_INCLUDE_DIR}/erhi/common/resource/memory.hpp
+	${ERHI_INCLUDE_DIR}/erhi/common/resource/resource.hpp
+	${ERHI_INCLUDE_DIR}/erhi/common/resource/memory.hpp
+
+	# ${ERHI_SOURCE_DIR}/common/resource/memory.cpp
 )
 
 target_link_libraries(erhi

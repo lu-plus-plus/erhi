@@ -10,15 +10,17 @@ namespace erhi::dx12 {
 
 	struct PhysicalDevice : IPhysicalDevice {
 
+		InstanceHandle							mInstanceHandle;
+
 		IDXGIAdapter1 *							mpAdapter;
 		DXGI_ADAPTER_DESC1						mDesc;
 		char									mName[sizeof(DXGI_ADAPTER_DESC1::Description)];
 		D3D12_FEATURE_DATA_ARCHITECTURE1		mFeatureArchitecture;
 
-		PhysicalDevice(IDXGIAdapter1 * pAdapter);
-
+		PhysicalDevice(Instance * pInstance, IDXGIAdapter1 * pAdapter);
 		virtual ~PhysicalDevice() override;
 
+		virtual IInstance * pInstance() const override;
 		virtual char const * name() const override;
 		virtual PhysicalDeviceType type() const override;
 

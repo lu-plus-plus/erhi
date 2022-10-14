@@ -1,11 +1,13 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#include "erhi/dx12/instance.hpp"
 #include "erhi/dx12/physical_device.hpp"
 #include "erhi/dx12/device.hpp"
 
 namespace erhi::dx12 {
 
-	PhysicalDevice::PhysicalDevice(IDXGIAdapter1 * pAdapter) :
+	PhysicalDevice::PhysicalDevice(Instance * pInstance, IDXGIAdapter1 * pAdapter) :
+		mInstanceHandle(pInstance),
 		mpAdapter(pAdapter),
 		mDesc(),
 		mName(),
@@ -26,6 +28,12 @@ namespace erhi::dx12 {
 		mpAdapter->Release();
 	}
 
+
+
+	IInstance * PhysicalDevice::pInstance() const {
+		return mInstanceHandle.get();
+	}
+
 	char const * PhysicalDevice::name() const {
 		return mName;
 	}
@@ -33,6 +41,8 @@ namespace erhi::dx12 {
 	PhysicalDeviceType PhysicalDevice::type() const {
 		return mFeatureArchitecture.UMA ? PhysicalDeviceType::Integrated : PhysicalDeviceType::Discrete;
 	}
+
+
 
 	IDeviceHandle PhysicalDevice::createDevice(DeviceDesc const & desc) {
 		return MakeHandle<Device>(this, createDeviceInternal());

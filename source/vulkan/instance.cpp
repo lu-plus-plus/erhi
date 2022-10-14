@@ -32,22 +32,22 @@ namespace erhi::vk {
 		std::vector<VkLayerProperties> layers{ layerPropertyCount };
 		vkCheckResult(vkEnumerateInstanceLayerProperties(&layerPropertyCount, layers.data()));
 
-		mpMessageCallback->verbose("supported Vulkan layers:");
+		mMessageCallbackHandle->verbose("supported Vulkan layers:");
 		for (auto const & layer : layers) {
-			mpMessageCallback->verbose(std::format("{}, ver.{}.{}.{}", layer.layerName, VK_API_VERSION_MAJOR(layer.specVersion), VK_API_VERSION_MINOR(layer.specVersion), VK_API_VERSION_PATCH(layer.specVersion)));
+			mMessageCallbackHandle->verbose(std::format("{}, ver.{}.{}.{}", layer.layerName, VK_API_VERSION_MAJOR(layer.specVersion), VK_API_VERSION_MINOR(layer.specVersion), VK_API_VERSION_PATCH(layer.specVersion)));
 		}
-		mpMessageCallback->verbose("");
+		mMessageCallbackHandle->verbose("");
 
 		uint32_t extensionPropertyCount{ 0u };
 		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, nullptr));
 		std::vector<VkExtensionProperties> extensions{ extensionPropertyCount };
 		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, extensions.data()));
 
-		mpMessageCallback->verbose("supported Vulkan extensions:");
+		mMessageCallbackHandle->verbose("supported Vulkan extensions:");
 		for (auto const & extension : extensions) {
-			mpMessageCallback->verbose(std::format("{}, ver.{}.{}.{}", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion)));
+			mMessageCallbackHandle->verbose(std::format("{}, ver.{}.{}.{}", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion)));
 		}
-		mpMessageCallback->verbose("");
+		mMessageCallbackHandle->verbose("");
 
 		// Create VkInstance.
 
@@ -74,7 +74,7 @@ namespace erhi::vk {
 			.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
 			.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
 			.pfnUserCallback = adaptToMessageCallback,
-			.pUserData = mpMessageCallback.get()
+			.pUserData = mMessageCallbackHandle.get()
 		};
 
 		if (desc.enableDebug) {
@@ -118,20 +118,28 @@ namespace erhi::vk {
 
 
 
+	Instance::operator VkInstance() const {
+		return mInstance;
+	}
+
+
+
 	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() {
 		std::vector<IPhysicalDeviceHandle> pPhysicalDevices(mPhysicalDevices.size(), nullptr);
 
 		for (uint32_t i = 0; i < mPhysicalDevices.size(); ++i)
 			pPhysicalDevices[i] = MakeHandle<PhysicalDevice>(this, mPhysicalDevices[i]);
 
-		mpMessageCallback->verbose("physical devices:");
+		mMessageCallbackHandle->verbose("physical devices:");
 		for (auto const & pPhysicalDevice : pPhysicalDevices) {
-			mpMessageCallback->verbose(std::format("{} physical device '{}'", pPhysicalDevice->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", pPhysicalDevice->name()));
+			mMessageCallbackHandle->verbose(std::format("{} physical device '{}'", pPhysicalDevice->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", pPhysicalDevice->name()));
 		}
-		mpMessageCallback->verbose("");
+		mMessageCallbackHandle->verbose("");
 
 		return pPhysicalDevices;
 	}
+
+
 
 	IPhysicalDeviceHandle Instance::selectPhysicalDevice(PhysicalDeviceDesc const & desc) {
 		for (auto physicalDevice : mPhysicalDevices) {

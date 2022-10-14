@@ -9,12 +9,18 @@
 namespace erhi::dx12 {
 
 	struct Device : IDevice {
+
+		PhysicalDeviceHandle mPhysicalDeviceHandle;
+
 		ID3D12Device * mpDevice;
 
-		Device(PhysicalDeviceHandle pPhysicalDevice, ID3D12Device * pDevice);
+		Device(PhysicalDevice * pPhysicalDevice, ID3D12Device * pDevice);
 		virtual ~Device() override;
 
+		IPhysicalDevice * pPhysicalDevice() const override;
+
 		virtual IQueueHandle selectQueue(QueueType queueType) override;
+
 	};
 
 }

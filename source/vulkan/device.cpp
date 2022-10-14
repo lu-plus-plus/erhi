@@ -13,9 +13,9 @@
 
 namespace erhi::vk {
 
-	Device::Device(PhysicalDeviceHandle physicalDeviceHandle) :
-		IDevice{ physicalDeviceHandle },
-		mpPhysicalDevice{ physicalDeviceHandle },
+	Device::Device(PhysicalDevice * pPhysicalDevice) :
+		IDevice{},
+		mPhysicalDeviceHandle{ pPhysicalDevice },
 		mDevice{ VK_NULL_HANDLE } {
 	
 		std::optional<uint32_t> primaryQueueFamilyIndex;
@@ -26,8 +26,8 @@ namespace erhi::vk {
 		constexpr VkQueueFlags computeQueueFlags{ VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags copyQueueFlags{ VK_QUEUE_TRANSFER_BIT };
 
-		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mpPhysicalDevice->mQueueFamilies.size(); ++queueFamilyIndex) {
-			auto const & queueFamilyProperties = mpPhysicalDevice->mQueueFamilies[queueFamilyIndex];
+		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mPhysicalDeviceHandle->mQueueFamilies.size(); ++queueFamilyIndex) {
+			auto const & queueFamilyProperties = mPhysicalDeviceHandle->mQueueFamilies[queueFamilyIndex];
 
 			//std::cout << std::format("queue: {}{}{}{}{}\n",
 			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT ? "graphics, " : "",
@@ -64,7 +64,7 @@ namespace erhi::vk {
 		};
 
 		if (not primaryQueueFamilyIndex) {
-			throw std::runtime_error("failed to find a primary queue family on device '" + std::string(mpPhysicalDevice->name()) + "'");
+			throw std::runtime_error("failed to find a primary queue family on device '" + std::string(mPhysicalDeviceHandle->name()) + "'");
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(primaryQueueFamilyIndex.value()));
 
@@ -89,7 +89,7 @@ namespace erhi::vk {
 			.pEnabledFeatures = nullptr
 		};
 
-		vkCheckResult(vkCreateDevice(mpPhysicalDevice->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
+		vkCheckResult(vkCreateDevice(mPhysicalDeviceHandle->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
 		
 		auto GetDeviceQueue = [this] (int queueFamilyIndex) {
 			VkDeviceQueueInfo2 queueInfo{
@@ -109,9 +109,25 @@ namespace erhi::vk {
 		if (copyQueueFamilyIndex) mComputeQueue = GetDeviceQueue(copyQueueFamilyIndex.value());
 	}
 
+
+
 	Device::~Device() {
 		vkDestroyDevice(mDevice, nullptr);
 	}
+
+
+
+	Device::operator VkDevice() const {
+		return mDevice;
+	}
+
+
+
+	IPhysicalDevice * Device::pPhysicalDevice() const {
+		return mPhysicalDeviceHandle.get();
+	}
+
+
 
 	IQueueHandle Device::selectQueue(QueueType queueType) {
 		auto deviceHandle = DeviceHandle(this);
@@ -123,12 +139,12 @@ namespace erhi::vk {
 
 			case QueueType::Compute: {
 				if (mComputeQueue) return MakeHandle<Queue>(deviceHandle, queueType, mComputeQueue.value());
-				else throw std::runtime_error(std::format("No compute queue is found on device {}.", mpPhysicalDevice->name()));
+				else throw std::runtime_error(std::format("No compute queue is found on device {}.", mPhysicalDeviceHandle->name()));
 			} break;
 
 			case QueueType::Copy: {
 				if (mCopyQueue) return MakeHandle<Queue>(deviceHandle, queueType, mCopyQueue.value());
-				else throw std::runtime_error(std::format("No copy queue is found on device {}.", mpPhysicalDevice->name()));
+				else throw std::runtime_error(std::format("No copy queue is found on device {}.", mPhysicalDeviceHandle->name()));
 			} break;
 
 			default: break;

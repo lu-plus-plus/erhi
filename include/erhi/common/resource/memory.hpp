@@ -8,49 +8,42 @@
 
 namespace erhi {
 
-	enum class MemoryProperty : uint32_t {
-		DeviceLocal = 0b0001,
-		HostUpload = 0b0010,
-		HostReadBack = 0b0100
+	enum class MemoryHostPaging : uint32_t {
+		Unknown,
+		NotAvailable,
+		WriteCombine,
+		WriteBack
 	};
-	//MemoryProperty const i = MemoryProperty::DeviceLocal | MemoryProperty::DeviceLocal;
 
-	//struct MemoryProperty {
-	//	enum class Flags : uint32_t {
-	//		DeviceLocal = 0b0001,
-	//		HostUpload = 0b0010,
-	//		HostReadBack = 0b0100
-	//	} mFlags;
+	enum class MemoryLocation : uint32_t {
+		Unknown,
+		L0_System,
+		L1_Video
+	};
 
-	//	MemoryProperty() : mFlags(DeviceLocal | HostUpload) {}
-	//};
+	enum class MemoryHeapType : uint32_t {
+		Default,
+		Upload,
+		ReadBack
+	};
 
-	struct Memory {
-
+	struct IMemory : IObject {
+	
 	private:
 
-		uint32_t mRequiredProperties;
-		uint32_t mExpectedProperties;
+		uint32_t			mSize;
+		MemoryHostPaging	mHostPaging;
+		MemoryLocation		mLocation;
 
 	public:
 
-		Memory() : mRequiredProperties(0u), mExpectedProperties(0u) {}
+		IMemory(IDevice * pDevice, uint32_t size, MemoryHostPaging hostPaging, MemoryLocation location);
+		IMemory(IDevice * pDevice, uint32_t size, MemoryHeapType heapType);
+		virtual ~IMemory() override;
 
-		Memory & require(MemoryProperty property) {
-			mRequiredProperties |= static_cast<uint32_t>(property);
-			return *this;
-		}
-
-		Memory & expect(MemoryProperty property) {
-			mExpectedProperties |= static_cast<uint32_t>(property);
-			return *this;
-		}
-
-	};
-
-	struct Allocator {
-
-		IDeviceHandle mpDevice;
+		uint32_t size() const;
+		MemoryHostPaging hostPaging() const;
+		MemoryLocation location() const;
 
 	};
 

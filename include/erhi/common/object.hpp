@@ -8,7 +8,7 @@
 
 namespace erhi {
 
-	struct IObject {
+	struct [[nodiscard]] IObject {
 
 	private:
 

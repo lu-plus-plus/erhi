@@ -5,7 +5,7 @@
 
 namespace erhi {
 
-	IInstance::IInstance(InstanceDesc const & desc) : IObject{}, mpMessageCallback{ desc.pMessageCallback } {}
+	IInstance::IInstance(InstanceDesc const & desc) : IObject{}, mMessageCallbackHandle{ desc.pMessageCallback } {}
 
 	IInstance::~IInstance() = default;
 

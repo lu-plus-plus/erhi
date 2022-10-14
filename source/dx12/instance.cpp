@@ -31,7 +31,7 @@ namespace erhi::dx12 {
 			IDXGIAdapter1 * pAdapter = nullptr;
 			if (DXGI_ERROR_NOT_FOUND == mpFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&pAdapter))) break;
 
-			auto pPhysicalDevice = MakeHandle<PhysicalDevice>(pAdapter);
+			auto pPhysicalDevice = MakeHandle<PhysicalDevice>(this, pAdapter);
 
 			if (S_FALSE == D3D12CreateDevice(pPhysicalDevice->mpAdapter, D3D_FEATURE_LEVEL_12_1, __uuidof(ID3D12Device), nullptr)) {
 				handles.push_back(std::move(pPhysicalDevice));
@@ -46,7 +46,7 @@ namespace erhi::dx12 {
 			IDXGIAdapter1 * pAdapter = nullptr;
 			if (DXGI_ERROR_NOT_FOUND == mpFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&pAdapter))) break;
 
-			auto pPhysicalDevice = MakeHandle<PhysicalDevice>(pAdapter);
+			auto pPhysicalDevice = MakeHandle<PhysicalDevice>(this, pAdapter);
 
 			if (desc.type == pPhysicalDevice->type()) return pPhysicalDevice;
 		}

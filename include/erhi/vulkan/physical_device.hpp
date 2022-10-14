@@ -12,7 +12,7 @@ namespace erhi::vk {
 
 	struct PhysicalDevice : IPhysicalDevice {
 		
-		InstanceHandle							mpInstance;
+		InstanceHandle							mInstanceHandle;
 
 		VkPhysicalDevice						mPhysicalDevice;
 		VkPhysicalDeviceProperties2				mProperties;
@@ -21,14 +21,16 @@ namespace erhi::vk {
 		std::vector<VkExtensionProperties>		mExtensions;
 		std::vector<VkQueueFamilyProperties2>	mQueueFamilies;
 
-		PhysicalDevice(InstanceHandle pInstance, VkPhysicalDevice nativeDevice);
-
+		PhysicalDevice(Instance * pInstance, VkPhysicalDevice physicalDevice);
 		~PhysicalDevice();
 
-		virtual char const * name() const override;
-		virtual PhysicalDeviceType type() const override;
+		operator VkPhysicalDevice() const;
 
-		virtual IDeviceHandle createDevice(DeviceDesc const & desc) override;
+		virtual IInstance *				pInstance() const override;
+		virtual char const *			name() const override;
+		virtual PhysicalDeviceType		type() const override;
+
+		virtual IDeviceHandle			createDevice(DeviceDesc const & desc) override;
 
 	};
 
