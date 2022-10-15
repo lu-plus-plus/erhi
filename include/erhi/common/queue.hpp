@@ -12,6 +12,8 @@ namespace erhi {
 
 		IQueue(QueueType queueType);
 		virtual ~IQueue();
+
+		virtual IDevice * pDevice() const = 0;
 	};
 
 }

@@ -21,7 +21,7 @@ int main() {
 
 	auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
 
-	auto pPrimaryQueue = pDevice->selectQueue(QueueType::Primary);
+	auto pPrimaryQueue = pDevice->selectQueue(QueueType::Graphics);
 
 	return 0;
 }

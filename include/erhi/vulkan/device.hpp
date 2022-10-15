@@ -15,9 +15,9 @@ namespace erhi::vk {
 
 		PhysicalDeviceHandle		mPhysicalDeviceHandle;
 		VkDevice					mDevice;
-		VkQueue						mPrimaryQueue;
-		std::optional<VkQueue>		mComputeQueue;
-		std::optional<VkQueue>		mCopyQueue;
+		uint32_t					mGraphicsQueueFamilyIndex;
+		std::optional<uint32_t>		mComputeQueueFamilyIndex;
+		std::optional<uint32_t>		mCopyQueueFamilyIndex;
 
 		Device(PhysicalDevice * pPhysicalDevice);
 		~Device();

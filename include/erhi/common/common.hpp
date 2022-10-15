@@ -46,7 +46,7 @@ namespace erhi {
 	// queue
 
 	enum class QueueType : uint32_t {
-		Primary,
+		Graphics,
 		Compute,
 		Copy
 	};

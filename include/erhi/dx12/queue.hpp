@@ -7,11 +7,13 @@
 namespace erhi::dx12 {
 
 	struct Queue : IQueue {
-		DeviceHandle mpDevice;
+		DeviceHandle mDeviceHandle;
 		ID3D12CommandQueue * mpCommandQueue;
 
 		Queue(DeviceHandle pDevice, QueueType queueType);
 		virtual ~Queue() override;
+
+		virtual IDevice * pDevice() const override;
 	};
 
 }

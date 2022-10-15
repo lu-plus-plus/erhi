@@ -12,8 +12,10 @@ namespace erhi::vk {
 		DeviceHandle	mDeviceHandle;
 		VkQueue			mQueue;
 
-		Queue(DeviceHandle deviceHandle, QueueType queueType, VkQueue queue);
+		Queue(DeviceHandle deviceHandle, QueueType queueType, uint32_t queueFamilyIndex, uint32_t queueIndexInFamily);
 		~Queue();
+
+		virtual IDevice * pDevice() const override;
 	};
 
 }

@@ -17,7 +17,7 @@ namespace erhi::dx12 {
 		Device(PhysicalDevice * pPhysicalDevice, ID3D12Device * pDevice);
 		virtual ~Device() override;
 
-		IPhysicalDevice * pPhysicalDevice() const override;
+		virtual IPhysicalDevice * pPhysicalDevice() const override;
 
 		virtual IQueueHandle selectQueue(QueueType queueType) override;
 

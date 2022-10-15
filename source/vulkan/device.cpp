@@ -16,13 +16,12 @@ namespace erhi::vk {
 	Device::Device(PhysicalDevice * pPhysicalDevice) :
 		IDevice{},
 		mPhysicalDeviceHandle{ pPhysicalDevice },
-		mDevice{ VK_NULL_HANDLE } {
+		mDevice{ VK_NULL_HANDLE },
+		mGraphicsQueueFamilyIndex{ std::numeric_limits<uint32_t>::max() },
+		mComputeQueueFamilyIndex{},
+		mCopyQueueFamilyIndex{} {
 	
-		std::optional<uint32_t> primaryQueueFamilyIndex;
-		std::optional<uint32_t> computeQueueFamilyIndex;
-		std::optional<uint32_t> copyQueueFamilyIndex;
-
-		constexpr VkQueueFlags primaryQueueFlags{ VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
+		constexpr VkQueueFlags graphicsQueueFlags{ VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags computeQueueFlags{ VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags copyQueueFlags{ VK_QUEUE_TRANSFER_BIT };
 
@@ -37,14 +36,14 @@ namespace erhi::vk {
 			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_PROTECTED_BIT ? "protected." : ""
 			//);
 
-			if ((queueFamilyProperties.queueFamilyProperties.queueFlags & primaryQueueFlags) == primaryQueueFlags) {
-				primaryQueueFamilyIndex = queueFamilyIndex;
+			if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == graphicsQueueFlags) {
+				mGraphicsQueueFamilyIndex = queueFamilyIndex;
 			}
-			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & primaryQueueFlags) == computeQueueFlags) {
-				computeQueueFamilyIndex = queueFamilyIndex;
+			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == computeQueueFlags) {
+				mComputeQueueFamilyIndex = queueFamilyIndex;
 			}
-			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & primaryQueueFlags) == copyQueueFlags) {
-				copyQueueFamilyIndex = queueFamilyIndex;
+			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == copyQueueFlags) {
+				mCopyQueueFamilyIndex = queueFamilyIndex;
 			}
 		}
 
@@ -63,17 +62,17 @@ namespace erhi::vk {
 			return createInfo;
 		};
 
-		if (not primaryQueueFamilyIndex) {
-			throw std::runtime_error("failed to find a primary queue family on device '" + std::string(mPhysicalDeviceHandle->name()) + "'");
+		if (mGraphicsQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
+			throw std::runtime_error(std::format("Failed to find a graphics queue family on device '{}'.", mPhysicalDeviceHandle->name()));
 		}
-		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(primaryQueueFamilyIndex.value()));
+		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mGraphicsQueueFamilyIndex));
 
-		if (computeQueueFamilyIndex) {
-			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(computeQueueFamilyIndex.value()));
+		if (mComputeQueueFamilyIndex) {
+			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mComputeQueueFamilyIndex.value()));
 		}
 
-		if (copyQueueFamilyIndex) {
-			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(copyQueueFamilyIndex.value()));
+		if (mCopyQueueFamilyIndex) {
+			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mCopyQueueFamilyIndex.value()));
 		}
 
 		VkDeviceCreateInfo deviceCreateInfo{
@@ -90,23 +89,6 @@ namespace erhi::vk {
 		};
 
 		vkCheckResult(vkCreateDevice(mPhysicalDeviceHandle->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
-		
-		auto GetDeviceQueue = [this] (int queueFamilyIndex) {
-			VkDeviceQueueInfo2 queueInfo{
-				.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_INFO_2,
-				.pNext = nullptr,
-				.flags = 0,
-				.queueFamilyIndex = 0,
-				.queueIndex = 0
-			};
-			VkQueue queue;
-			vkGetDeviceQueue2(mDevice, &queueInfo, &queue);
-			return queue;
-		};
-		
-		mPrimaryQueue = GetDeviceQueue(primaryQueueFamilyIndex.value());
-		if (computeQueueFamilyIndex) mComputeQueue = GetDeviceQueue(computeQueueFamilyIndex.value());
-		if (copyQueueFamilyIndex) mComputeQueue = GetDeviceQueue(copyQueueFamilyIndex.value());
 	}
 
 
@@ -133,18 +115,26 @@ namespace erhi::vk {
 		auto deviceHandle = DeviceHandle(this);
 
 		switch (queueType) {
-			case QueueType::Primary: {
-				return MakeHandle<Queue>(deviceHandle, queueType, mPrimaryQueue);
+			case QueueType::Graphics: {
+				return MakeHandle<Queue>(deviceHandle, queueType, mGraphicsQueueFamilyIndex, 0u);
 			} break;
 
 			case QueueType::Compute: {
-				if (mComputeQueue) return MakeHandle<Queue>(deviceHandle, queueType, mComputeQueue.value());
-				else throw std::runtime_error(std::format("No compute queue is found on device {}.", mPhysicalDeviceHandle->name()));
+				if (mComputeQueueFamilyIndex) {
+					return MakeHandle<Queue>(deviceHandle, queueType, mComputeQueueFamilyIndex.value(), 0u);
+				}
+				else {
+					throw std::runtime_error(std::format("No dedicated compute queue is found on device '{}'.", mPhysicalDeviceHandle->name()));
+				}
 			} break;
 
 			case QueueType::Copy: {
-				if (mCopyQueue) return MakeHandle<Queue>(deviceHandle, queueType, mCopyQueue.value());
-				else throw std::runtime_error(std::format("No copy queue is found on device {}.", mPhysicalDeviceHandle->name()));
+				if (mCopyQueueFamilyIndex) {
+					return MakeHandle<Queue>(deviceHandle, queueType, mCopyQueueFamilyIndex.value(), 0u);
+				}
+				else {
+					throw std::runtime_error(std::format("No dedicated copy queue is found on device '{}'.", mPhysicalDeviceHandle->name()));
+				}
 			} break;
 
 			default: break;
