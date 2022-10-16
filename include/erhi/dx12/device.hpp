@@ -10,9 +10,11 @@ namespace erhi::dx12 {
 
 	struct Device : IDevice {
 
-		PhysicalDeviceHandle mPhysicalDeviceHandle;
+		PhysicalDeviceHandle	mPhysicalDeviceHandle;
 
-		ID3D12Device * mpDevice;
+		ID3D12Device *			mpDevice;
+		ID3D12InfoQueue1 *		mpInfoQueue;
+		DWORD					mMessageCallbackCookie;
 
 		Device(PhysicalDevice * pPhysicalDevice, ID3D12Device * pDevice);
 		virtual ~Device() override;

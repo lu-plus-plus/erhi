@@ -65,11 +65,13 @@ add_library(erhi_dx12 STATIC
 	${ERHI_INCLUDE_DIR}/erhi/dx12/native.hpp
 	${ERHI_SOURCE_DIR}/dx12/native.cpp
 
+	${ERHI_INCLUDE_DIR}/erhi/dx12/message.hpp
 	${ERHI_INCLUDE_DIR}/erhi/dx12/instance.hpp
 	${ERHI_INCLUDE_DIR}/erhi/dx12/physical_device.hpp
 	${ERHI_INCLUDE_DIR}/erhi/dx12/device.hpp
 	${ERHI_INCLUDE_DIR}/erhi/dx12/queue.hpp
 
+	${ERHI_SOURCE_DIR}/dx12/message.cpp
 	${ERHI_SOURCE_DIR}/dx12/instance.cpp
 	${ERHI_SOURCE_DIR}/dx12/physical_device.cpp
 	${ERHI_SOURCE_DIR}/dx12/device.cpp

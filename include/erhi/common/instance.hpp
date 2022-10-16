@@ -11,7 +11,8 @@ namespace erhi {
 
 	struct IInstance : IObject {
 
-		IMessageCallbackHandle const mMessageCallbackHandle;
+		bool const						mIsDebugEnabled;
+		IMessageCallbackHandle const	mMessageCallbackHandle;
 
 		IInstance(InstanceDesc const & desc);
 		virtual ~IInstance();
