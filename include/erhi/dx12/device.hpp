@@ -25,6 +25,17 @@ namespace erhi::dx12 {
 
 	};
 
+
+
+	struct OnDevice : IOnDevice {
+		DeviceHandle mDeviceHandle;
+
+		OnDevice(Device * pDevice);
+		virtual ~OnDevice();
+
+		virtual IDevice * pDevice() const;
+	};
+
 }
 
 

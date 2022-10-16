@@ -8,17 +8,17 @@
 
 namespace erhi {
 
-	enum class MemoryHostPaging : uint32_t {
-		Unknown,
+	enum class MemoryHostAccess : uint32_t {
+		Auto,
 		NotAvailable,
-		WriteCombine,
-		WriteBack
+		SequentialWrite,
+		Random
 	};
 
 	enum class MemoryLocation : uint32_t {
-		Unknown,
 		L0_System,
-		L1_Video
+		L1_Video,
+		DeviceLocal
 	};
 
 	enum class MemoryHeapType : uint32_t {
@@ -32,17 +32,17 @@ namespace erhi {
 	private:
 
 		uint32_t			mSize;
-		MemoryHostPaging	mHostPaging;
+		MemoryHostAccess	mHostAccess;
 		MemoryLocation		mLocation;
 
 	public:
 
-		IMemory(IDevice * pDevice, uint32_t size, MemoryHostPaging hostPaging, MemoryLocation location);
+		IMemory(IDevice * pDevice, uint32_t size, MemoryHostAccess hostAccess, MemoryLocation location);
 		IMemory(IDevice * pDevice, uint32_t size, MemoryHeapType heapType);
 		virtual ~IMemory() override;
 
 		uint32_t size() const;
-		MemoryHostPaging hostPaging() const;
+		MemoryHostAccess hostAccess() const;
 		MemoryLocation location() const;
 
 	};

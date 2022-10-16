@@ -143,4 +143,14 @@ namespace erhi::vk {
 		return nullptr;
 	}
 
+
+
+	OnDevice::OnDevice(Device * pDevice) : mDeviceHandle(pDevice) {}
+
+	OnDevice::~OnDevice() = default;
+
+	IDevice * OnDevice::pDevice() const {
+		return mDeviceHandle.get();
+	}
+
 }

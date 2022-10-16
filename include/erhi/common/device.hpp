@@ -16,6 +16,13 @@ namespace erhi {
 		virtual IQueueHandle selectQueue(QueueType queueType) = 0;
 	};
 
+
+
+	struct IOnDevice {
+		virtual ~IOnDevice();
+		virtual IDevice * pDevice() const = 0;
+	};
+
 }
 
 

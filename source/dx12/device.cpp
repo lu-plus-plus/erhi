@@ -37,4 +37,14 @@ namespace erhi::dx12 {
 		return MakeHandle<Queue>(this, queueType);
 	}
 
+
+
+	OnDevice::OnDevice(Device * pDevice) : mDeviceHandle(pDevice) {}
+
+	OnDevice::~OnDevice() = default;
+
+	IDevice * OnDevice::pDevice() const {
+		return mDeviceHandle.get();
+	}
+
 }
