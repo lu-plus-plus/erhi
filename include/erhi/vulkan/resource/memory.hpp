@@ -1,6 +1,8 @@
 #ifndef ERHI_VULKAN_MEMORY_HPP
 #define ERHI_VULKAN_MEMORY_HPP
 
+#include <optional>		// for Memory::create()
+
 #include "../../common/resource/memory.hpp"
 #include "../native.hpp"
 
@@ -9,11 +11,13 @@
 namespace erhi::vk {
 
 	struct Memory : IMemory {
-		VkDeviceMemory	mMemory;
-		bool			mIsDeviceLocal;
+		DeviceHandle		mDeviceHandle;
+		VkDeviceMemory		mMemory;
 
-		Memory(DeviceHandle pDevice, uint32_t size, MemoryHostAccess hostAccess, MemoryPool pool);
+		Memory(Device * pDevice, uint32_t size, MemoryLocation location, MemoryHostAccess hostAccess);
 		virtual ~Memory() override;
+
+		virtual IDevice * pDevice() const override;
 	};
 
 }

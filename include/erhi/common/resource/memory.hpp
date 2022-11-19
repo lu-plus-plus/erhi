@@ -4,21 +4,21 @@
 #include "../object.hpp"
 #include "../handle.hpp"
 
+#include "../device.hpp"
+
 
 
 namespace erhi {
 
-	enum class MemoryHostAccess : uint32_t {
-		Auto,
-		NotAvailable,
-		SequentialWrite,
-		Random
-	};
-
 	enum class MemoryLocation : uint32_t {
 		L0_System,
 		L1_Video,
-		DeviceLocal
+	};
+
+	enum class MemoryHostAccess : uint32_t {
+		NotAvailable,
+		SequentialWrite,
+		Random
 	};
 
 	enum class MemoryHeapType : uint32_t {
@@ -27,19 +27,21 @@ namespace erhi {
 		ReadBack
 	};
 
-	struct IMemory : IObject {
+	struct IMemory : IObject, IOnDevice {
 	
 	private:
 
 		uint32_t			mSize;
-		MemoryHostAccess	mHostAccess;
 		MemoryLocation		mLocation;
+		MemoryHostAccess	mHostAccess;
 
 	public:
 
-		IMemory(IDevice * pDevice, uint32_t size, MemoryHostAccess hostAccess, MemoryLocation location);
+		IMemory(IDevice * pDevice, uint32_t size, MemoryLocation location, MemoryHostAccess hostAccess);
 		IMemory(IDevice * pDevice, uint32_t size, MemoryHeapType heapType);
 		virtual ~IMemory() override;
+
+		virtual IDevice * pDevice() const override = 0;
 
 		uint32_t size() const;
 		MemoryHostAccess hostAccess() const;

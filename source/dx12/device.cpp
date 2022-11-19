@@ -31,8 +31,6 @@ namespace erhi::dx12 {
 		return mPhysicalDeviceHandle.get();
 	}
 
-
-
 	IQueueHandle Device::selectQueue(QueueType queueType) {
 		return MakeHandle<Queue>(this, queueType);
 	}

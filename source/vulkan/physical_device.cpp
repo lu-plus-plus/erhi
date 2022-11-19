@@ -86,6 +86,17 @@ namespace erhi::vk {
 		return mProperties.properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU ? PhysicalDeviceType::Integrated : PhysicalDeviceType::Discrete;
 	}
 
+	bool PhysicalDevice::isCacheCoherentUMA() const {
+		constexpr VkMemoryPropertyFlags cacheCoherentFlags{ VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT };
+
+		for (uint32_t i = 0; i < mMemoryProperties.memoryProperties.memoryTypeCount; ++i) {
+			auto const & memoryProperty = mMemoryProperties.memoryProperties.memoryTypes[i];
+			if ((memoryProperty.propertyFlags & cacheCoherentFlags) != cacheCoherentFlags) return false;
+		}
+
+		return true;
+	}
+
 
 
 	IDeviceHandle PhysicalDevice::createDevice(DeviceDesc const & desc) {

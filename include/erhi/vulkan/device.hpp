@@ -24,9 +24,8 @@ namespace erhi::vk {
 
 		operator VkDevice() const;
 
-		virtual IPhysicalDevice * pPhysicalDevice() const override;
-
-		virtual IQueueHandle selectQueue(QueueType queueType) override;
+		virtual IPhysicalDevice *	pPhysicalDevice() const override;
+		virtual IQueueHandle		selectQueue(QueueType queueType) override;
 
 	};
 

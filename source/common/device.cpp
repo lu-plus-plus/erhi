@@ -6,9 +6,12 @@
 namespace erhi {
 
 	IDevice::IDevice() = default;
+	
 	IDevice::~IDevice() = default;
 
 
+
+	IOnDevice::IOnDevice() = default;
 
 	IOnDevice::~IOnDevice() = default;
 

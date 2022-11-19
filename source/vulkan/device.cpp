@@ -109,8 +109,6 @@ namespace erhi::vk {
 		return mPhysicalDeviceHandle.get();
 	}
 
-
-
 	IQueueHandle Device::selectQueue(QueueType queueType) {
 		auto deviceHandle = DeviceHandle(this);
 

@@ -11,14 +11,14 @@ namespace erhi {
 		IDevice();
 		virtual ~IDevice();
 
-		virtual IPhysicalDevice * pPhysicalDevice() const = 0;
-
-		virtual IQueueHandle selectQueue(QueueType queueType) = 0;
+		virtual IPhysicalDevice *	pPhysicalDevice() const = 0;
+		virtual IQueueHandle		selectQueue(QueueType queueType) = 0;
 	};
 
 
 
 	struct IOnDevice {
+		IOnDevice();
 		virtual ~IOnDevice();
 		virtual IDevice * pDevice() const = 0;
 	};

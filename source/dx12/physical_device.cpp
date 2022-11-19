@@ -42,6 +42,10 @@ namespace erhi::dx12 {
 		return mFeatureArchitecture.UMA ? PhysicalDeviceType::Integrated : PhysicalDeviceType::Discrete;
 	}
 
+	bool PhysicalDevice::isCacheCoherentUMA() const {
+		return mFeatureArchitecture.CacheCoherentUMA;
+	}
+
 
 
 	IDeviceHandle PhysicalDevice::createDevice(DeviceDesc const & desc) {

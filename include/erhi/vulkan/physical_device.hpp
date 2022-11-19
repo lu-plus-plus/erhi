@@ -29,7 +29,7 @@ namespace erhi::vk {
 		virtual IInstance *				pInstance() const override;
 		virtual char const *			name() const override;
 		virtual PhysicalDeviceType		type() const override;
-
+		virtual bool					isCacheCoherentUMA() const override;
 		virtual IDeviceHandle			createDevice(DeviceDesc const & desc) override;
 
 	};

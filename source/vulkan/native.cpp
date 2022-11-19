@@ -37,6 +37,8 @@ namespace erhi::vk {
 		#undef STR
 	}
 
+
+
 	bad_api_call::bad_api_call(VkResult result, char const * literal, unsigned line, char const * file) : mInfo{} {
 		std::snprintf(
 			mInfo, gInfoSize,
@@ -51,6 +53,18 @@ namespace erhi::vk {
 
 	char const * bad_api_call::what() const {
 		return mInfo;
+	}
+
+
+
+	invalid_arguments::invalid_arguments(char const * message) : std::exception(message) {}
+
+	invalid_arguments::invalid_arguments(std::string const & message) : std::exception(message.c_str()) {}
+
+	invalid_arguments::~invalid_arguments() = default;
+
+	char const * invalid_arguments::what() const {
+		return std::exception::what();
 	}
 
 }

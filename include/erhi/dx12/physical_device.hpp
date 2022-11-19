@@ -20,11 +20,11 @@ namespace erhi::dx12 {
 		PhysicalDevice(Instance * pInstance, IDXGIAdapter1 * pAdapter);
 		virtual ~PhysicalDevice() override;
 
-		virtual IInstance * pInstance() const override;
-		virtual char const * name() const override;
-		virtual PhysicalDeviceType type() const override;
-
-		virtual IDeviceHandle createDevice(DeviceDesc const & desc) override;
+		virtual IInstance *			pInstance() const override;
+		virtual char const *		name() const override;
+		virtual PhysicalDeviceType	type() const override;
+		virtual bool				isCacheCoherentUMA() const override;
+		virtual IDeviceHandle		createDevice(DeviceDesc const & desc) override;
 
 		ID3D12Device * createDeviceInternal() const;
 
