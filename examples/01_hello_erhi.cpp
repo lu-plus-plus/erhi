@@ -10,7 +10,7 @@ using namespace erhi;
 
 
 int main() {
-	auto pInstance = dx12::createInstance(InstanceDesc{
+	auto pInstance = vk::createInstance(InstanceDesc{
 		.enableDebug = true,
 		.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 	});
