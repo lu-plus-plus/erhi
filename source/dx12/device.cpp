@@ -16,9 +16,19 @@ namespace erhi::dx12 {
 		}
 	}
 
-	Device::~Device() {
+	Device::~Device() noexcept {
 		if (mPhysicalDeviceHandle->mInstanceHandle->mIsDebugEnabled) {
-			D3D12CheckResult(mpInfoQueue->UnregisterMessageCallback(mMessageCallbackCookie));
+			try {
+				D3D12CheckResult(mpInfoQueue->UnregisterMessageCallback(mMessageCallbackCookie));
+			}
+			catch (bad_api_call const & e) {
+				mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->error(e.what());
+				std::terminate();
+			}
+			catch (...) {
+				mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->error("DX12 backend: Unknown exception is thrown in unregistering message callback.");
+				std::terminate();
+			}
 			mpInfoQueue->Release();
 		}
 
