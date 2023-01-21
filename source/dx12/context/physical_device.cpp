@@ -11,7 +11,8 @@ namespace erhi::dx12 {
 		mpAdapter(pAdapter),
 		mDesc(),
 		mName(),
-		mFeatureArchitecture() {
+		mFeatureArchitecture(),
+		mFeatureD3D12Options() {
 		
 		mpAdapter->GetDesc1(&mDesc);
 		std::wcstombs(mName, mDesc.Description, sizeof(mName));
@@ -20,6 +21,8 @@ namespace erhi::dx12 {
 		
 		mFeatureArchitecture.NodeIndex = 0u;
 		D3D12CheckResult(pDevice->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE1, &mFeatureArchitecture, sizeof(mFeatureArchitecture)));
+
+		D3D12CheckResult(pDevice->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS, &mFeatureD3D12Options, sizeof(mFeatureD3D12Options)));
 
 		pDevice->Release();
 	}

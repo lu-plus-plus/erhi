@@ -16,6 +16,7 @@ namespace erhi::dx12 {
 		DXGI_ADAPTER_DESC1						mDesc;
 		char									mName[sizeof(DXGI_ADAPTER_DESC1::Description)];
 		D3D12_FEATURE_DATA_ARCHITECTURE1		mFeatureArchitecture;
+		D3D12_FEATURE_DATA_D3D12_OPTIONS		mFeatureD3D12Options;
 
 		PhysicalDevice(Instance * pInstance, IDXGIAdapter1 * pAdapter);
 		virtual ~PhysicalDevice() override;
