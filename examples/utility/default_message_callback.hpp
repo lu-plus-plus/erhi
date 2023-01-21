@@ -1,7 +1,7 @@
 #ifndef ERHI_EXAMPLES_UTILS_DEFAULT_MESSAGE_CALLBACK_HPP
 #define ERHI_EXAMPLES_UTILS_DEFAULT_MESSAGE_CALLBACK_HPP
 
-#include "erhi/common/message.hpp"
+#include "erhi/common/context/message.hpp"
 
 
 

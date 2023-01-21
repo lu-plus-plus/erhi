@@ -109,16 +109,26 @@ namespace erhi {
 
 	using IQueueHandle				= Handle<struct IQueue>;
 
+	using IMemoryHandle			= Handle<struct IMemory>;
+	using IBufferHandle			= Handle<struct IBuffer>;
+	using ITextureHandle		= Handle<struct ITexture>;
+	using IAllocatorHandle		= Handle<struct IAllocator>;
+
 
 
 	namespace vk {
 
-		using MessageCallbackHandle = Handle<struct MessageCallback>;
-		using InstanceHandle = Handle<struct Instance>;
-		using PhysicalDeviceHandle = Handle<struct PhysicalDevice>;
-		using DeviceHandle = Handle<struct Device>;
+		using MessageCallbackHandle		= Handle<struct MessageCallback>;
+		using InstanceHandle			= Handle<struct Instance>;
+		using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
+		using DeviceHandle				= Handle<struct Device>;
 
-		using QueueHandle = Handle<struct Queue>;
+		using QueueHandle				= Handle<struct Queue>;
+
+		using MemoryHandle			= Handle<struct Memory>;
+		using BufferHandle			= Handle<struct Buffer>;
+		using TextureHandle			= Handle<struct Texture>;
+		using AllocatorHandle		= Handle<struct Allocator>;
 
 	}
 	
@@ -126,12 +136,17 @@ namespace erhi {
 
 	namespace dx12 {
 
-		using MessageCallbackHandle = Handle<struct MessageCallback>;
-		using InstanceHandle = Handle<struct Instance>;
-		using PhysicalDeviceHandle = Handle<struct PhysicalDevice>;
-		using DeviceHandle = Handle<struct Device>;
+		using MessageCallbackHandle		= Handle<struct MessageCallback>;
+		using InstanceHandle			= Handle<struct Instance>;
+		using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
+		using DeviceHandle				= Handle<struct Device>;
 
-		using QueueHandle = Handle<struct Queue>;
+		using QueueHandle				= Handle<struct Queue>;
+
+		using MemoryHandle			= Handle<struct Memory>;
+		using BufferHandle			= Handle<struct Buffer>;
+		using TextureHandle			= Handle<struct Texture>;
+		using AllocatorHandle		= Handle<struct Allocator>;
 
 	}
 

@@ -24,100 +24,91 @@ add_subdirectory(${ERHI_PACKAGES_DIR}/volk EXCLUDE_FROM_ALL)
 
 
 
-add_library(erhi_headers INTERFACE)
+add_library(erhi_include_dir_interface INTERFACE)
 
-target_include_directories(erhi_headers
+target_include_directories(erhi_include_dir_interface
 	INTERFACE ${ERHI_INCLUDE_DIR}
 )
 
 
 
+function(add_file_group group_name group_root group_prefix file_expr)
+	file(
+		GLOB ${group_name}
+		LIST_DIRECTORIES false
+
+		${group_root}/*${file_postfix}
+		${group_root}/utils/*${file_postfix}
+		${group_root}/context/*${file_postfix}
+		# ${group_root}/resource/*${file_postfix}
+		${group_root}/command/*${file_postfix}
+	)
+	
+	source_group(
+		TREE ${group_root}
+		PREFIX ${group_prefix}
+		FILES ${${group_name}}
+	)
+
+	set(${group_name} ${${group_name}} PARENT_SCOPE)
+endfunction()
+
+function(add_header_group group_name group_root)
+	add_file_group(${group_name} ${group_root} "Header Files" ".hpp")
+	set(${group_name} ${${group_name}} PARENT_SCOPE)
+endfunction()
+
+function(add_source_group group_name group_root)
+	add_file_group(${group_name} ${group_root} "Source Files" ".cpp")
+	set(${group_name} ${${group_name}} PARENT_SCOPE)
+endfunction()
+
+
+
+add_header_group(erhi_vk_headers ${ERHI_INCLUDE_DIR}/erhi/vulkan)
+
+add_source_group(erhi_vk_sources ${ERHI_SOURCE_DIR}/vulkan)
+
 add_library(erhi_vulkan STATIC
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/native.hpp	
-	${ERHI_SOURCE_DIR}/vulkan/native.cpp
-
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/message.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/instance.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/physical_device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/vulkan/queue.hpp
-
-	${ERHI_SOURCE_DIR}/vulkan/message.cpp
-	${ERHI_SOURCE_DIR}/vulkan/instance.cpp
-	${ERHI_SOURCE_DIR}/vulkan/physical_device.cpp
-	${ERHI_SOURCE_DIR}/vulkan/device.cpp
-	${ERHI_SOURCE_DIR}/vulkan/queue.cpp
-
-	# ${ERHI_INCLUDE_DIR}/erhi/vulkan/resource/resource.hpp
-	# ${ERHI_INCLUDE_DIR}/erhi/vulkan/resource/memory.hpp
-
-	# ${ERHI_SOURCE_DIR}/vulkan/resource/memory.cpp
+	${erhi_vk_headers}
+	${erhi_vk_sources}
 )
 
 target_link_libraries(erhi_vulkan
-	PRIVATE erhi_headers
+	PRIVATE erhi_include_dir_interface
 	PUBLIC volk::volk
 )
 
 
 
+add_header_group(erhi_dx12_headers ${ERHI_INCLUDE_DIR}/erhi/dx12)
+
+add_source_group(erhi_dx12_sources ${ERHI_SOURCE_DIR}/dx12)
+
 add_library(erhi_dx12 STATIC
-	${ERHI_INCLUDE_DIR}/erhi/dx12/native.hpp
-	${ERHI_SOURCE_DIR}/dx12/native.cpp
-
-	${ERHI_INCLUDE_DIR}/erhi/dx12/message.hpp
-	${ERHI_INCLUDE_DIR}/erhi/dx12/instance.hpp
-	${ERHI_INCLUDE_DIR}/erhi/dx12/physical_device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/dx12/device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/dx12/queue.hpp
-
-	${ERHI_SOURCE_DIR}/dx12/message.cpp
-	${ERHI_SOURCE_DIR}/dx12/instance.cpp
-	${ERHI_SOURCE_DIR}/dx12/physical_device.cpp
-	${ERHI_SOURCE_DIR}/dx12/device.cpp
-	${ERHI_SOURCE_DIR}/dx12/queue.cpp
-
-	# ${ERHI_INCLUDE_DIR}/erhi/dx12/resource/resource.hpp
-	# ${ERHI_INCLUDE_DIR}/erhi/dx12/resource/memory.hpp
-
-	# ${ERHI_SOURCE_DIR}/dx12/resource/memory.cpp
+	${erhi_dx12_headers}
+	${erhi_dx12_sources}
 )
 
 target_link_libraries(erhi_dx12
-	PRIVATE erhi_headers
+	PRIVATE erhi_include_dir_interface
 	PRIVATE dxgi
 	PRIVATE d3d12
 )
 
 
 
+add_header_group(erhi_common_headers ${ERHI_INCLUDE_DIR}/erhi/common)
+
+add_source_group(erhi_common_sources ${ERHI_SOURCE_DIR}/common)
+
 add_library(erhi SHARED
-	${ERHI_INCLUDE_DIR}/erhi/common/handle.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/object.hpp
-
-	${ERHI_INCLUDE_DIR}/erhi/common/common.hpp
-
-	${ERHI_INCLUDE_DIR}/erhi/common/context.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/message.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/instance.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/physical_device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/device.hpp
-	${ERHI_INCLUDE_DIR}/erhi/common/queue.hpp
-
-	${ERHI_SOURCE_DIR}/common/message.cpp
-	${ERHI_SOURCE_DIR}/common/instance.cpp
-	${ERHI_SOURCE_DIR}/common/physical_device.cpp
-	${ERHI_SOURCE_DIR}/common/device.cpp
-	${ERHI_SOURCE_DIR}/common/queue.cpp
-
-	# ${ERHI_INCLUDE_DIR}/erhi/common/resource/resource.hpp
-	# ${ERHI_INCLUDE_DIR}/erhi/common/resource/memory.hpp
-
-	# ${ERHI_SOURCE_DIR}/common/resource/memory.cpp
+	${erhi_common_headers}
+	${erhi_common_sources}
 )
 
 target_link_libraries(erhi
-	PRIVATE erhi_headers
+	PRIVATE erhi_include_dir_interface
 	PUBLIC erhi_vulkan
 	PUBLIC erhi_dx12
 )

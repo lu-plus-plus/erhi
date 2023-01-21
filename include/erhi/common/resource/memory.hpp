@@ -10,42 +10,21 @@
 
 namespace erhi {
 
-	enum class MemoryLocation : uint32_t {
-		L0_System,
-		L1_Video,
+	struct IMemoryView {
+		virtual uint32_t size() const = 0;
+		virtual uint32_t offset() const = 0;
 	};
 
-	enum class MemoryHostAccess : uint32_t {
-		NotAvailable,
-		SequentialWrite,
-		Random
-	};
-
-	enum class MemoryHeapType : uint32_t {
-		Default,
-		Upload,
-		ReadBack
-	};
-
-	struct IMemory : IObject, IOnDevice {
-	
-	private:
-
-		uint32_t			mSize;
-		MemoryLocation		mLocation;
-		MemoryHostAccess	mHostAccess;
-
-	public:
-
-		IMemory(IDevice * pDevice, uint32_t size, MemoryLocation location, MemoryHostAccess hostAccess);
-		IMemory(IDevice * pDevice, uint32_t size, MemoryHeapType heapType);
+	struct IMemory : IObject {
+		
+		IMemory();
 		virtual ~IMemory() override;
 
-		virtual IDevice * pDevice() const override = 0;
+		virtual IDevice *	pDevice() const = 0;
 
-		uint32_t size() const;
-		MemoryHostAccess hostAccess() const;
-		MemoryLocation location() const;
+		virtual uint32_t	size() const = 0;
+		virtual uint32_t	offset() const = 0;
+		virtual uint32_t	alignment() const = 0;
 
 	};
 
