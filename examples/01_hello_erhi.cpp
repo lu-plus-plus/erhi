@@ -3,6 +3,9 @@
 #include "erhi/common/common.hpp"
 #include "erhi/common/context/context.hpp"
 
+// <todo> resource.hpp </todo>
+#include "erhi/common/resource/memory.hpp"
+
 // <todo> command.hpp </todo>
 #include "erhi/common/command/queue.hpp"
 
@@ -24,7 +27,20 @@ int main() {
 
 	auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
 
-	auto pPrimaryQueue = pDevice->selectQueue(QueueType::Graphics);
+	auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Graphics);
+
+	auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
+		MemoryHeapType::Default,
+		BufferDesc{
+			.bufferUsage = BufferUsageBits::CopySource | BufferUsageBits::CopyTarget | BufferUsageBits::IndexBuffer,
+			.size = 12 * 3 * sizeof(uint32_t)
+		}
+	);
+
+	auto indexBufferMemory = pDevice->AllocateMemory(MemoryDesc{
+		.memoryTypeIndex = memoryRequirements.memoryTypeIndex,
+		.size = memoryRequirements.size
+	});
 
 	return 0;
 }

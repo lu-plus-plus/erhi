@@ -40,7 +40,7 @@ namespace erhi::dx12 {
 
 
 
-	IQueueHandle Device::selectQueue(QueueType queueType) {
+	IQueueHandle Device::SelectQueue(QueueType queueType) {
 		return MakeHandle<Queue>(this, queueType);
 	}
 

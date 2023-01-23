@@ -8,11 +8,18 @@
 namespace erhi {
 
 	struct IDevice : IObject {
+
 		IDevice();
 		virtual ~IDevice();
 
-		virtual IPhysicalDevice *	pPhysicalDevice() const = 0;
-		virtual IQueueHandle		selectQueue(QueueType queueType) = 0;
+		virtual IPhysicalDeviceHandle	GetPhysicalDevice() const = 0;
+
+		virtual IQueueHandle			SelectQueue(QueueType queueType) = 0;
+
+		virtual IMemoryHandle			AllocateMemory(MemoryDesc const & desc) = 0;
+		virtual MemoryRequirements		GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+		//virtual IBufferHandle			CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+
 	};
 
 }

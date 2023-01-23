@@ -32,7 +32,7 @@ namespace erhi::vk {
 
 
 
-	IQueueHandle Device::selectQueue(QueueType queueType) {
+	IQueueHandle Device::SelectQueue(QueueType queueType) {
 		auto deviceHandle = DeviceHandle(this);
 
 		switch (queueType) {

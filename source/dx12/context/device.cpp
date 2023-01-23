@@ -28,8 +28,8 @@ namespace erhi::dx12 {
 
 
 
-	IPhysicalDevice * Device::pPhysicalDevice() const {
-		return mPhysicalDeviceHandle.get();
+	IPhysicalDeviceHandle Device::GetPhysicalDevice() const {
+		return mPhysicalDeviceHandle;
 	}
 
 }

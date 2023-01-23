@@ -99,8 +99,8 @@ namespace erhi::vk {
 
 
 
-	IPhysicalDevice * Device::pPhysicalDevice() const {
-		return mPhysicalDeviceHandle.get();
+	IPhysicalDeviceHandle Device::GetPhysicalDevice() const {
+		return mPhysicalDeviceHandle;
 	}
 
 }

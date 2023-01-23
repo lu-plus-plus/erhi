@@ -10,13 +10,16 @@
 namespace erhi::dx12 {
 
 	struct Memory : IMemory {
+		
 		DeviceHandle mDeviceHandle;
-		ID3D12Heap1 * mpHeap;
+		ID3D12Heap * mpHeap;
 
-		Memory(Device * pDevice, uint32_t sizeInBytes, MemoryHeapType heapType, BufferUsageFlags bufferUsage, TextureUsageFlags textureUsage);
+		Memory(DeviceHandle deviceHandle, D3D12_HEAP_DESC const & heapDesc);
 		virtual ~Memory() override;
 
-		virtual IDevice * pDevice() const override;
+		virtual IDeviceHandle	GetDevice() const override;
+		virtual uint64_t		Size() const override;
+
 	};
 
 }

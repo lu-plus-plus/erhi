@@ -47,11 +47,11 @@ namespace erhi {
 			return *this;
 		}
 
-		Handle(Handle && other) : pRaw(other.pRaw) {
+		Handle(Handle && other) noexcept : pRaw(other.pRaw) {
 			other.pRaw = nullptr;
 		}
 
-		Handle & operator=(Handle && other) {
+		Handle & operator=(Handle && other) noexcept {
 			if (pRaw) pRaw->release();
 
 			pRaw = other.pRaw;
@@ -60,25 +60,25 @@ namespace erhi {
 			return *this;
 		}
 
-		~Handle() {
+		~Handle() noexcept {
 			if (pRaw) pRaw->release();
 		}
 
 		// pointer-like behavior
 
-		T * operator->() const {
+		T * operator->() const noexcept {
 			return pRaw;
 		}
 
-		T & operator*() const {
+		T & operator*() const noexcept {
 			return *pRaw;
 		}
 
-		T * get() const {
+		T * get() const noexcept {
 			return pRaw;
 		}
 
-		operator bool() const {
+		operator bool() const noexcept {
 			return pRaw != nullptr;
 		}
 
@@ -112,7 +112,7 @@ namespace erhi {
 	using IMemoryHandle			= Handle<struct IMemory>;
 	using IBufferHandle			= Handle<struct IBuffer>;
 	using ITextureHandle		= Handle<struct ITexture>;
-	using IAllocatorHandle		= Handle<struct IAllocator>;
+	// using IAllocatorHandle		= Handle<struct IAllocator>;
 
 
 
@@ -128,7 +128,7 @@ namespace erhi {
 		using MemoryHandle			= Handle<struct Memory>;
 		using BufferHandle			= Handle<struct Buffer>;
 		using TextureHandle			= Handle<struct Texture>;
-		using AllocatorHandle		= Handle<struct Allocator>;
+		// using AllocatorHandle		= Handle<struct Allocator>;
 
 	}
 	
@@ -146,7 +146,7 @@ namespace erhi {
 		using MemoryHandle			= Handle<struct Memory>;
 		using BufferHandle			= Handle<struct Buffer>;
 		using TextureHandle			= Handle<struct Texture>;
-		using AllocatorHandle		= Handle<struct Allocator>;
+		// using AllocatorHandle		= Handle<struct Allocator>;
 
 	}
 

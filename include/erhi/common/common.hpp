@@ -66,9 +66,10 @@ namespace erhi {
 	// memory
 
 	enum class MemoryHeapType : uint32_t {
-		Default,
-		Upload,
-		ReadBack,
+		Default		= 0,
+		Upload		= 1,
+		ReadBack	= 2,
+		MaxEnum		= 3
 		/* <todo> Direct </todo> */
 	};
 
@@ -78,12 +79,10 @@ namespace erhi {
 		enum : int32_t {
 			CopySource = 0x0000'0001,
 			CopyTarget = 0x0000'0002,
-			UniformTexel = 0x0000'0004,
-			StorageTexel = 0x0000'0008,
-			Uniform = 0x0000'0010,
-			Storage = 0x0000'0020,
-			Index = 0x0000'0040,
-			Vertex = 0x0000'0080,
+			UniformBuffer = 0x0000'0004,
+			StorageBuffer = 0x0000'0008,
+			IndexBuffer = 0x0000'0010,
+			VertexBuffer = 0x0000'0020
 		};
 	}
 
@@ -97,7 +96,7 @@ namespace erhi {
 			CopyTarget = 0x0000'0002,
 			Sampled = 0x0000'0004,
 			Storage = 0x0000'0008,
-			ColorAttachment = 0x0000'0010,
+			RenderTargetAttachment = 0x0000'0010,
 			DepthStencilAttachment = 0x0000'0020,
 			TransientAttachment = 0x0000'0040,
 			InputAttachment = 0x0000'0080,
@@ -105,6 +104,22 @@ namespace erhi {
 	}
 
 	using TextureUsageFlags = Flags;
+
+	struct MemoryRequirements {
+		uint32_t memoryTypeIndex;
+		uint64_t size;
+		uint64_t alignment;
+	};
+
+	struct MemoryDesc {
+		uint32_t memoryTypeIndex;
+		uint64_t size;
+	};
+
+	struct BufferDesc {
+		BufferUsageFlags bufferUsage;
+		uint64_t size;
+	};
 
 }
 

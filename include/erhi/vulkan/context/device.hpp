@@ -23,8 +23,13 @@ namespace erhi::vk {
 
 		operator VkDevice() const;
 
-		virtual IPhysicalDevice *	pPhysicalDevice() const override;
-		virtual IQueueHandle		selectQueue(QueueType queueType) override;
+		virtual IPhysicalDeviceHandle	GetPhysicalDevice() const override;
+
+		virtual IQueueHandle			SelectQueue(QueueType queueType) override;
+
+		virtual IMemoryHandle			AllocateMemory(MemoryDesc const & desc) override;
+		virtual MemoryRequirements		GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
+		//virtual IBufferHandle			CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
 
 	};
 
