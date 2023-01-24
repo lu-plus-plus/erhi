@@ -29,18 +29,22 @@ int main() {
 
 	auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Graphics);
 
+	auto indexBufferDesc = BufferDesc{
+		.bufferUsage = BufferUsageBits::CopySource | BufferUsageBits::CopyTarget | BufferUsageBits::IndexBuffer,
+		.size = 12 * 3 * sizeof(uint32_t)
+	};
+
 	auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
 		MemoryHeapType::Default,
-		BufferDesc{
-			.bufferUsage = BufferUsageBits::CopySource | BufferUsageBits::CopyTarget | BufferUsageBits::IndexBuffer,
-			.size = 12 * 3 * sizeof(uint32_t)
-		}
+		indexBufferDesc
 	);
 
 	auto indexBufferMemory = pDevice->AllocateMemory(MemoryDesc{
 		.memoryTypeIndex = memoryRequirements.memoryTypeIndex,
 		.size = memoryRequirements.size
 	});
+
+	auto indexBuffer = pDevice->CreateBuffer(indexBufferMemory, 0, indexBufferDesc);
 
 	return 0;
 }

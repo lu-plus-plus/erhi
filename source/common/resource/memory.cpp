@@ -59,8 +59,20 @@ namespace erhi {
 	//	}
 	//}
 
-	IMemory::IMemory() = default;
+	IMemory::IMemory(uint64_t size) : mSize(size) {}
 
 	IMemory::~IMemory() = default;
+	
+	uint64_t IMemory::GetSize() const { return mSize; }
+
+
+
+	IBuffer::IBuffer(uint64_t offsetInMemory, uint64_t size) : mOffsetInMemory(offsetInMemory), mSize(size) {}
+	
+	IBuffer::~IBuffer() = default;
+
+	uint64_t IBuffer::OffsetInMemory() const { return mOffsetInMemory; }
+
+	uint64_t IBuffer::Size() const { return mSize; }
 
 }

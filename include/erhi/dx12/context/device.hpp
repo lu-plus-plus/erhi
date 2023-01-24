@@ -25,7 +25,8 @@ namespace erhi::dx12 {
 
 		virtual IMemoryHandle			AllocateMemory(MemoryDesc const & desc) override;
 		virtual MemoryRequirements		GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
-		//virtual IBufferHandle			CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
+		virtual IBufferHandle			CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) override;
+		//virtual IBufferHandle			CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
 
 	};
 

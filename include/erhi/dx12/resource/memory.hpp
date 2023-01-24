@@ -17,8 +17,19 @@ namespace erhi::dx12 {
 		Memory(DeviceHandle deviceHandle, D3D12_HEAP_DESC const & heapDesc);
 		virtual ~Memory() override;
 
-		virtual IDeviceHandle	GetDevice() const override;
-		virtual uint64_t		Size() const override;
+		virtual IDeviceHandle GetDevice() const override;
+
+	};
+
+	struct Buffer : IBuffer {
+
+		MemoryHandle		mMemoryHandle;
+		ID3D12Resource *	mpBuffer;
+
+		Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc);
+		virtual ~Buffer() override;
+
+		virtual IMemoryHandle GetMemory() const override;
 
 	};
 

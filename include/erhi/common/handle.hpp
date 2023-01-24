@@ -8,10 +8,28 @@
 
 namespace erhi {
 	
+	template <typename Derived, typename Base>
+	concept strictly_derived_from = std::derived_from<Derived, Base> and not std::same_as<Derived, Base>;
+
+
+
 	template <typename T>
 	struct [[nodiscard]] Handle {
 
-	private:
+		template <typename U>
+		friend struct Handle;
+
+		template <typename T, typename ... Args>
+		requires std::constructible_from<T, Args...>
+		friend Handle<T> MakeHandle(Args && ... args);
+
+		template <typename To, typename From>
+		friend Handle<To> dynamic_handle_cast(Handle<From> const & from);
+
+		template <typename To, typename From>
+		friend Handle<To> dynamic_handle_cast(Handle<From> && from);
+
+	protected:
 
 		T * pRaw;
 
@@ -19,20 +37,31 @@ namespace erhi {
 
 		Handle() : pRaw(nullptr) {}
 
-		Handle(nullptr_t) : pRaw(nullptr) {}
+		explicit Handle(nullptr_t) : pRaw(nullptr) {}
 
-		template <typename Derived>
-		friend struct Handle;
+		Handle & operator=(nullptr_t) {
+			if (pRaw) pRaw->release();
 
-		template <std::derived_from<T> Derived>
-		Handle(Derived * ptr) : pRaw(ptr) {
+			pRaw = nullptr;
+
+			return *this;
+		}
+
+		~Handle() noexcept {
+			if (pRaw) pRaw->release();
+		}
+
+		// Casting from raw pointer is unavailable to avoid lifetime problems.
+
+		//Handle(T * ptr) = delete;
+		// <todo> Remove ctor from raw pointer. </todo>
+		Handle(T * ptr) : pRaw(ptr) {
 			if (pRaw) pRaw->incRef();
 		}
 
-		template <std::derived_from<T> Derived>
-		Handle(Handle<Derived> const & pDerived) : pRaw(pDerived.pRaw) {
-			if (pRaw) pRaw->incRef();
-		}
+		Handle & operator=(T * ptr) = delete;
+
+		// Casting from handles of the same type.
 
 		Handle(Handle const & other) : pRaw(other.pRaw) {
 			if (pRaw) pRaw->incRef();
@@ -43,7 +72,7 @@ namespace erhi {
 
 			pRaw = other.pRaw;
 			if (pRaw) pRaw->incRef();
-
+			
 			return *this;
 		}
 
@@ -60,8 +89,34 @@ namespace erhi {
 			return *this;
 		}
 
-		~Handle() noexcept {
+		// Casting from handles of derived types.
+
+		template <strictly_derived_from<T> Derived>
+		Handle(Handle<Derived> const & other) : pRaw(static_cast<T *>(other.pRaw)) {}
+
+		template <strictly_derived_from<T> Derived>
+		Handle & operator=(Handle<Derived> const & other) {
 			if (pRaw) pRaw->release();
+
+			pRaw = static_cast<T *>(other.pRaw);
+			if (pRaw) pRaw->incRef();
+
+			return *this;
+		}
+
+		template <strictly_derived_from<T> Derived>
+		Handle(Handle<Derived> && other) noexcept : pRaw(static_cast<T *>(other.pRaw)) {
+			other.pRaw = nullptr;
+		}
+
+		template <strictly_derived_from<T> Derived>
+		Handle & operator=(Handle<Derived> && other) noexcept {
+			if (pRaw) pRaw->release();
+
+			pRaw = static_cast<T *>(other.pRaw);
+			other.pRaw = nullptr;
+
+			return *this;
 		}
 
 		// pointer-like behavior
@@ -90,14 +145,35 @@ namespace erhi {
 	requires std::constructible_from<T, Args...>
 	Handle<T> MakeHandle(Args && ... args) {
 		T * pRaw = new T{ std::forward<Args>(args)... };
-		return Handle<T>{ pRaw };
+		
+		Handle<T> handle;
+
+		handle.pRaw = pRaw;
+		if (pRaw) pRaw->incRef();
+
+		return handle;
 	}
 
 
 
 	template <typename To, typename From>
 	Handle<To> dynamic_handle_cast(Handle<From> const & from) {
-		return Handle<To>{ dynamic_cast<To *>(from.get()) };
+		Handle<To> to;
+		
+		to.pRaw = dynamic_cast<To *>(from.pRaw);
+		if (to.pRaw) to.pRaw->incRef();
+
+		return to;
+	}
+
+	template <typename To, typename From>
+	Handle<To> dynamic_handle_cast(Handle<From> && from) {
+		Handle<To> to;
+
+		to.pRaw = dynamic_cast<To *>(from.pRaw);
+		from.pRaw = nullptr;
+
+		return to;
 	}
 
 

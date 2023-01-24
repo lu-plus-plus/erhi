@@ -14,9 +14,9 @@
 namespace erhi::vk {
 
 	Memory::Memory(DeviceHandle deviceHandle, uint32_t memoryTypeIndex, VkDeviceSize size) :
+		IMemory(size),
 		mDeviceHandle(std::move(deviceHandle)),
-		mMemory(VK_NULL_HANDLE),
-		mSize(size) {
+		mMemory(VK_NULL_HANDLE) {
 		
 		VkMemoryAllocateInfo const allocateInfo{
 			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
@@ -34,10 +34,6 @@ namespace erhi::vk {
 
 	IDeviceHandle Memory::GetDevice() const {
 		return mDeviceHandle;
-	}
-
-	uint64_t Memory::Size() const {
-		return mSize;
 	}
 
 
@@ -157,6 +153,42 @@ namespace erhi::vk {
 
 	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
 		return MakeHandle<Memory>(this, desc.memoryTypeIndex, desc.size);
+	}
+
+
+
+	Buffer::Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc) :
+		IBuffer(offset, desc.size),
+		mMemoryHandle(std::move(memoryHandle)),
+		mBuffer(VK_NULL_HANDLE) {
+
+		VkBufferCreateInfo createInfo{
+			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.size = desc.size,
+			.usage = MapBufferUsage(desc.bufferUsage),
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.queueFamilyIndexCount = 0,
+			.pQueueFamilyIndices = nullptr
+		};
+
+		vkCheckResult(vkCreateBuffer(mMemoryHandle->mDeviceHandle->mDevice, &createInfo, nullptr, &mBuffer));
+	}
+
+	Buffer::~Buffer() {
+		vkDestroyBuffer(mMemoryHandle->mDeviceHandle->mDevice, mBuffer, nullptr);
+	}
+
+	IMemoryHandle Buffer::GetMemory() const {
+		return mMemoryHandle;
+	}
+
+
+
+	IBufferHandle Device::CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) {
+		MemoryHandle handle = dynamic_handle_cast<Memory>(std::move(memoryHandle));
+		return MakeHandle<Buffer>(handle, offset, bufferDesc);
 	}
 
 }

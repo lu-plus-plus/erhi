@@ -11,7 +11,7 @@
 namespace erhi::dx12 {
 
 	Memory::Memory(DeviceHandle deviceHandle, D3D12_HEAP_DESC const & heapDesc) :
-		IMemory(),
+		IMemory(heapDesc.SizeInBytes),
 		mDeviceHandle(std::move(deviceHandle)),
 		mpHeap(nullptr) {
 		
@@ -24,10 +24,6 @@ namespace erhi::dx12 {
 
 	IDeviceHandle Memory::GetDevice() const {
 		return mDeviceHandle;
-	}
-
-	uint64_t Memory::Size() const {
-		return mpHeap->GetDesc().SizeInBytes;
 	}
 
 
@@ -235,6 +231,65 @@ namespace erhi::dx12 {
 		};
 
 		return MakeHandle<Memory>(this, heapDesc);
+	}
+
+
+
+	Buffer::Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc) :
+		IBuffer(offset, desc.size),
+		mMemoryHandle(std::move(memoryHandle)),
+		mpBuffer(nullptr) {
+
+		D3D12_RESOURCE_DESC const resourceDesc{
+			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+			.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT,
+			.Width = desc.size,
+			.Height = 1,
+			.DepthOrArraySize = 1,
+			.MipLevels = 1,
+			.Format = DXGI_FORMAT_UNKNOWN,
+			.SampleDesc = DXGI_SAMPLE_DESC{
+				.Count = 1,
+				.Quality = 0
+			},
+			.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+			.Flags = MapBufferUsage(desc.bufferUsage)
+		};
+
+		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
+
+		auto heapType = mMemoryHandle->mpHeap->GetDesc().Properties.Type;
+		switch (heapType) {
+			case D3D12_HEAP_TYPE_DEFAULT: {
+				state = D3D12_RESOURCE_STATE_COMMON;
+			} break;
+
+			case D3D12_HEAP_TYPE_UPLOAD: {
+				state = D3D12_RESOURCE_STATE_GENERIC_READ;
+			} break;
+
+			case D3D12_HEAP_TYPE_READBACK: {
+				state = D3D12_RESOURCE_STATE_COPY_DEST;
+			} break;
+
+			default: break;
+		}
+
+		D3D12CheckResult(mMemoryHandle->mDeviceHandle->mpDevice->CreatePlacedResource(mMemoryHandle->mpHeap, offset, &resourceDesc, state, nullptr, IID_PPV_ARGS(&mpBuffer)));
+	}
+
+	Buffer::~Buffer() {
+		mpBuffer->Release();
+	}
+
+	IMemoryHandle Buffer::GetMemory() const {
+		return mMemoryHandle;
+	}
+
+
+
+	IBufferHandle Device::CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) {
+		return MakeHandle<Buffer>(dynamic_handle_cast<Memory>(memoryHandle), offset, bufferDesc);
 	}
 
 }

@@ -18,6 +18,7 @@ namespace erhi {
 
 		virtual IMemoryHandle			AllocateMemory(MemoryDesc const & desc) = 0;
 		virtual MemoryRequirements		GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+		virtual IBufferHandle			CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) = 0;
 		//virtual IBufferHandle			CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
 
 	};
