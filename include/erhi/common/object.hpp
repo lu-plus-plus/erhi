@@ -2,7 +2,6 @@
 #define ERHI_OBJECT_HPP
 
 #include <cstdint>
-#include <atomic>
 
 
 
@@ -12,11 +11,11 @@ namespace erhi {
 
 	private:
 
-		std::atomic<uint32_t> mCount;
+		uint32_t mRefCount;
 
 	protected:
 
-		IObject() : mCount(0u) {}
+		IObject() : mRefCount(0u) {}
 
 		IObject(IObject const &) = delete;
 		IObject operator=(IObject const &) = delete;
@@ -28,10 +27,10 @@ namespace erhi {
 
 	public:
 
-		uint32_t incRef() { return ++mCount; }
+		uint32_t incRef() { return ++mRefCount; }
 
 		uint32_t release() {
-			uint32_t const rest{ --mCount };
+			uint32_t const rest = --mRefCount;
 			if (rest == 0u) {
 				delete this;
 			}

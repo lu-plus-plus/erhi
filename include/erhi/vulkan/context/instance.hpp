@@ -1,6 +1,8 @@
 #ifndef ERHI_VULKAN_INSTANCE_HPP
 #define ERHI_VULKAN_INSTANCE_HPP
 
+#include <atomic>
+
 #include "../../common/context/instance.hpp"
 #include "../native.hpp"
 
