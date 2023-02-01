@@ -51,10 +51,8 @@ namespace erhi {
 			if (pRaw) pRaw->release();
 		}
 
-		// Casting from raw pointer is unavailable to avoid lifetime problems.
+		// Constructing handle from a raw pointer.
 
-		//Handle(T * ptr) = delete;
-		// <todo> Remove ctor from raw pointer. </todo>
 		Handle(T * ptr) : pRaw(ptr) {
 			if (pRaw) pRaw->incRef();
 		}
