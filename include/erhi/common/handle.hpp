@@ -185,10 +185,15 @@ namespace erhi {
 
 	using IQueueHandle				= Handle<struct IQueue>;
 
-	using IMemoryHandle			= Handle<struct IMemory>;
-	using IBufferHandle			= Handle<struct IBuffer>;
-	using ITextureHandle		= Handle<struct ITexture>;
-	// using IAllocatorHandle		= Handle<struct IAllocator>;
+	using IMemoryHandle				= Handle<struct IMemory>;
+	
+	using IBufferHandle				= Handle<struct IBuffer>;
+	using IPlacedBufferHandle		= Handle<struct IPlacedBuffer>;
+	using ICommittedBufferHandle	= Handle<struct ICommittedBuffer>;
+
+	using ITextureHandle			= Handle<struct ITexture>;
+	using IPlacedTextureHandle		= Handle<struct IPlacedTexture>;
+	using ICommittedTextureHandle	= Handle<struct ICommittedTexture>;
 
 
 

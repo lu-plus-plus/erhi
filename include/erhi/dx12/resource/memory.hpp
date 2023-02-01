@@ -14,20 +14,30 @@ namespace erhi::dx12 {
 		DeviceHandle mDeviceHandle;
 		ID3D12Heap * mpHeap;
 
-		Memory(DeviceHandle deviceHandle, D3D12_HEAP_DESC const & heapDesc);
+		Memory(DeviceHandle deviceHandle, MemoryDesc const & desc);
 		virtual ~Memory() override;
 
 		virtual IDeviceHandle GetDevice() const override;
 
 	};
 
-	struct Buffer : IBuffer {
+	struct CommittedBuffer : ICommittedBuffer {
+
+		DeviceHandle		mDeviceHandle;
+		ID3D12Resource *	mpBuffer;
+
+		CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc);
+		virtual ~CommittedBuffer() override;
+
+	};
+
+	struct PlacedBuffer : IPlacedBuffer {
 
 		MemoryHandle		mMemoryHandle;
 		ID3D12Resource *	mpBuffer;
 
-		Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc);
-		virtual ~Buffer() override;
+		PlacedBuffer(BufferDesc const & desc, Memory * pMemory, uint64_t offset, uint64_t alignment);
+		virtual ~PlacedBuffer() override;
 
 		virtual IMemoryHandle GetMemory() const override;
 

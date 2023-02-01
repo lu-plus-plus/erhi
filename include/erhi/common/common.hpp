@@ -106,7 +106,7 @@ namespace erhi {
 	using TextureUsageFlags = Flags;
 
 	struct MemoryRequirements {
-		uint32_t memoryTypeIndex;
+		uint32_t memoryTypeBits;
 		uint64_t size;
 		uint64_t alignment;
 	};

@@ -32,6 +32,13 @@ namespace erhi::vk {
 		virtual char const * what() const override;
 	};
 
+	template <typename Insertee, typename Inserted>
+	void LinkNext(Insertee & insertee, Inserted & inserted) {
+		auto const pNext = insertee.pNext;
+		insertee.pNext = &inserted;
+		inserted.pNext = pNext;
+	}
+
 }
 
 #define vkErrorCode(result) erhi::vk::ErrorCode(result)

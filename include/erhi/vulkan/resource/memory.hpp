@@ -9,23 +9,38 @@ namespace erhi::vk {
 
 	struct Memory : IMemory {
 
-		DeviceHandle mDeviceHandle;
-		VkDeviceMemory mMemory;
+		DeviceHandle		mDeviceHandle;
+		VkDeviceMemory		mMemory;
 
-		Memory(DeviceHandle deviceHandle, uint32_t memoryTypeIndex, VkDeviceSize size);
+		Memory(DeviceHandle deviceHandle, MemoryDesc const & desc);
 		virtual ~Memory() override;
 
-		virtual IDeviceHandle		GetDevice() const override;
+		virtual IDeviceHandle GetDevice() const override;
 
 	};
 
-	struct Buffer : IBuffer {
 
-		MemoryHandle mMemoryHandle;
-		VkBuffer mBuffer;
 
-		Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc);
-		virtual ~Buffer() override;
+	struct CommittedBuffer : ICommittedBuffer {
+
+		DeviceHandle		mDeviceHandle;
+		VkDeviceMemory		mDeviceMemory;
+		VkBuffer			mBuffer;
+
+		CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc);
+		virtual ~CommittedBuffer() override;
+
+	};
+
+
+
+	struct PlacedBuffer : IPlacedBuffer {
+
+		MemoryHandle		mMemoryHandle;
+		VkBuffer			mBuffer;
+
+		PlacedBuffer(BufferDesc const & desc, MemoryHandle memoryHandle, uint64_t offset, uint64_t alignment);
+		virtual ~PlacedBuffer() override;
 
 		virtual IMemoryHandle GetMemory() const override;
 

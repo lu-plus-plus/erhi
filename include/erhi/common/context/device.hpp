@@ -12,14 +12,14 @@ namespace erhi {
 		IDevice();
 		virtual ~IDevice();
 
-		virtual IPhysicalDeviceHandle	GetPhysicalDevice() const = 0;
+		virtual IPhysicalDeviceHandle		GetPhysicalDevice() const = 0;
 
-		virtual IQueueHandle			SelectQueue(QueueType queueType) = 0;
+		virtual IQueueHandle				SelectQueue(QueueType queueType) = 0;
 
-		virtual IMemoryHandle			AllocateMemory(MemoryDesc const & desc) = 0;
-		virtual MemoryRequirements		GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
-		virtual IBufferHandle			CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) = 0;
-		//virtual IBufferHandle			CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+		virtual IMemoryHandle				AllocateMemory(MemoryDesc const & desc) = 0;
+		virtual MemoryRequirements			GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+		virtual IPlacedBufferHandle			CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, BufferDesc const & bufferDesc) = 0;
+		virtual ICommittedBufferHandle		CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
 
 	};
 

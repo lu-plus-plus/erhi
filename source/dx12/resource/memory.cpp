@@ -5,28 +5,11 @@
 
 #include <bit>			// for memory type bits manipulation
 #include <utility>		// for std::pair used in erhi/native mapping
+#include <cassert>		// for assert()
 
 
 
 namespace erhi::dx12 {
-
-	Memory::Memory(DeviceHandle deviceHandle, D3D12_HEAP_DESC const & heapDesc) :
-		IMemory(heapDesc.SizeInBytes),
-		mDeviceHandle(std::move(deviceHandle)),
-		mpHeap(nullptr) {
-		
-		D3D12CheckResult(mDeviceHandle->mpDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&mpHeap)));
-	}
-
-	Memory::~Memory() {
-		mpHeap->Release();
-	}
-
-	IDeviceHandle Memory::GetDevice() const {
-		return mDeviceHandle;
-	}
-
-
 
 	//Memory::Memory(Device * pDevice, uint32_t size, MemoryLocation location, MemoryHostAccess hostAccess) :
 	//	IMemory(pDevice, size, location, hostAccess),
@@ -107,54 +90,58 @@ namespace erhi::dx12 {
 		On devices with D3D12_RESOURCE_HEAP_TIER_2, all kinds of resources may be mixed on a single heap.
 	*/
 
-	enum class MemoryNativeCategory : uint32_t {
+	enum class NativeCategory : uint32_t {
+		Buffer = 0,
+		RT_DS_Texture = 1,
+		Non_RT_DS_Texture = 2,
+		MaxEnum = 3,
+
 		General = 0,
-		Buffer = 1,
-		RTDSTexture = 2,
-		NonRTDSTexture = 3,
-		MaxEnum = 4
+		None = 3 /* for committed resource, whose heap flags are implicitly specified by driver */
 	};
 
-	D3D12_HEAP_FLAGS MapCategoryToD3D12HeapFlags(Device * pDevice, MemoryNativeCategory category) {
+	static D3D12_HEAP_FLAGS MapCategoryToHeapFlags(NativeCategory category) {
+		D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
+
+		// heapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
+		// heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
+
 		switch (category) {
-			case MemoryNativeCategory::Buffer: {
-				return D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
+			case NativeCategory::Buffer: {
+				heapFlags |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 			} break;
 
-			case MemoryNativeCategory::RTDSTexture: {
-				return D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
+			case NativeCategory::RT_DS_Texture: {
+				heapFlags |= D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 			} break;
 
-			case MemoryNativeCategory::NonRTDSTexture: {
-				return D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
+			case NativeCategory::Non_RT_DS_Texture: {
+				heapFlags |= D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
 			} break;
 
-			case MemoryNativeCategory::General:
-			default: {
-				return D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
-			}
+			default: break;
 		}
+
+		return heapFlags;
 	}
 
-
-
-	uint32_t ToMemoryTypeIndex(Device * pDevice, MemoryHeapType heapType) {
-		uint32_t category = 0u;
-		
+	static NativeCategory GetBufferCategory(Device * pDevice) {
 		if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
-			category = uint32_t(MemoryNativeCategory::Buffer);
+			return NativeCategory::Buffer;
 		}
 		else {
-			category = uint32_t(MemoryNativeCategory::General);
+			return NativeCategory::General;
 		}
-
-		return uint32_t(heapType) * uint32_t(MemoryNativeCategory::MaxEnum) + category;
 	}
 
-	std::pair<MemoryHeapType, MemoryNativeCategory> FromMemoryTypeIndex(Device * pDevice, uint32_t memoryTypeIndex) {
+	static uint32_t GetMemoryTypeIndex(MemoryHeapType heapType, NativeCategory category) {
+		return uint32_t(heapType) * uint32_t(NativeCategory::MaxEnum) + uint32_t(category);
+	}
+
+	std::pair<MemoryHeapType, NativeCategory> FromMemoryTypeIndex(Device * pDevice, uint32_t memoryTypeIndex) {
 		return std::make_pair(
 			MemoryHeapType(memoryTypeIndex / uint32_t(MemoryHeapType::MaxEnum)),
-			MemoryNativeCategory(memoryTypeIndex % uint32_t(MemoryHeapType::MaxEnum))
+			NativeCategory(memoryTypeIndex % uint32_t(MemoryHeapType::MaxEnum))
 		);
 	}
 
@@ -171,7 +158,7 @@ namespace erhi::dx12 {
 
 
 	MemoryRequirements Device::GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
-		uint32_t const memoryTypeIndex = ToMemoryTypeIndex(this, heapType);
+		uint32_t const memoryTypeIndex = GetMemoryTypeIndex(heapType, GetBufferCategory(this));
 		
 		/*
 			<todo>
@@ -200,7 +187,7 @@ namespace erhi::dx12 {
 		D3D12_RESOURCE_ALLOCATION_INFO const allocationInfo = mpDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
 
 		return MemoryRequirements{
-			.memoryTypeIndex = memoryTypeIndex,
+			.memoryTypeBits = (1u << memoryTypeIndex),
 			.size = allocationInfo.SizeInBytes,
 			.alignment = allocationInfo.Alignment
 		};
@@ -208,8 +195,17 @@ namespace erhi::dx12 {
 
 
 
-	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
-		auto [heapType, memoryCategory] = FromMemoryTypeIndex(this, desc.memoryTypeIndex);
+	Memory::Memory(DeviceHandle deviceHandle, MemoryDesc const & desc) :
+		IMemory(desc),
+		mDeviceHandle(std::move(deviceHandle)),
+		mpHeap(nullptr) {
+
+		// Map ERHI memory type index to ERHI heap type, and D3D12's "native memory categories".
+		// Resources of different categories may NOT be allocated on the same heap.
+
+		auto [heapType, memoryCategory] = FromMemoryTypeIndex(mDeviceHandle.get(), desc.memoryTypeIndex);
+
+		// Map ERHI heap type to D3D12 heap type.
 
 		D3D12_HEAP_PROPERTIES heapProperty{
 			.Type = MapHeapType(heapType),
@@ -219,9 +215,13 @@ namespace erhi::dx12 {
 			.VisibleNodeMask = 0
 		};
 
-		D3D12_HEAP_FLAGS heapFlags = MapCategoryToD3D12HeapFlags(this, memoryCategory);
+		// Map native category to D3D12 heap flags.
+
+		D3D12_HEAP_FLAGS heapFlags = MapCategoryToHeapFlags(memoryCategory);
 		heapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
 		heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
+
+		// Allocate heap.
 
 		D3D12_HEAP_DESC heapDesc{
 			.SizeInBytes = desc.size,
@@ -230,17 +230,25 @@ namespace erhi::dx12 {
 			.Flags = heapFlags
 		};
 
-		return MakeHandle<Memory>(this, heapDesc);
+		D3D12CheckResult(mDeviceHandle->mpDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&mpHeap)));
+	}
+
+	Memory::~Memory() {
+		mpHeap->Release();
+	}
+
+	IDeviceHandle Memory::GetDevice() const {
+		return mDeviceHandle;
+	}
+
+	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
+		return MakeHandle<Memory>(DeviceHandle(this), desc);
 	}
 
 
 
-	Buffer::Buffer(MemoryHandle memoryHandle, uint64_t offset, BufferDesc const & desc) :
-		IBuffer(offset, desc.size),
-		mMemoryHandle(std::move(memoryHandle)),
-		mpBuffer(nullptr) {
-
-		D3D12_RESOURCE_DESC const resourceDesc{
+	D3D12_RESOURCE_DESC GetResourceState(BufferDesc const & desc) {
+		return D3D12_RESOURCE_DESC{
 			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
 			.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT,
 			.Width = desc.size,
@@ -255,10 +263,11 @@ namespace erhi::dx12 {
 			.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
 			.Flags = MapBufferUsage(desc.bufferUsage)
 		};
+	}
 
+	D3D12_RESOURCE_STATES GetInitialState(D3D12_HEAP_TYPE heapType) {
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
 
-		auto heapType = mMemoryHandle->mpHeap->GetDesc().Properties.Type;
 		switch (heapType) {
 			case D3D12_HEAP_TYPE_DEFAULT: {
 				state = D3D12_RESOURCE_STATE_COMMON;
@@ -275,21 +284,66 @@ namespace erhi::dx12 {
 			default: break;
 		}
 
+		return state;
+	}
+
+
+
+	PlacedBuffer::PlacedBuffer(BufferDesc const & desc, Memory * pMemory, uint64_t offset, uint64_t alignment) :
+		IPlacedBuffer(desc, offset, alignment),
+		mMemoryHandle(pMemory),
+		mpBuffer(nullptr) {
+
+		assert(offset % alignment == 0);
+
+		D3D12_RESOURCE_DESC const resourceDesc = GetResourceState(desc);
+
+		D3D12_RESOURCE_STATES state = GetInitialState(mMemoryHandle->mpHeap->GetDesc().Properties.Type);
+
 		D3D12CheckResult(mMemoryHandle->mDeviceHandle->mpDevice->CreatePlacedResource(mMemoryHandle->mpHeap, offset, &resourceDesc, state, nullptr, IID_PPV_ARGS(&mpBuffer)));
 	}
 
-	Buffer::~Buffer() {
+	PlacedBuffer::~PlacedBuffer() {
 		mpBuffer->Release();
 	}
 
-	IMemoryHandle Buffer::GetMemory() const {
+	IMemoryHandle PlacedBuffer::GetMemory() const {
 		return mMemoryHandle;
+	}
+
+	IPlacedBufferHandle Device::CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment,BufferDesc const & bufferDesc) {
+		auto const pMemory = dynamic_cast<Memory *>(memoryHandle.get());
+		assert(pMemory != nullptr);
+
+		return MakeHandle<PlacedBuffer>(bufferDesc, pMemory, offset, alignment);
 	}
 
 
 
-	IBufferHandle Device::CreateBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) {
-		return MakeHandle<Buffer>(dynamic_handle_cast<Memory>(memoryHandle), offset, bufferDesc);
+	CommittedBuffer::CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) :
+		ICommittedBuffer(desc), mDeviceHandle(pDevice), mpBuffer(nullptr) {
+		
+		D3D12_HEAP_PROPERTIES heapProperty{
+			.Type = MapHeapType(heapType),
+			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+			.CreationNodeMask = 0,
+			.VisibleNodeMask = 0
+		};
+
+		auto const heapFlags = MapCategoryToHeapFlags(NativeCategory::None);
+		auto const resourceDesc = GetResourceState(desc);
+		auto const initialState = GetInitialState(MapHeapType(heapType));
+
+		D3D12CheckResult(pDevice->mpDevice->CreateCommittedResource(&heapProperty, heapFlags, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpBuffer)));
+	}
+
+	CommittedBuffer::~CommittedBuffer() {
+		mpBuffer->Release();
+	}
+
+	ICommittedBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & desc) {
+		return MakeHandle<CommittedBuffer>(this, heapType, desc);
 	}
 
 }

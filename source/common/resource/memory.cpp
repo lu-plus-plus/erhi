@@ -58,21 +58,34 @@ namespace erhi {
 	//		}
 	//	}
 	//}
-
-	IMemory::IMemory(uint64_t size) : mSize(size) {}
+	
+	IMemory::IMemory(MemoryDesc const & desc) : mDesc(desc) {}
 
 	IMemory::~IMemory() = default;
 	
-	uint64_t IMemory::GetSize() const { return mSize; }
+	MemoryDesc const & IMemory::GetDesc() const { return mDesc; }
 
 
 
-	IBuffer::IBuffer(uint64_t offsetInMemory, uint64_t size) : mOffsetInMemory(offsetInMemory), mSize(size) {}
-	
+	IBuffer::IBuffer(BufferDesc const & desc) : mDesc(desc) {}
+
 	IBuffer::~IBuffer() = default;
 
-	uint64_t IBuffer::OffsetInMemory() const { return mOffsetInMemory; }
 
-	uint64_t IBuffer::Size() const { return mSize; }
+
+	ICommittedBuffer::ICommittedBuffer(BufferDesc const & desc) : IBuffer(desc) {}
+
+	ICommittedBuffer::~ICommittedBuffer() = default;
+
+	bool ICommittedBuffer::IsCommittedResource() const { return true; }
+
+
+
+	IPlacedBuffer::IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment) :
+		IBuffer(desc), mOffsetInMemory(offsetInMemory), mAlignment(alignment) {}
+	
+	IPlacedBuffer::~IPlacedBuffer() = default;
+
+	bool IPlacedBuffer::IsCommittedResource() const { return false; }
 
 }
