@@ -12,13 +12,15 @@
 
 #include "utility/default_message_callback.hpp"
 
+#include "erhi/common/exception.hpp"
+
 using namespace erhi;
 
 
 
 int main() {
 	try {
-		auto pInstance = vk::createInstance(InstanceDesc{
+		auto pInstance = dx12::createInstance(InstanceDesc{
 			.enableDebug = true,
 			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 			});
@@ -29,36 +31,36 @@ int main() {
 
 		auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
 
-		auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Graphics);
+		auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Primary);
 
 		auto indexBufferDesc = BufferDesc{
-			.bufferUsage = BufferUsageBits::CopySource | BufferUsageBits::CopyTarget | BufferUsageBits::IndexBuffer,
-			.size = 12 * 3 * sizeof(uint32_t)
+			.usage = BufferUsageCopySource | BufferUsageCopyTarget | BufferUsageIndexBuffer,
+			.size = 2 * 3 * sizeof(uint32_t)
 		};
 
-		auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
-			MemoryHeapType::Default,
-			indexBufferDesc
-		);
+		auto indexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, indexBufferDesc);
 
-		if (memoryRequirements.memoryTypeBits == 0u) {
-			throw std::exception("Failed to find any compatible memory type.\n");
-		}
+		//auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
+		//	MemoryHeapType::Default,
+		//	indexBufferDesc
+		//);
 
-		auto indexBufferMemory = pDevice->AllocateMemory(MemoryDesc{
-			.memoryTypeIndex = uint32_t(std::countr_zero(memoryRequirements.memoryTypeBits)),
-			.size = memoryRequirements.size
-			});
+		//if (memoryRequirements.memoryTypeBits == 0u) {
+		//	throw std::exception("Failed to find any compatible memory type.\n");
+		//}
 
-		auto indexBuffer = pDevice->CreatePlacedBuffer(indexBufferMemory, 0, memoryRequirements.alignment, indexBufferDesc);
+		//auto indexBufferMemory = pDevice->AllocateMemory(MemoryDesc{
+		//	.memoryTypeIndex = uint32_t(std::countr_zero(memoryRequirements.memoryTypeBits)),
+		//	.size = memoryRequirements.size
+		//	});
 
-		auto indexBuffer2 = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, indexBufferDesc);
+		//auto indexBuffer = pDevice->CreatePlacedBuffer(indexBufferMemory, 0, memoryRequirements.alignment, indexBufferDesc);
 	}
 	catch (std::exception const & e) {
 		std::cout << e.what() << std::endl;
 	}
-	catch (...) {
-		std::cout << "Unknown exeception is thrown.\n" << std::endl;
+	catch (erhi::base_exception const & e) {
+		std::cout << e.what() << std::endl;
 	}
 
 	return 0;

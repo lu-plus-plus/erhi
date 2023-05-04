@@ -12,10 +12,10 @@ namespace erhi::dx12 {
 
 		auto ConvertQueueType = [](QueueType queueType) -> D3D12_COMMAND_LIST_TYPE {
 			switch (queueType) {
-			case QueueType::Graphics:	return D3D12_COMMAND_LIST_TYPE_DIRECT;
-			case QueueType::Compute:	return D3D12_COMMAND_LIST_TYPE_COMPUTE;
-			case QueueType::Copy:		return D3D12_COMMAND_LIST_TYPE_COPY;
-			default:					return D3D12_COMMAND_LIST_TYPE_DIRECT;
+				case QueueType::Primary:		return D3D12_COMMAND_LIST_TYPE_DIRECT;
+				case QueueType::AsyncCompute:	return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+				case QueueType::AsyncCopy:		return D3D12_COMMAND_LIST_TYPE_COPY;
+				default:						return D3D12_COMMAND_LIST_TYPE_DIRECT;
 			}
 		};
 

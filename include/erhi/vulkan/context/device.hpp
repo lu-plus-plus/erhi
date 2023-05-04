@@ -28,10 +28,15 @@ namespace erhi::vk {
 		virtual IQueueHandle				SelectQueue(QueueType queueType) override;
 
 		virtual IMemoryHandle				AllocateMemory(MemoryDesc const & desc) override;
-		virtual MemoryRequirements			GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
-		virtual IPlacedBufferHandle			CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, BufferDesc const & bufferDesc) override;
-		virtual ICommittedBufferHandle		CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
 
+		virtual MemoryRequirements			GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
+		virtual IBufferHandle				CreatePlacedBuffer(IMemory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
+		virtual IBufferHandle				CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
+
+		virtual MemoryRequirements			GetTextureMemoryRequirements(MemoryHeapType heapType, TextureDesc const & textureDesc) override;
+		virtual ITextureHandle				CreatePlacedTexture(IMemory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
+		virtual ITextureHandle				CreateCommittedTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) override;
+		
 	};
 
 }

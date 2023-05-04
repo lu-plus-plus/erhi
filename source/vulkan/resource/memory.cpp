@@ -8,7 +8,6 @@
 #include <format>		// for log formatting
 #include <utility>		// for std::pair used in enum mapping
 #include <bit>			// for bit manipulation in selecting memory type
-#include <cassert>		// for assert
 
 
 
@@ -37,34 +36,39 @@ namespace erhi::vk {
 		return mDeviceHandle;
 	}
 
-
-
-	static VkMemoryPropertyFlags MapHeapType(MemoryHeapType heapType) {
-		VkMemoryPropertyFlags property = 0;
-
-		switch (heapType) {
-			case erhi::MemoryHeapType::Default: {
-				property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-			} break;
-
-			case erhi::MemoryHeapType::Upload: {
-				property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-			} break;
-
-			case erhi::MemoryHeapType::ReadBack: {
-				property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-			} break;
-
-			default: break;
-		}
-
-		return property;
+	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
+		return MakeHandle<Memory>(this, desc);
 	}
 
-	static uint32_t GetMemoryTypeBits(PhysicalDevice * pPhysicalDevice, MemoryHeapType heapType) {
-		auto const propertyFlags = MapHeapType(heapType);
 
-		auto const & memoryProperties = pPhysicalDevice->mMemoryProperties.memoryProperties;
+
+	static uint32_t MapHeapTypeToMemoryTypeBits(Device * pDevice, MemoryHeapType heapType) {
+
+		auto GetVkMemoryPropertyFlags = [] (MemoryHeapType heapType) {
+			VkMemoryPropertyFlags property = 0;
+
+			switch (heapType) {
+				case erhi::MemoryHeapType::Default: {
+					property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+				} break;
+
+				case erhi::MemoryHeapType::Upload: {
+					property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+				} break;
+
+				case erhi::MemoryHeapType::ReadBack: {
+					property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+				} break;
+
+				default: break;
+			}
+
+			return property;
+		};
+
+		auto const propertyFlags = GetVkMemoryPropertyFlags(heapType);
+
+		auto const & memoryProperties = pDevice->mPhysicalDeviceHandle->mMemoryProperties.memoryProperties;
 
 		auto memoryTypeBits = 0u;
 
@@ -79,18 +83,18 @@ namespace erhi::vk {
 
 	static VkBufferUsageFlags MapBufferUsage(BufferUsageFlags inFlags) {
 		static const std::pair<BufferUsageFlags, VkBufferUsageFlags> mappings[] = {
-			{ BufferUsageBits::CopySource, VK_BUFFER_USAGE_TRANSFER_SRC_BIT },
-			{ BufferUsageBits::CopyTarget, VK_BUFFER_USAGE_TRANSFER_DST_BIT },
-			{ BufferUsageBits::UniformBuffer, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT },
-			{ BufferUsageBits::StorageBuffer, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT },
-			{ BufferUsageBits::IndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT },
-			{ BufferUsageBits::VertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT },
+			{ BufferUsageCopySource, VK_BUFFER_USAGE_TRANSFER_SRC_BIT },
+			{ BufferUsageCopyTarget, VK_BUFFER_USAGE_TRANSFER_DST_BIT },
+			{ BufferUsageUniformBuffer, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT },
+			{ BufferUsageStorageBuffer, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT },
+			{ BufferUsageIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT },
+			{ BufferUsageVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT },
 		};
 
 		VkBufferUsageFlags outFlags = 0;
 
 		for (auto const & mapping : mappings) {
-			if (inFlags & mapping.first) {
+			if ((inFlags & mapping.first) == mapping.first) {
 				outFlags |= mapping.second;
 			}
 		}
@@ -98,96 +102,95 @@ namespace erhi::vk {
 		return outFlags;
 	}
 
-	static VkBufferCreateInfo GetBufferCreateInfo(BufferDesc const & desc) {
+	static VkBufferCreateInfo MapBufferDescToVkBufferCreateInfo(BufferDesc const & desc) {
 		return VkBufferCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 			.pNext = nullptr,
 			.flags = 0,
 			.size = desc.size,
-			.usage = MapBufferUsage(desc.bufferUsage),
+			.usage = MapBufferUsage(desc.usage),
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 			.queueFamilyIndexCount = /* ignored */ 0,
 			.pQueueFamilyIndices = /* ignored */ nullptr
 		};
 	}
 
-	static uint32_t GetMemoryTypeIndex(PhysicalDevice * pPhysicalDevice, MemoryHeapType heapType, BufferDesc const & bufferDesc, uint32_t memoryTypeBits) {
-		if (memoryTypeBits == 0) {
-			throw invalid_arguments(std::format(
-				"No available memory type for buffer with heap type = {}, usage = {}.\n",
-				uint32_t(heapType), bufferDesc.bufferUsage
-			));
-		}
-
-		if (std::popcount(memoryTypeBits) > 1) {
-			pPhysicalDevice->mInstanceHandle->mMessageCallbackHandle->warning(std::format(
-				"Multiple available memory types for buffer with heap type = {}, buffer usage = {}.\n",
-				uint32_t(heapType), bufferDesc.bufferUsage
-			));
-		}
-
-		return std::countr_zero(memoryTypeBits);
-	}
-
 
 
 	MemoryRequirements Device::GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
-		
+	
 		// Select Vulkan memory types compatible with the input ERHI heap type, i.e., Vulkan memory property flags.
 
-		uint32_t const propertyMemoryTypeBits = GetMemoryTypeBits(mPhysicalDeviceHandle.get(), heapType);
+		uint32_t const heapMemoryTypeBits = MapHeapTypeToMemoryTypeBits(this, heapType);
 
 		// Select Vulkan memory types compatible with the buffer's meta data, mostly usage bits.
 
-		VkBufferCreateInfo const createInfo = GetBufferCreateInfo(bufferDesc);
-
-		VkDeviceBufferMemoryRequirements const bufferMemoryRequirement{
-			.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
-			.pNext = nullptr,
-			.pCreateInfo = &createInfo
-		};
-
-		VkMemoryRequirements2 memoryRequirement{
+		VkMemoryRequirements2 memoryRequirements{
 			.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
-			.pNext = nullptr,
-			.memoryRequirements = VkMemoryRequirements{
-				.size = 0,
-				.alignment = 1,
-				.memoryTypeBits = 0
-			}
+			.pNext = nullptr
 		};
 
-		vkGetDeviceBufferMemoryRequirements(mDevice, &bufferMemoryRequirement, &memoryRequirement);
+		VkMemoryDedicatedRequirements dedicatedRequirements{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
+			.pNext = nullptr
+		};
+		
+		NextChain(memoryRequirements).Next(dedicatedRequirements);
+
+		{
+			VkBufferCreateInfo const createInfo = MapBufferDescToVkBufferCreateInfo(bufferDesc);
+			
+			VkDeviceBufferMemoryRequirements const bufferMemoryRequirements{
+				.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
+				.pNext = nullptr,
+				.pCreateInfo = &createInfo
+			};
+
+			vkGetDeviceBufferMemoryRequirements(mDevice, &bufferMemoryRequirements, &memoryRequirements);
+		}
 
 		// Intersect two groups of memory types.
 
-		uint32_t const memoryTypeBits = propertyMemoryTypeBits & memoryRequirement.memoryRequirements.memoryTypeBits;
+		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
+
+		// <todo> Report warnings when there are multiple types available. </todo>
 
 		return MemoryRequirements{
 			.memoryTypeBits = memoryTypeBits,
-			.size = memoryRequirement.memoryRequirements.size,
-			.alignment = memoryRequirement.memoryRequirements.alignment
+			.prefersCommittedResource = dedicatedRequirements.prefersDedicatedAllocation != 0u,
+			.requiresCommittedResource = dedicatedRequirements.requiresDedicatedAllocation != 0u,
+			.size = memoryRequirements.memoryRequirements.size,
+			.alignment = memoryRequirements.memoryRequirements.alignment
 		};
 	}
 
 
 
-	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
-		return MakeHandle<Memory>(this, desc);
-	}
+	//IBufferHandle Device::CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) {
+	//	MemoryRequirements memoryRequirements = GetBufferMemoryRequirements(heapType, desc);
+	//	if (memoryRequirements.prefersCommittedResource || memoryRequirements.requiresCommittedResource) {
+	//		auto bufferHandle = MakeHandle<CommittedBuffer>(this, heapType, desc);
+
+	//		if (bufferHandle.get() != nullptr) return bufferHandle;
+
+	//		if (memoryRequirements.requiresCommittedResource) {
+	//			// ... ...
+	//		}
+	//	}
+	//}
 
 
 
 	CommittedBuffer::CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) :
-		ICommittedBuffer(desc), mDeviceHandle(pDevice), mDeviceMemory(VK_NULL_HANDLE), mBuffer(VK_NULL_HANDLE) {
+		IBuffer(desc), mDeviceHandle(pDevice), mDeviceMemory(VK_NULL_HANDLE), mBuffer(VK_NULL_HANDLE) {
 		
 		// Get memory types compatible with the specified heap type.
 
-		uint32_t const heapMemoryTypeBits = GetMemoryTypeBits(pDevice->mPhysicalDeviceHandle.get(), heapType);
+		uint32_t const heapMemoryTypeBits = MapHeapTypeToMemoryTypeBits(pDevice, heapType);
 
 		// Create a Vulkan buffer.
 
-		VkBufferCreateInfo const bufferCreateInfo = GetBufferCreateInfo(desc);
+		VkBufferCreateInfo const bufferCreateInfo = MapBufferDescToVkBufferCreateInfo(desc);
 
 		vkCheckResult(vkCreateBuffer(*mDeviceHandle, &bufferCreateInfo, nullptr, &mBuffer));
 
@@ -210,7 +213,7 @@ namespace erhi::vk {
 			.requiresDedicatedAllocation = false
 		};
 
-		LinkNext(memoryRequirements, dedicatedRequirements);
+		NextChain(memoryRequirements).Next(dedicatedRequirements);
 
 		VkBufferMemoryRequirementsInfo2 const bufferMemoryRequirementsInfo{
 			.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2,
@@ -222,8 +225,8 @@ namespace erhi::vk {
 
 		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
 			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->info(std::format(
-				"Dedicated allocation is not preferred when memory heap type = {}, buffer usage = {}, size = {}.\n",
-				uint32_t(heapType), desc.bufferUsage, desc.size
+				"Dedicated allocation is not preferred when memory heap type = {}, buffer usage = {}.\n",
+				uint32_t(heapType), desc.usage
 			));
 		}
 
@@ -231,7 +234,14 @@ namespace erhi::vk {
 
 		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
 
-		uint32_t const memoryTypeIndex = GetMemoryTypeIndex(mDeviceHandle->mPhysicalDeviceHandle.get(), heapType, desc, memoryTypeBits);
+		if (not std::has_single_bit(memoryTypeBits)) {
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->warning(std::format(
+				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
+				uint32_t(heapType), desc.usage
+			));
+		}
+
+		uint32_t const memoryTypeIndex = std::countr_zero(memoryTypeBits);
 
 		// Allocate a dedicated memory for the buffer.
 
@@ -249,7 +259,7 @@ namespace erhi::vk {
 			.buffer = mBuffer
 		};
 
-		LinkNext(allocateInfo, dedicatedAllocateInfo);
+		NextChain(allocateInfo).Next(dedicatedAllocateInfo);
 
 		vkCheckResult(vkAllocateMemory(*mDeviceHandle, &allocateInfo, nullptr, &mDeviceMemory));
 
@@ -266,23 +276,12 @@ namespace erhi::vk {
 
 
 
-	PlacedBuffer::PlacedBuffer(BufferDesc const & desc, MemoryHandle memoryHandle, uint64_t offset, uint64_t alignment) :
-		IPlacedBuffer(desc, offset, alignment),
-		mMemoryHandle(std::move(memoryHandle)),
+	PlacedBuffer::PlacedBuffer(MemoryHandle memoryHandle, uint64_t offset, uint64_t actualSize, BufferDesc const & desc) :
+		IBuffer(desc),
+		mMemoryHandle(std::move(memoryHandle)), mOffset(offset), mActualSize(actualSize),
 		mBuffer(VK_NULL_HANDLE) {
 
-		assert(offset % alignment == 0);
-
-		VkBufferCreateInfo createInfo{
-			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-			.pNext = nullptr,
-			.flags = 0,
-			.size = desc.size,
-			.usage = MapBufferUsage(desc.bufferUsage),
-			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-			.queueFamilyIndexCount = 0,
-			.pQueueFamilyIndices = nullptr
-		};
+		VkBufferCreateInfo createInfo = MapBufferDescToVkBufferCreateInfo(desc);
 
 		vkCheckResult(vkCreateBuffer(mMemoryHandle->mDeviceHandle->mDevice, &createInfo, nullptr, &mBuffer));
 
@@ -293,19 +292,313 @@ namespace erhi::vk {
 		vkDestroyBuffer(mMemoryHandle->mDeviceHandle->mDevice, mBuffer, nullptr);
 	}
 
-	IMemoryHandle PlacedBuffer::GetMemory() const {
-		return mMemoryHandle;
+
+
+	IBufferHandle Device::CreatePlacedBuffer(IMemory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
+		return MakeHandle<PlacedBuffer>(MemoryHandle(dynamic_cast<Memory *>(pMemory)), offset, actualSize, bufferDesc);
 	}
 
-
-
-	IPlacedBufferHandle Device::CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, BufferDesc const & bufferDesc) {
-		MemoryHandle handle = dynamic_handle_cast<Memory>(std::move(memoryHandle));
-		return MakeHandle<PlacedBuffer>(bufferDesc, handle, offset, alignment);
-	}
-
-	ICommittedBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
+	IBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
 		return MakeHandle<CommittedBuffer>(this, heapType, bufferDesc);
+	}
+
+
+
+	VkFormat MapFormat(Format format) {
+		switch (format) {
+			case erhi::Format::Unknown:
+				return VK_FORMAT_UNDEFINED;
+				break;
+
+			case erhi::Format::R32G32B32A32_Typeless:
+			case erhi::Format::R32G32B32A32_Float:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+				break;
+			case erhi::Format::R32G32B32A32_UInt:
+				return VK_FORMAT_R32G32B32A32_UINT;
+				break;
+			case erhi::Format::R32G32B32A32_SInt:
+				return VK_FORMAT_R32G32B32A32_SINT;
+				break;
+			
+			case erhi::Format::R32G32B32_Typeless:
+			case erhi::Format::R32G32B32_Float:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+				break;
+			case erhi::Format::R32G32B32_UInt:
+				return VK_FORMAT_R32G32B32_UINT;
+				break;
+			case erhi::Format::R32G32B32_SInt:
+				return VK_FORMAT_R32G32B32_SINT;
+				break;
+
+			case erhi::Format::R16G16B16A16_Typeless:
+			case erhi::Format::R16G16B16A16_Float:
+				return VK_FORMAT_R16G16B16A16_SFLOAT;
+				break;
+			case erhi::Format::R16G16B16A16_UNorm:
+				return VK_FORMAT_R16G16B16A16_UNORM;
+				break;
+			case erhi::Format::R16G16B16A16_UInt:
+				return VK_FORMAT_R16G16B16A16_UINT;
+				break;
+			case erhi::Format::R16G16B16A16_SNorm:
+				return VK_FORMAT_R16G16B16A16_SNORM;
+				break;
+			case erhi::Format::R16G16B16A16_SInt:
+				return VK_FORMAT_R16G16B16A16_SINT;
+				break;
+
+			case erhi::Format::R32G32_Typeless:
+			case erhi::Format::R32G32_Float:
+				return VK_FORMAT_R32G32_SFLOAT;
+				break;
+			case erhi::Format::R32G32_UInt:
+				return VK_FORMAT_R32G32_UINT;
+				break;
+			case erhi::Format::R32G32_SInt:
+				return VK_FORMAT_R32G32_SINT;
+				break;
+			
+			case erhi::Format::R8G8B8A8_Typeless:
+			case erhi::Format::R8G8B8A8_UNorm:
+				return VK_FORMAT_R8G8B8A8_UNORM;
+				break;
+			case erhi::Format::R8G8B8A8_UInt:
+				return VK_FORMAT_R8G8B8A8_UINT;
+				break;
+			case erhi::Format::R8G8B8A8_SNorm:
+				return VK_FORMAT_R8G8B8A8_SNORM;
+				break;
+			case erhi::Format::R8G8B8A8_SInt:
+				return VK_FORMAT_R8G8B8A8_SINT;
+				break;
+			
+			case erhi::Format::R16G16_Typeless:
+			case erhi::Format::R16G16_Float:
+				return VK_FORMAT_R16G16_SFLOAT;
+				break;
+			case erhi::Format::R16G16_UNorm:
+				return VK_FORMAT_R16G16_UNORM;
+				break;
+			case erhi::Format::R16G16_UInt:
+				return VK_FORMAT_R16G16_UINT;
+				break;
+			case erhi::Format::R16G16_SNorm:
+				return VK_FORMAT_R16G16_SNORM;
+				break;
+			case erhi::Format::R16G16_SInt:
+				return VK_FORMAT_R16G16_SINT;
+				break;
+			
+			case erhi::Format::R32_Float:
+				return VK_FORMAT_R32_SFLOAT;
+				break;
+			case erhi::Format::R32_UInt:
+				return VK_FORMAT_R32_UINT;
+				break;
+			case erhi::Format::R32_SInt:
+				return VK_FORMAT_R32_SINT;
+				break;
+			
+			case erhi::Format::D32_Float:
+				return VK_FORMAT_D32_SFLOAT;
+				break;
+			case erhi::Format::D16_UNorm:
+				return VK_FORMAT_D16_UNORM;
+				break;
+			case erhi::Format::D24_UNorm_S8_UInt:
+				return VK_FORMAT_D24_UNORM_S8_UINT;
+				break;
+			
+			default:
+				return VK_FORMAT_UNDEFINED;
+				break;
+		}
+	}
+
+
+
+	VkImageCreateInfo GetImageCreateInfo(TextureDesc const & desc) {
+		return VkImageCreateInfo{
+			.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.imageType = static_cast<VkImageType>(desc.dimension),
+			.format = MapFormat(desc.format),
+			.extent = VkExtent3D{ .width = desc.extent[0], .height = desc.extent[1], .depth = desc.extent[2] },
+			.mipLevels = desc.mipLevels,
+			.arrayLayers = 1u,
+			.samples = static_cast<VkSampleCountFlagBits>(desc.sampleCount),
+			.tiling = static_cast<VkImageTiling>(desc.tiling),
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.queueFamilyIndexCount = 0,
+			.pQueueFamilyIndices = nullptr,
+			.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+		};
+	}
+
+	CommittedTexture::CommittedTexture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc) :
+		ITexture(desc), mDeviceHandle(pDevice), mDeviceMemory(VK_NULL_HANDLE), mImage(VK_NULL_HANDLE) {
+
+		// Get memory types compatible with the specified heap type.
+
+		uint32_t const heapMemoryTypeBits = MapHeapTypeToMemoryTypeBits(pDevice, heapType);
+
+		// Create a Vulkan image.
+
+		VkImageCreateInfo const imageCreateInfo = GetImageCreateInfo(desc);
+
+		vkCheckResult(vkCreateImage(*mDeviceHandle, &imageCreateInfo, nullptr, &mImage));
+
+		// Query memory requirements for this texture.
+
+		VkMemoryRequirements2 memoryRequirements{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
+			.pNext = nullptr,
+			.memoryRequirements = VkMemoryRequirements{
+				.size = 0,
+				.alignment = 1,
+				.memoryTypeBits = 0
+			}
+		};
+
+		VkMemoryDedicatedRequirements dedicatedRequirements{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
+			.pNext = nullptr,
+			.prefersDedicatedAllocation = false,
+			.requiresDedicatedAllocation = false
+		};
+
+		NextChain(memoryRequirements).Next(dedicatedRequirements);
+
+		VkImageMemoryRequirementsInfo2 const imageMemoryRequirementsInfo{
+			.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2,
+			.pNext = nullptr,
+			.image = mImage
+		};
+
+		vkGetImageMemoryRequirements2(*mDeviceHandle, &imageMemoryRequirementsInfo, &memoryRequirements);
+
+		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->info(std::format(
+				"Dedicated allocation is not preferred when memory heap type = {}, texture usage = {}.\n",
+				uint32_t(heapType), desc.usage
+			));
+		}
+
+		// Get the final memory type, which is an intersection between those specified by heap type and buffer description.
+
+		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
+
+		if (not std::has_single_bit(memoryTypeBits)) {
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->warning(std::format(
+				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
+				uint32_t(heapType), desc.usage
+			));
+		}
+
+		uint32_t const memoryTypeIndex = std::countr_zero(memoryTypeBits);
+
+		// Allocate a dedicated memory for the buffer.
+
+		VkMemoryAllocateInfo allocateInfo{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+			.pNext = nullptr,
+			.allocationSize = memoryRequirements.memoryRequirements.size,
+			.memoryTypeIndex = memoryTypeIndex
+		};
+
+		VkMemoryDedicatedAllocateInfo dedicatedAllocateInfo{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+			.pNext = nullptr,
+			.image = mImage,
+			.buffer = VK_NULL_HANDLE
+		};
+
+		NextChain(allocateInfo).Next(dedicatedAllocateInfo);
+
+		vkCheckResult(vkAllocateMemory(*mDeviceHandle, &allocateInfo, nullptr, &mDeviceMemory));
+
+		// Bind buffer and memory.
+
+		vkCheckResult(vkBindImageMemory(*mDeviceHandle, mImage, mDeviceMemory, 0));
+
+	}
+
+	CommittedTexture::~CommittedTexture() {
+		vkDestroyImage(*mDeviceHandle, mImage, nullptr);
+		vkFreeMemory(*mDeviceHandle, mDeviceMemory, nullptr);
+	}
+
+	ITextureHandle Device::CreateCommittedTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) {
+		return MakeHandle<CommittedTexture>(this, heapType, textureDesc);
+	}
+
+
+
+	MemoryRequirements Device::GetTextureMemoryRequirements(MemoryHeapType heapType, TextureDesc const & textureDesc) {
+
+		// Select Vulkan memory types compatible with the input ERHI heap type, i.e., Vulkan memory property flags.
+
+		uint32_t const heapMemoryTypeBits = MapHeapTypeToMemoryTypeBits(this, heapType);
+
+		// Select Vulkan memory types compatible with the buffer's meta data, mostly usage bits.
+
+		VkMemoryRequirements2 memoryRequirements{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_REQUIREMENTS_2,
+			.pNext = nullptr
+		};
+
+		VkMemoryDedicatedRequirements dedicatedRequirements{
+			.sType = VK_STRUCTURE_TYPE_MEMORY_DEDICATED_REQUIREMENTS,
+			.pNext = nullptr
+		};
+
+		NextChain(memoryRequirements).Next(dedicatedRequirements);
+
+		{
+			VkImageCreateInfo const createInfo = GetImageCreateInfo(textureDesc);
+
+			VkDeviceImageMemoryRequirements const imageMemoryRequirements{
+				.sType = VK_STRUCTURE_TYPE_DEVICE_BUFFER_MEMORY_REQUIREMENTS,
+				.pNext = nullptr,
+				.pCreateInfo = &createInfo
+			};
+
+			vkGetDeviceImageMemoryRequirements(mDevice, &imageMemoryRequirements, &memoryRequirements);
+		}
+
+		// Intersect two groups of memory types.
+
+		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
+
+		// <todo> Report warnings when there are multiple types available. </todo>
+
+		return MemoryRequirements{
+			.memoryTypeBits = memoryTypeBits,
+			.prefersCommittedResource = dedicatedRequirements.prefersDedicatedAllocation != 0u,
+			.requiresCommittedResource = dedicatedRequirements.requiresDedicatedAllocation != 0u,
+			.size = memoryRequirements.memoryRequirements.size,
+			.alignment = memoryRequirements.memoryRequirements.alignment
+		};
+	}
+
+
+
+	PlacedTexture::PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) :
+		ITexture(textureDesc),
+		mMemoryHandle(pMemory), mOffset(offset), mActualSize(actualSize) {
+
+		VkImageCreateInfo createInfo = GetImageCreateInfo(textureDesc);
+
+		vkCheckResult(vkCreateImage(mMemoryHandle->mDeviceHandle->mDevice, &createInfo, nullptr, &mImage));
+
+		vkCheckResult(vkBindImageMemory(mMemoryHandle->mDeviceHandle->mDevice, mImage, mMemoryHandle->mMemory, offset));
+	}
+
+	PlacedTexture::~PlacedTexture() {
+		vkDestroyImage(mMemoryHandle->mDeviceHandle->mDevice, mImage, nullptr);
 	}
 
 }

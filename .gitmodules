@@ -1,3 +1,6 @@
 [submodule "packages/volk"]
 	path = packages/volk
 	url = git@github.com:zeux/volk.git
+[submodule "packages/magic_enum"]
+	path = packages/magic_enum
+	url = https://github.com/Neargye/magic_enum

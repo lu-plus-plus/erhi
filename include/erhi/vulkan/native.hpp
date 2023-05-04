@@ -2,48 +2,56 @@
 #define ERHI_VULKAN_NATIVE_HPP
 
 #include <string>			// for error message in exceptions
-#include <exception>		// for base class std::exception
 
 #include "volk.h"
+
+#include "../common/exception.hpp"
 
 
 
 namespace erhi::vk {
 
-	char const * ErrorCode(VkResult result);
+	char const * vkErrorCode(VkResult result);
 
-	struct bad_api_call : std::exception {
-
-		static constexpr unsigned gInfoSize{ 1024u };
-		char mInfo[gInfoSize];
-
-		bad_api_call(VkResult result, char const * literal, unsigned line, char const * file);
-		virtual ~bad_api_call() override;
-
-		virtual char const * what() const override;
-
+	template <typename T>
+	concept HasConstNext = requires (T t) {
+		{ t.pNext } -> std::same_as<void const * &>;
 	};
 
-	struct invalid_arguments : std::exception {
-		invalid_arguments(char const * message);
-		invalid_arguments(std::string const & message);
-		virtual ~invalid_arguments() override;
-
-		virtual char const * what() const override;
+	template <typename T>
+	concept HasNext = requires (T t) {
+		{ t.pNext } -> std::same_as<void * &>;
 	};
 
-	template <typename Insertee, typename Inserted>
-	void LinkNext(Insertee & insertee, Inserted & inserted) {
-		auto const pNext = insertee.pNext;
-		insertee.pNext = &inserted;
-		inserted.pNext = pNext;
-	}
+	struct NextChain {
+		void * * ppNext;
+
+		template <HasConstNext T>
+		NextChain(T & t) : ppNext(const_cast<void * *>(&t.pNext)) {}
+
+		template <HasNext T>
+		NextChain(T & t) : ppNext(&t.pNext) {}
+
+		template <HasConstNext T>
+		NextChain & Next(T & t) {
+			t.pNext = *ppNext;
+			*ppNext = &t;
+			ppNext = const_cast<void * *>(&t.pNext);
+			return *this;
+		}
+
+		template <HasNext T>
+		NextChain & Next(T & t) {
+			t.pNext = *ppNext;
+			*ppNext = &t;
+			ppNext = &t.pNext;
+			return *this;
+		}
+	};
 
 }
 
-#define vkErrorCode(result) erhi::vk::ErrorCode(result)
-
-#define vkCheckResult(result) if (VkResult r = (result); r != VK_SUCCESS) throw bad_api_call(r, #result, __LINE__, __FILE__)
+#define vkCheckResult(result) if (VkResult r = (result); r != VK_SUCCESS) throw bad_api_call(vkErrorCode(r), #result, std::source_location::current())
 
 
 

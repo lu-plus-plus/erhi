@@ -9,7 +9,7 @@ namespace erhi {
 
 	struct IMemory : IObject {
 		
-	private:
+	protected:
 
 		MemoryDesc mDesc;
 
@@ -28,41 +28,84 @@ namespace erhi {
 
 	struct IBuffer : IObject {
 
+	protected:
+
 		BufferDesc mDesc;
+
+	public:
 
 		IBuffer(BufferDesc const & desc);
 		virtual ~IBuffer() override;
-		
-		virtual bool IsCommittedResource() const = 0;
+
+		virtual BufferDesc const & GetDesc() const;
 
 	};
 
 
 
-	struct ICommittedBuffer : IBuffer {
+	struct ITexture : IObject {
 
-		ICommittedBuffer(BufferDesc const & desc);
-		virtual ~ICommittedBuffer() override;
+	protected:
 
-		virtual bool IsCommittedResource() const;
+		TextureDesc mDesc;
 
-	};
+	public:
 
+		ITexture(TextureDesc const & desc);
+		~ITexture();
 
-
-	struct IPlacedBuffer : IBuffer {
-
-		uint64_t mOffsetInMemory;
-		uint64_t mAlignment;
-
-		IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment);
-		virtual ~IPlacedBuffer() override;
-
-		virtual bool IsCommittedResource() const;
-
-		virtual IMemoryHandle GetMemory() const = 0;
+		virtual TextureDesc const & GetDesc() const;
 
 	};
+
+
+
+	//struct ICommittedBuffer : IBuffer {
+
+	//	ICommittedBuffer(BufferDesc const & desc);
+	//	virtual ~ICommittedBuffer() override;
+
+	//	virtual bool IsCommittedResource() const;
+
+	//};
+
+
+
+	//struct IPlacedBuffer : IBuffer {
+
+	//	uint64_t mOffsetInMemory;
+	//	uint64_t mAlignment;
+
+	//	IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment);
+	//	virtual ~IPlacedBuffer() override;
+
+	//	virtual bool IsCommittedResource() const;
+
+	//	virtual IMemoryHandle GetMemory() const = 0;
+
+	//};
+
+
+
+
+	//struct ICommittedTexture : ITexture {
+
+	//	ICommittedTexture(TextureDesc const & desc);
+	//	virtual ~ICommittedTexture() override;
+
+	//};
+
+	//struct IPlacedTexture : ITexture {
+
+	//	uint64_t mOffsetInMemory;
+	//	uint64_t mAlignment;
+
+	//	IPlacedTexture(TextureDesc const & desc, uint64_t offsetInMemory, uint64_t alignment);
+	//	virtual ~IPlacedTexture() override;
+
+	//	virtual IMemoryHandle GetMemory() const = 0;
+
+	//};
 
 }
 

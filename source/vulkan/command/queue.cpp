@@ -36,11 +36,11 @@ namespace erhi::vk {
 		auto deviceHandle = DeviceHandle(this);
 
 		switch (queueType) {
-			case QueueType::Graphics: {
+			case QueueType::Primary: {
 				return MakeHandle<Queue>(deviceHandle, queueType, mGraphicsQueueFamilyIndex, 0u);
 			} break;
 
-			case QueueType::Compute: {
+			case QueueType::AsyncCompute: {
 				if (mComputeQueueFamilyIndex) {
 					return MakeHandle<Queue>(deviceHandle, queueType, mComputeQueueFamilyIndex.value(), 0u);
 				}
@@ -49,7 +49,7 @@ namespace erhi::vk {
 				}
 			} break;
 
-			case QueueType::Copy: {
+			case QueueType::AsyncCopy: {
 				if (mCopyQueueFamilyIndex) {
 					return MakeHandle<Queue>(deviceHandle, queueType, mCopyQueueFamilyIndex.value(), 0u);
 				}

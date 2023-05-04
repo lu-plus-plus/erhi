@@ -21,7 +21,7 @@ namespace erhi::vk {
 
 
 
-	struct CommittedBuffer : ICommittedBuffer {
+	struct CommittedBuffer : IBuffer {
 
 		DeviceHandle		mDeviceHandle;
 		VkDeviceMemory		mDeviceMemory;
@@ -32,17 +32,40 @@ namespace erhi::vk {
 
 	};
 
-
-
-	struct PlacedBuffer : IPlacedBuffer {
+	struct PlacedBuffer : IBuffer {
 
 		MemoryHandle		mMemoryHandle;
+		uint64_t			mOffset;
+		uint64_t			mActualSize;
 		VkBuffer			mBuffer;
 
-		PlacedBuffer(BufferDesc const & desc, MemoryHandle memoryHandle, uint64_t offset, uint64_t alignment);
+		PlacedBuffer(MemoryHandle memoryHandle, uint64_t offset, uint64_t actualSize, BufferDesc const & desc);
 		virtual ~PlacedBuffer() override;
 
-		virtual IMemoryHandle GetMemory() const override;
+	};
+
+
+
+	struct CommittedTexture : ITexture {
+
+		DeviceHandle		mDeviceHandle;
+		VkDeviceMemory		mDeviceMemory;
+		VkImage				mImage;
+
+		CommittedTexture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc);
+		virtual ~CommittedTexture() override;
+
+	};
+
+	struct PlacedTexture : ITexture {
+
+		MemoryHandle		mMemoryHandle;
+		uint64_t			mOffset;
+		uint64_t			mActualSize;
+		VkImage				mImage;
+
+		PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc);
+		virtual ~PlacedTexture() override;
 
 	};
 

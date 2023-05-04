@@ -71,21 +71,43 @@ namespace erhi {
 
 	IBuffer::~IBuffer() = default;
 
-
-
-	ICommittedBuffer::ICommittedBuffer(BufferDesc const & desc) : IBuffer(desc) {}
-
-	ICommittedBuffer::~ICommittedBuffer() = default;
-
-	bool ICommittedBuffer::IsCommittedResource() const { return true; }
+	BufferDesc const & IBuffer::GetDesc() const { return mDesc; }
 
 
 
-	IPlacedBuffer::IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment) :
-		IBuffer(desc), mOffsetInMemory(offsetInMemory), mAlignment(alignment) {}
-	
-	IPlacedBuffer::~IPlacedBuffer() = default;
+	//ICommittedBuffer::ICommittedBuffer(BufferDesc const & desc) : IBuffer(desc) {}
 
-	bool IPlacedBuffer::IsCommittedResource() const { return false; }
+	//ICommittedBuffer::~ICommittedBuffer() = default;
+
+	//bool ICommittedBuffer::IsCommittedResource() const { return true; }
+
+
+
+	//IPlacedBuffer::IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment) :
+	//	IBuffer(desc), mOffsetInMemory(offsetInMemory), mAlignment(alignment) {}
+	//
+	//IPlacedBuffer::~IPlacedBuffer() = default;
+
+	//bool IPlacedBuffer::IsCommittedResource() const { return false; }
+
+
+
+	ITexture::ITexture(TextureDesc const & desc) : mDesc(desc) {}
+
+	ITexture::~ITexture() = default;
+
+	TextureDesc const & ITexture::GetDesc() const { return mDesc; }
+
+
+
+	//ICommittedTexture::ICommittedTexture(TextureDesc const & desc) : ITexture(desc) {}
+
+	//ICommittedTexture::~ICommittedTexture() = default;
+
+
+
+	//IPlacedTexture::IPlacedTexture(TextureDesc const & desc, uint64_t offsetInMemory, uint64_t alignment) : ITexture(desc), mOffsetInMemory(offsetInMemory), mAlignment(alignment) {}
+
+	//IPlacedTexture::~IPlacedTexture() = default;
 
 }

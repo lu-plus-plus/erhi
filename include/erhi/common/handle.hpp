@@ -176,6 +176,8 @@ namespace erhi {
 
 
 
+	using IObjectHandle				= Handle<IObject>;
+
 	using IMessageCallbackHandle	= Handle<struct IMessageCallback>;
 	using IInstanceHandle			= Handle<struct IInstance>;
 	using IPhysicalDeviceHandle		= Handle<struct IPhysicalDevice>;
@@ -186,12 +188,14 @@ namespace erhi {
 	using IMemoryHandle				= Handle<struct IMemory>;
 	
 	using IBufferHandle				= Handle<struct IBuffer>;
-	using IPlacedBufferHandle		= Handle<struct IPlacedBuffer>;
-	using ICommittedBufferHandle	= Handle<struct ICommittedBuffer>;
+	//using IPlacedBufferHandle		= Handle<struct IPlacedBuffer>;
+	//using ICommittedBufferHandle	= Handle<struct ICommittedBuffer>;
 
 	using ITextureHandle			= Handle<struct ITexture>;
-	using IPlacedTextureHandle		= Handle<struct IPlacedTexture>;
-	using ICommittedTextureHandle	= Handle<struct ICommittedTexture>;
+	//using IPlacedTextureHandle		= Handle<struct IPlacedTexture>;
+	//using ICommittedTextureHandle	= Handle<struct ICommittedTexture>;
+
+	using IAllocatorHandle			= Handle<struct IAllocator>;
 
 
 
@@ -204,10 +208,17 @@ namespace erhi {
 
 		using QueueHandle				= Handle<struct Queue>;
 
-		using MemoryHandle			= Handle<struct Memory>;
-		using BufferHandle			= Handle<struct Buffer>;
-		using TextureHandle			= Handle<struct Texture>;
-		// using AllocatorHandle		= Handle<struct Allocator>;
+		using MemoryHandle				= Handle<struct Memory>;
+
+		using BufferHandle				= Handle<struct Buffer>;
+		//using PlacedBufferHandle		= Handle<struct PlacedBuffer>;
+		//using CommittedBufferHandle		= Handle<struct CommittedBuffer>;
+		
+		using TextureHandle				= Handle<struct Texture>;
+		//using PlacedTextureHandle		= Handle<struct PlacedTexture>;
+		//using CommittedTextureHandle	= Handle<struct CommittedTexture>;
+
+		using IAllocatorHandle			= Handle<struct IAllocator>;
 
 	}
 	
@@ -222,10 +233,17 @@ namespace erhi {
 
 		using QueueHandle				= Handle<struct Queue>;
 
-		using MemoryHandle			= Handle<struct Memory>;
-		using BufferHandle			= Handle<struct Buffer>;
-		using TextureHandle			= Handle<struct Texture>;
-		// using AllocatorHandle		= Handle<struct Allocator>;
+		using MemoryHandle				= Handle<struct Memory>;
+
+		using BufferHandle				= Handle<struct Buffer>;
+		//using PlacedBufferHandle		= Handle<struct PlacedBuffer>;
+		//using CommittedBufferHandle		= Handle<struct CommittedBuffer>;
+		
+		using TextureHandle				= Handle<struct Texture>;
+		//using PlacedTextureHandle		= Handle<struct PlacedTexture>;
+		//using CommittedTextureHandle	= Handle<struct CommittedTexture>;
+
+		using IAllocatorHandle			= Handle<struct IAllocator>;
 
 	}
 

@@ -21,7 +21,7 @@ namespace erhi::dx12 {
 
 	};
 
-	struct CommittedBuffer : ICommittedBuffer {
+	struct CommittedBuffer : IBuffer {
 
 		DeviceHandle		mDeviceHandle;
 		ID3D12Resource *	mpBuffer;
@@ -31,16 +31,34 @@ namespace erhi::dx12 {
 
 	};
 
-	struct PlacedBuffer : IPlacedBuffer {
+	struct PlacedBuffer : IBuffer {
 
-		MemoryHandle		mMemoryHandle;
+		Memory *			mMemoryHandle;
+		uint64_t			mOffset;
+		uint64_t			mActualSize;
 		ID3D12Resource *	mpBuffer;
 
-		PlacedBuffer(BufferDesc const & desc, Memory * pMemory, uint64_t offset, uint64_t alignment);
+		PlacedBuffer(Memory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & desc);
 		virtual ~PlacedBuffer() override;
 
-		virtual IMemoryHandle GetMemory() const override;
+	};
 
+	struct CommittedTexture : ITexture {
+		DeviceHandle		mDeviceHandle;
+		ID3D12Resource *	mpTexture;
+
+		CommittedTexture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc);
+		virtual ~CommittedTexture() override;
+	};
+
+	struct PlacedTexture : ITexture {
+		MemoryHandle		mMemoryHandle;
+		uint64_t			mOffset;
+		uint64_t			mActualSize;
+		ID3D12Resource *	mpTexture;
+
+		PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & desc);
+		virtual ~PlacedTexture() override;
 	};
 
 }

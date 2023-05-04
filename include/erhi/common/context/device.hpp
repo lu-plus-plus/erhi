@@ -8,7 +8,6 @@
 namespace erhi {
 
 	struct IDevice : IObject {
-
 		IDevice();
 		virtual ~IDevice();
 
@@ -16,10 +15,20 @@ namespace erhi {
 
 		virtual IQueueHandle				SelectQueue(QueueType queueType) = 0;
 
+	private:
 		virtual IMemoryHandle				AllocateMemory(MemoryDesc const & desc) = 0;
+
+	private:
 		virtual MemoryRequirements			GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
-		virtual IPlacedBufferHandle			CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, BufferDesc const & bufferDesc) = 0;
-		virtual ICommittedBufferHandle		CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+		virtual IBufferHandle				CreatePlacedBuffer(IMemory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) = 0;
+	public:
+		virtual IBufferHandle				CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
+
+	private:
+		virtual MemoryRequirements			GetTextureMemoryRequirements(MemoryHeapType heapType, TextureDesc const & textureDesc) = 0;
+		virtual ITextureHandle				CreatePlacedTexture(IMemory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) = 0;
+	public:
+		virtual ITextureHandle				CreateCommittedTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) = 0;
 
 	};
 

@@ -4,7 +4,7 @@
 
 namespace erhi::vk {
 
-	char const * ErrorCode(VkResult result) {
+	char const * vkErrorCode(VkResult result) {
 		#define STR(r) case VK_##r: return #r
 
 		switch (result) {
@@ -35,36 +35,6 @@ namespace erhi::vk {
 		}
 
 		#undef STR
-	}
-
-
-
-	bad_api_call::bad_api_call(VkResult result, char const * literal, unsigned line, char const * file) : mInfo{} {
-		std::snprintf(
-			mInfo, gInfoSize,
-			"`%s` is returned from Vulkan API call\n"
-			"\t`%s`\n"
-			"\tat line %u, file %s.\n",
-			ErrorCode(result), literal, line, file
-		);
-	}
-
-	bad_api_call::~bad_api_call() = default;
-
-	char const * bad_api_call::what() const {
-		return mInfo;
-	}
-
-
-
-	invalid_arguments::invalid_arguments(char const * message) : std::exception(message) {}
-
-	invalid_arguments::invalid_arguments(std::string const & message) : std::exception(message.c_str()) {}
-
-	invalid_arguments::~invalid_arguments() = default;
-
-	char const * invalid_arguments::what() const {
-		return std::exception::what();
 	}
 
 }
