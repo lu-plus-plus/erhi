@@ -1,8 +1,7 @@
 #pragma once
 
+#include <list>		// for linear allocator
 #include <vector>
-#include <list>
-#include <set>
 
 #include "../common.hpp"
 
@@ -10,11 +9,15 @@
 
 namespace erhi {
 
+	/*
+		An allocator deals with all the details in memory allocation, including memory types, chunks, alignment and page size, etc.
+		A memory pool simply manages one or more chunks of memory.
+	*/
+
 	struct MemoryPoolDesc {
 		uint64_t blockSize;
 		uint32_t minBlockCount;
 		uint32_t maxBlockCount;
-		uint32_t memoryTypeIndex;
 	};
 
 	struct IMemoryPool : IObject {
@@ -52,25 +55,33 @@ namespace erhi {
 		virtual IBufferHandle				CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) = 0;
 		virtual ITextureHandle				CreateTexture(MemoryHeapType heapType, TextureDesc const & desc) = 0;
 
-	private:
-
-		virtual IMemoryHandle				AllocateMemory(MemoryDesc const & desc) = 0;
-
-		virtual IPlacedBufferHandle			CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, BufferDesc const & desc) = 0;
-		virtual IPlacedTextureHandle		CreatePlacedTexture(IMemoryHandle memoryHandle, uint64_t offset, uint64_t alignment, TextureDesc const & desc) = 0;
-
 	};
+
+
 
 	struct LinearMemoryPool : IMemoryPool {
 
+		struct Block;
+
+		struct Fragment {
+			uint64_t mOffset;
+			uint64_t mSize;
+		};
+
+		struct FragmentMemory : IMemory {
+			IMemoryHandle mBlock;
+			Block * mpBlock;
+			std::list<Fragment>::iterator mpSelf;
+		};
+
 		struct Block {
-			IMemoryHandle mMemoryHandle;
 			uint64_t mFreeRegionBegin;
 			uint64_t mFreeRegionEnd;
-			uint64_t mFragmentCount;
+			std::list<Fragment> mFragments;
 		};
 
 		std::vector<Block> mBlocks;
+		MemoryPoolDesc mDesc;
 
 		LinearMemoryPool(IDevice * pDevice, MemoryPoolDesc const & desc);
 		virtual ~LinearMemoryPool();

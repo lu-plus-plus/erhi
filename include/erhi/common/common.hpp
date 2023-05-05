@@ -113,13 +113,21 @@ namespace erhi {
 	enum TextureUsageFlagBits : uint32_t {
 		TextureUsageCopySource = 0x0000'0001,
 		TextureUsageCopyTarget = 0x0000'0002,
+		/*
+			<todo>
+			It seems that the "Sampled" flag is not needed in D3D12 at all - the sampler and the texture are separate objects.
+			The problem is, is it possible to separate them in Vulkan, instead of binding them together as combined image sampler?
+			</todo>
+		*/
 		TextureUsageSampled = 0x0000'0004,
 		TextureUsageStorage = 0x0000'0008,
 		TextureUsageRenderTargetAttachment = 0x0000'0010,
 		TextureUsageDepthStencilAttachment = 0x0000'0020,
-		// <todo>
-		// Are the following flags really needed on PC platform?
-		// </todo>
+		/*
+			<todo>
+			Are these following flags really needed on PC platform?
+			</todo>
+		*/
 		TextureUsageTransientAttachment = 0x0000'0040,
 		TextureUsageInputAttachment = 0x0000'0080,
 	};

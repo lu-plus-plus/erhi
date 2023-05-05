@@ -20,7 +20,7 @@ using namespace erhi;
 
 int main() {
 	try {
-		auto pInstance = dx12::createInstance(InstanceDesc{
+		auto pInstance = vk::createInstance(InstanceDesc{
 			.enableDebug = true,
 			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 			});
@@ -39,6 +39,18 @@ int main() {
 		};
 
 		auto indexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, indexBufferDesc);
+
+		auto renderTargetDesc = TextureDesc{
+			.dimension = TextureDimension::Texture2D,
+			.extent = { 1920u, 1080u, 1u },
+			.format = Format::R32G32B32A32_Float,
+			.mipLevels = 1u,
+			.sampleCount = TextureSampleCount::Count_1,
+			.usage = TextureUsageRenderTargetAttachment,
+			.tiling = TextureTiling::Optimal
+		};
+
+		auto renderTarget = pDevice->CreateCommittedTexture(MemoryHeapType::Default, renderTargetDesc);
 
 		//auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
 		//	MemoryHeapType::Default,

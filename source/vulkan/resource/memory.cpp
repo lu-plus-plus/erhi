@@ -417,9 +417,36 @@ namespace erhi::vk {
 		}
 	}
 
+	static VkSampleCountFlagBits MapSampleCount(TextureSampleCount sampleCount) {
+		return static_cast<VkSampleCountFlagBits>(1u << static_cast<uint32_t>(sampleCount));
+	}
+
+	static VkImageUsageFlags MapTextureUsage(TextureUsageFlags flags) {
+		VkImageUsageFlags result = 0u;
+		if (flags & TextureUsageCopySource) {
+			result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		}
+		if (flags & TextureUsageCopyTarget) {
+			result |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
+		if (flags & TextureUsageSampled) {
+			result |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		}
+		if (flags & TextureUsageStorage) {
+			result |= VK_IMAGE_USAGE_STORAGE_BIT;
+		}
+		if (flags & TextureUsageRenderTargetAttachment) {
+			result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
+		if (flags & TextureUsageDepthStencilAttachment) {
+			result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		}
+		return result;
+	}
 
 
-	VkImageCreateInfo GetImageCreateInfo(TextureDesc const & desc) {
+
+	static VkImageCreateInfo GetImageCreateInfo(TextureDesc const & desc) {
 		return VkImageCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 			.pNext = nullptr,
@@ -429,8 +456,9 @@ namespace erhi::vk {
 			.extent = VkExtent3D{ .width = desc.extent[0], .height = desc.extent[1], .depth = desc.extent[2] },
 			.mipLevels = desc.mipLevels,
 			.arrayLayers = 1u,
-			.samples = static_cast<VkSampleCountFlagBits>(desc.sampleCount),
+			.samples = MapSampleCount(desc.sampleCount),
 			.tiling = static_cast<VkImageTiling>(desc.tiling),
+			.usage = MapTextureUsage(desc.usage),
 			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 			.queueFamilyIndexCount = 0,
 			.pQueueFamilyIndices = nullptr,
@@ -473,7 +501,7 @@ namespace erhi::vk {
 		NextChain(memoryRequirements).Next(dedicatedRequirements);
 
 		VkImageMemoryRequirementsInfo2 const imageMemoryRequirementsInfo{
-			.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2,
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_REQUIREMENTS_INFO_2,
 			.pNext = nullptr,
 			.image = mImage
 		};
@@ -599,6 +627,10 @@ namespace erhi::vk {
 
 	PlacedTexture::~PlacedTexture() {
 		vkDestroyImage(mMemoryHandle->mDeviceHandle->mDevice, mImage, nullptr);
+	}
+
+	ITextureHandle Device::CreatePlacedTexture(IMemory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) {
+		return MakeHandle<PlacedTexture>(dynamic_cast<Memory *>(pMemory), offset, actualSize, textureDesc);
 	}
 
 }
