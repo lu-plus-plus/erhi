@@ -3,6 +3,8 @@
 #include "object.hpp"
 #include "handle.hpp"
 
+#include <string_view>
+
 
 
 namespace erhi {
@@ -14,7 +16,7 @@ namespace erhi {
 	// module: context
 
 	// message
-
+	  
 	enum class MessageType : uint32_t {
 		General,
 		Validation,

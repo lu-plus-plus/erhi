@@ -11,6 +11,10 @@ namespace erhi {
 		IDevice();
 		virtual ~IDevice();
 
+		void Info(std::string_view message);
+		void Warning(std::string_view message);
+		void Error(std::string_view message);
+
 		virtual IPhysicalDeviceHandle		GetPhysicalDevice() const = 0;
 
 		virtual IQueueHandle				SelectQueue(QueueType queueType) = 0;
