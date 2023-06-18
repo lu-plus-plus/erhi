@@ -10,17 +10,7 @@
 
 namespace erhi {
 
-	IMemoryPool::IMemoryPool(IDevice * pDevice, MemoryPoolDesc const & desc) : mDeviceHandle(pDevice), mDesc(desc) {}
-
-	IMemoryPool::~IMemoryPool() = default;
-
-	IDevice * IMemoryPool::GetDevice() const { return mDeviceHandle.get(); }
-
-	MemoryPoolDesc const & IMemoryPool::GetDesc() const { return mDesc; }
-
-
-
-	LinearMemoryPool::LinearMemoryPool(IDevice * pDevice, MemoryPoolDesc const & desc) : IMemoryPool(pDevice, desc), mBlocks() {}
+	LinearMemoryPool::LinearMemoryPool(IDevice * pDevice) : mpDevice(pDevice), mArenas() {}
 
 	LinearMemoryPool::~LinearMemoryPool() = default;
 

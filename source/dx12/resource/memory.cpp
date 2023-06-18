@@ -343,12 +343,12 @@ namespace erhi::dx12 {
 		mpBuffer->Release();
 	}
 
-	IBufferHandle Device::CreatePlacedBuffer(IMemory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
-		assert(pMemory != nullptr);
-		assert(pMemory->GetDesc().size >= offset + actualSize);
+	IBufferHandle Memory::CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
+		assert(mpHeap != nullptr);
+		assert(mDesc.size >= offset + actualSize);
 		assert(actualSize >= bufferDesc.size);
 
-		return MakeHandle<PlacedBuffer>(dynamic_cast<Memory *>(pMemory), offset, actualSize, bufferDesc);
+		return MakeHandle<PlacedBuffer>(this, offset, actualSize, bufferDesc);
 	}
 
 
@@ -651,8 +651,8 @@ namespace erhi::dx12 {
 		mpTexture->Release();
 	}
 
-	ITextureHandle Device::CreatePlacedTexture(IMemory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
-		return MakeHandle<PlacedTexture>(dynamic_cast<Memory *>(pMemory), offset, actualSize, desc);
+	ITextureHandle Memory::CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
+		return MakeHandle<PlacedTexture>(this, offset, actualSize, desc);
 	}
 
 

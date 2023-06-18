@@ -15,12 +15,13 @@
 #include "erhi/common/exception.hpp"
 
 using namespace erhi;
+namespace backend = vk;
 
 
 
 int main() {
 	try {
-		auto pInstance = vk::createInstance(InstanceDesc{
+		auto pInstance = backend::createInstance(InstanceDesc{
 			.enableDebug = true,
 			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 			});

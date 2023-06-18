@@ -10,34 +10,8 @@
 namespace erhi {
 
 	/*
-		An allocator deals with all the details in memory allocation, including memory types, chunks, alignment and page size, etc.
-		A memory pool simply manages one or more chunks of memory.
+		An allocator deals with all the details in memory allocation, including memory type, alignment, and "page size", etc.
 	*/
-
-	struct MemoryPoolDesc {
-		uint64_t blockSize;
-		uint32_t minBlockCount;
-		uint32_t maxBlockCount;
-	};
-
-	struct IMemoryPool : IObject {
-
-	private:
-
-		IDeviceHandle mDeviceHandle;
-		MemoryPoolDesc mDesc;
-
-	public:
-
-		IMemoryPool(IDevice * pDevice, MemoryPoolDesc const & desc);
-		virtual ~IMemoryPool();
-
-		IDevice * GetDevice() const;
-		MemoryPoolDesc const & GetDesc() const;
-
-		virtual IMemoryHandle AllocateMemory(uint64_t size, uint64_t alignment) = 0;
-
-	};
 
 	struct IAllocator : IObject {
 
@@ -59,34 +33,48 @@ namespace erhi {
 
 
 
-	struct LinearMemoryPool : IMemoryPool {
+	//struct IFragment {
+	//	IFragment();
+	//	virtual ~IFragment();
 
-		struct Block;
+	//	virtual uint64_t Offset() const = 0;
+	//	virtual uint64_t Size() const = 0;
+	//	virtual IMemory * GetMemory() const = 0;
+	//};
+
+	struct LinearMemoryPool {
 
 		struct Fragment {
 			uint64_t mOffset;
 			uint64_t mSize;
 		};
 
-		struct FragmentMemory : IMemory {
-			IMemoryHandle mBlock;
-			Block * mpBlock;
-			std::list<Fragment>::iterator mpSelf;
-		};
-
-		struct Block {
+		struct Arena {
+			IMemoryHandle mMemoryHandle;
+			uint64_t mSize;
 			uint64_t mFreeRegionBegin;
 			uint64_t mFreeRegionEnd;
-			std::list<Fragment> mFragments;
+			std::list<Fragment> mRawFragments;
 		};
 
-		std::vector<Block> mBlocks;
-		MemoryPoolDesc mDesc;
+		struct FragmentMemory : IMemory {
+			Arena * mpArena;
+			std::list<Fragment>::iterator mpSelf;
 
-		LinearMemoryPool(IDevice * pDevice, MemoryPoolDesc const & desc);
-		virtual ~LinearMemoryPool();
+			FragmentMemory(Arena * pArena, std::list<Fragment>::iterator pSelf);
+			virtual ~FragmentMemory() override;
 
-		virtual IMemoryHandle AllocateMemory(uint64_t size, uint64_t alignment) override;
+			virtual IDeviceHandle GetDevice() const override;
+			virtual MemoryDesc const & GetDesc() const override;
+		};
+
+		IDevice * mpDevice;
+		std::vector<Arena> mArenas;
+
+		LinearMemoryPool(IDevice * pDevice);
+		~LinearMemoryPool();
+
+		FragmentMemory AllocateMemory(uint64_t size, uint64_t alignment);
 
 	};
 

@@ -8,7 +8,6 @@
 namespace erhi::vk {
 
 	struct Memory : IMemory {
-
 		DeviceHandle		mDeviceHandle;
 		VkDeviceMemory		mMemory;
 
@@ -17,6 +16,8 @@ namespace erhi::vk {
 
 		virtual IDeviceHandle GetDevice() const override;
 
+		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
+		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
 	};
 
 

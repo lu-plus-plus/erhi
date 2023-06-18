@@ -87,9 +87,8 @@ namespace erhi {
 	};
 
 	struct MemoryDesc {
-		uint64_t size;
-		uint64_t alignment;
 		uint32_t memoryTypeIndex;
+		uint64_t size;
 	};
 
 	// buffer

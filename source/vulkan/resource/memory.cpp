@@ -294,8 +294,8 @@ namespace erhi::vk {
 
 
 
-	IBufferHandle Device::CreatePlacedBuffer(IMemory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
-		return MakeHandle<PlacedBuffer>(MemoryHandle(dynamic_cast<Memory *>(pMemory)), offset, actualSize, bufferDesc);
+	IBufferHandle Memory::CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
+		return MakeHandle<PlacedBuffer>(this, offset, actualSize, bufferDesc);
 	}
 
 	IBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
@@ -629,8 +629,8 @@ namespace erhi::vk {
 		vkDestroyImage(mMemoryHandle->mDeviceHandle->mDevice, mImage, nullptr);
 	}
 
-	ITextureHandle Device::CreatePlacedTexture(IMemory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) {
-		return MakeHandle<PlacedTexture>(dynamic_cast<Memory *>(pMemory), offset, actualSize, textureDesc);
+	ITextureHandle Memory::CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) {
+		return MakeHandle<PlacedTexture>(this, offset, actualSize, textureDesc);
 	}
 
 }

@@ -18,9 +18,12 @@ namespace erhi {
 		IMemory(MemoryDesc const & desc);
 		virtual ~IMemory() override;
 
+		virtual MemoryDesc const & GetDesc() const;
+
 		virtual IDeviceHandle GetDevice() const = 0;
 
-		virtual MemoryDesc const & GetDesc() const;
+		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) = 0;
+		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) = 0;
 
 	};
 	

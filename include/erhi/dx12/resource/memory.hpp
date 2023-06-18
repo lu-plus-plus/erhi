@@ -10,7 +10,6 @@
 namespace erhi::dx12 {
 
 	struct Memory : IMemory {
-		
 		DeviceHandle mDeviceHandle;
 		ID3D12Heap * mpHeap;
 
@@ -19,6 +18,8 @@ namespace erhi::dx12 {
 
 		virtual IDeviceHandle GetDevice() const override;
 
+		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
+		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
 	};
 
 	struct CommittedBuffer : IBuffer {
