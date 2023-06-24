@@ -11,6 +11,8 @@ namespace erhi {
 		IDevice();
 		virtual ~IDevice();
 
+		void Log(MessageType type, MessageSeverity severity, std::string_view message);
+		void Verbose(std::string_view message);
 		void Info(std::string_view message);
 		void Warning(std::string_view message);
 		void Error(std::string_view message);

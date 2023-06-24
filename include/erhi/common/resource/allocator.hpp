@@ -1,9 +1,10 @@
 #pragma once
 
-#include <list>		// for linear allocator
-#include <vector>
+#include <list>			// for linear pool
+#include <vector>		// for linear allocator
 
 #include "../common.hpp"
+#include "memory.hpp"
 
 
 
@@ -15,7 +16,7 @@ namespace erhi {
 
 	struct IAllocator : IObject {
 
-	private:
+	protected:
 
 		IDeviceHandle mDeviceHandle;
 
@@ -26,55 +27,104 @@ namespace erhi {
 
 		IDevice * GetDevice() const;
 
-		virtual IBufferHandle				CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) = 0;
-		virtual ITextureHandle				CreateTexture(MemoryHeapType heapType, TextureDesc const & desc) = 0;
+		virtual IBufferHandle CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) = 0;
+		virtual ITextureHandle CreateTexture(MemoryHeapType heapType, TextureDesc const & desc) = 0;
 
 	};
 
 
 
-	//struct IFragment {
-	//	IFragment();
-	//	virtual ~IFragment();
+	//template <typename T = uint64_t>
+	//struct CircularCounter {
+	//	T value;
+	//	T modulus;
 
-	//	virtual uint64_t Offset() const = 0;
-	//	virtual uint64_t Size() const = 0;
-	//	virtual IMemory * GetMemory() const = 0;
+	//	T get() { return value & modulus; }
+
+	//	CircularCounter & operator+=(T x) {
+	//		value += x;
+	//		return *this;
+	//	}
+
+	//	CircularCounter & operator-=(T x) {
+	//		value -= x;
+	//		return *this;
+	//	}
 	//};
 
-	struct LinearMemoryPool {
+	namespace AllocImpl::Linear {
+
+		template <typename U>
+		using ListType = std::list<U>;
 
 		struct Fragment {
 			uint64_t mOffset;
 			uint64_t mSize;
 		};
 
+		struct FragmentRef {
+			struct Arena * mpArena;
+			ListType<Fragment>::iterator mpSelf;
+
+			FragmentRef(Arena * pArena, ListType<Fragment>::iterator pSelf);
+			FragmentRef(FragmentRef const &) = delete;
+			FragmentRef & operator=(FragmentRef const &) = delete;
+			FragmentRef(FragmentRef && other) noexcept;
+			FragmentRef & operator=(FragmentRef &&) noexcept;
+			~FragmentRef();
+
+			void Free();
+			void Invalidate();
+
+			bool IsValid() const;
+		};
+
 		struct Arena {
-			IMemoryHandle mMemoryHandle;
 			uint64_t mSize;
 			uint64_t mFreeRegionBegin;
 			uint64_t mFreeRegionEnd;
-			std::list<Fragment> mRawFragments;
+			ListType<Fragment> mFragments;
+
+			Arena(uint64_t size);
+			~Arena();
+
+			FragmentRef TryAllocate(uint64_t size, uint64_t alignment);
+			void Free(ListType<Fragment>::iterator pFragment);
 		};
 
-		struct FragmentMemory : IMemory {
-			Arena * mpArena;
-			std::list<Fragment>::iterator mpSelf;
+	};
 
-			FragmentMemory(Arena * pArena, std::list<Fragment>::iterator pSelf);
-			virtual ~FragmentMemory() override;
 
-			virtual IDeviceHandle GetDevice() const override;
-			virtual MemoryDesc const & GetDesc() const override;
+
+	struct ILinearAllocator : IAllocator {
+
+		static constexpr uint64_t gDefaultArenaSize = 1u << 16u;
+
+		ILinearAllocator(IDevice * pDevice);
+		virtual ~ILinearAllocator() override;
+
+		virtual IBufferHandle CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) override;
+		virtual ITextureHandle CreateTexture(MemoryHeapType heapType, TextureDesc const & desc) override;
+
+	protected:
+
+		// Each arena is a large block of memory.
+		struct Arena {
+			AllocImpl::Linear::Arena mArenaImpl;
+			IMemoryHandle mMemoryHandle;
 		};
 
-		IDevice * mpDevice;
-		std::vector<Arena> mArenas;
+		// Each pool is for a specific memory type.
+		struct Pool {
+			std::vector<Arena> mArenas;
+		};
 
-		LinearMemoryPool(IDevice * pDevice);
-		~LinearMemoryPool();
+		std::vector<Pool> mPools;
 
-		FragmentMemory AllocateMemory(uint64_t size, uint64_t alignment);
+		AllocImpl::Linear::FragmentRef CreateFragment(MemoryRequirements requirements);
+
+		virtual IBufferHandle CreateBuffer(AllocImpl::Linear::FragmentRef && fragment, BufferDesc const & desc) = 0;
+		virtual ITextureHandle CreateTexture(AllocImpl::Linear::FragmentRef && fragement, TextureDesc const & desc) = 0;
 
 	};
 

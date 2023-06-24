@@ -47,7 +47,7 @@ function(add_file_group group_name group_root group_prefix file_expr)
 		${group_root}/utils/*${file_postfix}
 		${group_root}/context/*${file_postfix}
 		${group_root}/resource/memory*${file_postfix}
-		# ${group_root}/resource/allocator*${file_postfix}
+		${group_root}/resource/allocator*${file_postfix}
 		${group_root}/command/*${file_postfix}
 	)
 	
