@@ -23,7 +23,7 @@ namespace erhi::vk {
 		vkGetPhysicalDeviceFeatures2(physicalDevice, &mFeatures);
 		vkGetPhysicalDeviceMemoryProperties2(physicalDevice, &mMemoryProperties);
 
-		mInstanceHandle->mMessageCallbackHandle->info(mProperties.properties.deviceName);
+		mInstanceHandle->mMessageCallbackHandle->Info(mProperties.properties.deviceName);
 
 		for (uint32_t iHeap = 0; iHeap < mMemoryProperties.memoryProperties.memoryHeapCount; ++iHeap) {
 			VkMemoryHeap heap{ mMemoryProperties.memoryProperties.memoryHeaps[iHeap] };
@@ -48,7 +48,7 @@ namespace erhi::vk {
 			}
 
 			output.pop_back();
-			mInstanceHandle->mMessageCallbackHandle->info(output);
+			mInstanceHandle->mMessageCallbackHandle->Info(output);
 		}
 
 		uint32_t extensionCount = 0;

@@ -32,22 +32,22 @@ namespace erhi::vk {
 		std::vector<VkLayerProperties> layers{ layerPropertyCount };
 		vkCheckResult(vkEnumerateInstanceLayerProperties(&layerPropertyCount, layers.data()));
 
-		mMessageCallbackHandle->verbose("supported Vulkan layers:");
+		mMessageCallbackHandle->Verbose("supported Vulkan layers:");
 		for (auto const & layer : layers) {
-			mMessageCallbackHandle->verbose(std::format("{}, ver.{}.{}.{}", layer.layerName, VK_API_VERSION_MAJOR(layer.specVersion), VK_API_VERSION_MINOR(layer.specVersion), VK_API_VERSION_PATCH(layer.specVersion)));
+			mMessageCallbackHandle->Verbose(std::format("{}, ver.{}.{}.{}", layer.layerName, VK_API_VERSION_MAJOR(layer.specVersion), VK_API_VERSION_MINOR(layer.specVersion), VK_API_VERSION_PATCH(layer.specVersion)));
 		}
-		mMessageCallbackHandle->verbose("");
+		mMessageCallbackHandle->Verbose("");
 
 		uint32_t extensionPropertyCount{ 0u };
 		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, nullptr));
 		std::vector<VkExtensionProperties> extensions{ extensionPropertyCount };
 		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, extensions.data()));
 
-		mMessageCallbackHandle->verbose("supported Vulkan extensions:");
+		mMessageCallbackHandle->Verbose("supported Vulkan extensions:");
 		for (auto const & extension : extensions) {
-			mMessageCallbackHandle->verbose(std::format("{}, ver.{}.{}.{}", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion)));
+			mMessageCallbackHandle->Verbose(std::format("{}, ver.{}.{}.{}", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion)));
 		}
-		mMessageCallbackHandle->verbose("");
+		mMessageCallbackHandle->Verbose("");
 
 		// Create VkInstance.
 
@@ -130,11 +130,11 @@ namespace erhi::vk {
 		for (uint32_t i = 0; i < mPhysicalDevices.size(); ++i)
 			pPhysicalDevices[i] = MakeHandle<PhysicalDevice>(this, mPhysicalDevices[i]);
 
-		mMessageCallbackHandle->verbose("physical devices:");
+		mMessageCallbackHandle->Verbose("physical devices:");
 		for (auto const & pPhysicalDevice : pPhysicalDevices) {
-			mMessageCallbackHandle->verbose(std::format("{} physical device '{}'", pPhysicalDevice->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", pPhysicalDevice->name()));
+			mMessageCallbackHandle->Verbose(std::format("{} physical device '{}'", pPhysicalDevice->type() == PhysicalDeviceType::Discrete ? "discrete" : "integrated", pPhysicalDevice->name()));
 		}
-		mMessageCallbackHandle->verbose("");
+		mMessageCallbackHandle->Verbose("");
 
 		return pPhysicalDevices;
 	}

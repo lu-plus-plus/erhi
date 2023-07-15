@@ -4,38 +4,24 @@
 
 namespace erhi {
 
-	void IMessageCallback::verbose(char const * pMessage) {
-		(*this)(MessageType::General, MessageSeverity::Verbose, pMessage);
-	}
-
-	void IMessageCallback::info(char const * pMessage) {
-		(*this)(MessageType::General, MessageSeverity::Info, pMessage);
-	}
-
-	void IMessageCallback::warning(char const * pMessage) {
-		(*this)(MessageType::General, MessageSeverity::Warning, pMessage);
-	}
-
-	void IMessageCallback::error(char const * pMessage) {
-		(*this)(MessageType::General, MessageSeverity::Error, pMessage);
-	}
-
-	void IMessageCallback::verbose(std::string const & message) {
-		verbose(message.c_str());
-	}
-
-	void IMessageCallback::info(std::string const & message) {
-		info(message.c_str());
-	}
-
-	void IMessageCallback::warning(std::string const & message) {
-		warning(message.c_str());
-	}
-
-	void IMessageCallback::error(std::string const & message) {
-		error(message.c_str());
-	}
+	IMessageCallback::IMessageCallback() = default;
 
 	IMessageCallback::~IMessageCallback() = default;
+
+	void IMessageCallback::Verbose(std::string_view message) {
+		(*this)(MessageType::General, MessageSeverity::Verbose, message.data());
+	}
+
+	void IMessageCallback::Info(std::string_view message) {
+		(*this)(MessageType::General, MessageSeverity::Info, message.data());
+	}
+
+	void IMessageCallback::Warning(std::string_view message) {
+		(*this)(MessageType::General, MessageSeverity::Warning, message.data());
+	}
+
+	void IMessageCallback::Error(std::string_view message) {
+		(*this)(MessageType::General, MessageSeverity::Error, message.data());
+	}
 
 }

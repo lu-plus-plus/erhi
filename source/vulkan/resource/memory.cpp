@@ -209,7 +209,7 @@ namespace erhi::vk {
 		vkGetBufferMemoryRequirements2(*mDeviceHandle, &bufferMemoryRequirementsInfo, &memoryRequirements);
 
 		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
-			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->info(std::format(
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Info(std::format(
 				"Dedicated allocation is not preferred when memory heap type = {}, buffer usage = {}.\n",
 				uint32_t(heapType), desc.usage
 			));
@@ -220,7 +220,7 @@ namespace erhi::vk {
 		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
 
 		if (not std::has_single_bit(memoryTypeBits)) {
-			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->warning(std::format(
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Warning(std::format(
 				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
 				uint32_t(heapType), desc.usage
 			));
@@ -494,7 +494,7 @@ namespace erhi::vk {
 		vkGetImageMemoryRequirements2(*mDeviceHandle, &imageMemoryRequirementsInfo, &memoryRequirements);
 
 		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
-			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->info(std::format(
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Info(std::format(
 				"Dedicated allocation is not preferred when memory heap type = {}, texture usage = {}.\n",
 				uint32_t(heapType), desc.usage
 			));
@@ -505,7 +505,7 @@ namespace erhi::vk {
 		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
 
 		if (not std::has_single_bit(memoryTypeBits)) {
-			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->warning(std::format(
+			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Warning(std::format(
 				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
 				uint32_t(heapType), desc.usage
 			));

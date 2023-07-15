@@ -19,14 +19,14 @@ namespace erhi {
 	//			break;
 
 	//			case MemoryHeapType::Upload: {
-	//				pDevice->pPhysicalDevice()->pInstance()->mMessageCallbackHandle->warning("Requesting a memory for uploading data on cache-caherent UMA architecture.");
+	//				pDevice->pPhysicalDevice()->pInstance()->mMessageCallbackHandle->Warning("Requesting a memory for uploading data on cache-caherent UMA architecture.");
 	//				mLocation = MemoryLocation::L0_System;
 	//				mHostAccess = MemoryHostAccess::SequentialWrite;
 	//			}
 	//			break;
 
 	//			case MemoryHeapType::ReadBack: {
-	//				pDevice->pPhysicalDevice()->pInstance()->mMessageCallbackHandle->warning("Requesting a memory for reading data back on cache-caherent UMA architecture.");
+	//				pDevice->pPhysicalDevice()->pInstance()->mMessageCallbackHandle->Warning("Requesting a memory for reading data back on cache-caherent UMA architecture.");
 	//				mLocation = MemoryLocation::L0_System;
 	//				mHostAccess = MemoryHostAccess::Random;
 	//			}
