@@ -8,7 +8,7 @@
 #include <cassert>		// for assert()
 #include <format>		// for std::format
 
-#include "magic_enum.hpp"		// for enum_count()
+#include "magic_enum.hpp"
 
 
 

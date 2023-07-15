@@ -8,7 +8,7 @@
 
 namespace erhi::vk {
 
-	IInstanceHandle createInstance(InstanceDesc const & desc) {
+	IInstanceHandle CreateInstance(InstanceDesc const & desc) {
 		return MakeHandle<Instance>(desc);
 	}
 
@@ -124,7 +124,7 @@ namespace erhi::vk {
 
 
 
-	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() {
+	std::vector<IPhysicalDeviceHandle> Instance::ListPhysicalDevices() {
 		std::vector<IPhysicalDeviceHandle> pPhysicalDevices(mPhysicalDevices.size(), nullptr);
 
 		for (uint32_t i = 0; i < mPhysicalDevices.size(); ++i)
@@ -141,7 +141,7 @@ namespace erhi::vk {
 
 
 
-	IPhysicalDeviceHandle Instance::selectPhysicalDevice(PhysicalDeviceDesc const & desc) {
+	IPhysicalDeviceHandle Instance::SelectPhysicalDevice(PhysicalDeviceDesc const & desc) {
 		for (auto physicalDevice : mPhysicalDevices) {
 			auto handle{ MakeHandle<PhysicalDevice>(this, physicalDevice) };
 			if (handle->type() == desc.type) {

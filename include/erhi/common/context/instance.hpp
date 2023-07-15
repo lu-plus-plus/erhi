@@ -17,9 +17,9 @@ namespace erhi {
 		IInstance(InstanceDesc const & desc);
 		virtual ~IInstance();
 
-		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() = 0;
+		virtual std::vector<IPhysicalDeviceHandle> ListPhysicalDevices() = 0;
 
-		virtual IPhysicalDeviceHandle selectPhysicalDevice(PhysicalDeviceDesc const & desc) = 0;
+		virtual IPhysicalDeviceHandle SelectPhysicalDevice(PhysicalDeviceDesc const & desc) = 0;
 
 	};
 
@@ -27,13 +27,13 @@ namespace erhi {
 
 	namespace vk {
 
-		IInstanceHandle createInstance(InstanceDesc const & desc);
+		IInstanceHandle CreateInstance(InstanceDesc const & desc);
 	
 	}
 
 	namespace dx12 {
 
-		IInstanceHandle createInstance(InstanceDesc const & desc);
+		IInstanceHandle CreateInstance(InstanceDesc const & desc);
 
 	}
 

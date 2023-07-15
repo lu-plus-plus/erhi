@@ -21,12 +21,12 @@ namespace backend = vk;
 
 int main() {
 	try {
-		auto pInstance = backend::createInstance(InstanceDesc{
+		auto pInstance = backend::CreateInstance(InstanceDesc{
 			.enableDebug = true,
 			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
 			});
 
-		auto pPhysicalDevice = pInstance->selectPhysicalDevice(PhysicalDeviceDesc{
+		auto pPhysicalDevice = pInstance->SelectPhysicalDevice(PhysicalDeviceDesc{
 			.type = PhysicalDeviceType::Discrete
 			});
 

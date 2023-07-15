@@ -166,21 +166,6 @@ namespace erhi::vk {
 
 
 
-	//IBufferHandle Device::CreateBuffer(MemoryHeapType heapType, BufferDesc const & desc) {
-	//	MemoryRequirements memoryRequirements = GetBufferMemoryRequirements(heapType, desc);
-	//	if (memoryRequirements.prefersCommittedResource || memoryRequirements.requiresCommittedResource) {
-	//		auto bufferHandle = MakeHandle<CommittedBuffer>(this, heapType, desc);
-
-	//		if (bufferHandle.get() != nullptr) return bufferHandle;
-
-	//		if (memoryRequirements.requiresCommittedResource) {
-	//			// ... ...
-	//		}
-	//	}
-	//}
-
-
-
 	CommittedBuffer::CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) :
 		IBuffer(desc), mDeviceHandle(pDevice), mDeviceMemory(VK_NULL_HANDLE), mBuffer(VK_NULL_HANDLE) {
 		

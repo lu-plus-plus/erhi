@@ -23,8 +23,8 @@ namespace erhi::vk {
 
 		operator VkInstance() const;
 		
-		virtual std::vector<IPhysicalDeviceHandle>	listPhysicalDevices() override;
-		virtual IPhysicalDeviceHandle				selectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
+		virtual std::vector<IPhysicalDeviceHandle>	ListPhysicalDevices() override;
+		virtual IPhysicalDeviceHandle				SelectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
 		
 	};
 

@@ -24,7 +24,7 @@ namespace erhi::dx12 {
 
 	Instance::~Instance() = default;
 
-	std::vector<IPhysicalDeviceHandle> Instance::listPhysicalDevices() {
+	std::vector<IPhysicalDeviceHandle> Instance::ListPhysicalDevices() {
 		std::vector<IPhysicalDeviceHandle> handles;
 		
 		for (UINT adapterIndex = 0; ; ++adapterIndex) {
@@ -41,7 +41,7 @@ namespace erhi::dx12 {
 		return handles;
 	}
 
-	IPhysicalDeviceHandle Instance::selectPhysicalDevice(PhysicalDeviceDesc const & desc) {
+	IPhysicalDeviceHandle Instance::SelectPhysicalDevice(PhysicalDeviceDesc const & desc) {
 		for (UINT adapterIndex = 0; ; ++adapterIndex) {
 			IDXGIAdapter1 * pAdapter = nullptr;
 			if (DXGI_ERROR_NOT_FOUND == mpFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&pAdapter))) break;
@@ -53,7 +53,7 @@ namespace erhi::dx12 {
 		return nullptr;
 	}
 
-	IInstanceHandle createInstance(InstanceDesc const & desc) {
+	IInstanceHandle CreateInstance(InstanceDesc const & desc) {
 		return MakeHandle<Instance>(desc);
 	}
 

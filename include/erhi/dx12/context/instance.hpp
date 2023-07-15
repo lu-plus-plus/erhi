@@ -17,9 +17,9 @@ namespace erhi::dx12 {
 
 		~Instance();
 
-		virtual std::vector<IPhysicalDeviceHandle> listPhysicalDevices() override;
+		virtual std::vector<IPhysicalDeviceHandle> ListPhysicalDevices() override;
 
-		virtual IPhysicalDeviceHandle selectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
+		virtual IPhysicalDeviceHandle SelectPhysicalDevice(PhysicalDeviceDesc const & desc) override;
 
 	};
 
