@@ -14,62 +14,6 @@
 
 namespace erhi::dx12 {
 
-	//Memory::Memory(Device * pDevice, uint32_t size, MemoryLocation location, MemoryHostAccess hostAccess) :
-	//	IMemory(pDevice, size, location, hostAccess),
-	//	mpHeap(nullptr) {
-
-	//	D3D12_MEMORY_POOL memoryPool;
-	//	switch (location) {
-	//		case erhi::MemoryLocation::L0_System:
-	//			memoryPool = D3D12_MEMORY_POOL_L0;
-	//		break;
-
-	//		case erhi::MemoryLocation::L1_Video:
-	//			memoryPool = D3D12_MEMORY_POOL_L1;
-	//		break;
-	//		
-	//		default:
-	//			memoryPool = D3D12_MEMORY_POOL_UNKNOWN;
-	//		break;
-	//	}
-
-	//	D3D12_CPU_PAGE_PROPERTY pageProperty;
-	//	switch (hostAccess)
-	//	{
-	//		case erhi::MemoryHostAccess::NotAvailable:
-	//			pageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-	//		break;
-	//		
-	//		case erhi::MemoryHostAccess::SequentialWrite:
-	//			pageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-	//		break;
-
-	//		case erhi::MemoryHostAccess::Random:
-	//			pageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
-	//		break;
-	//		
-	//		default:
-	//			pageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	//		break;
-	//	}
-
-	//	D3D12_HEAP_DESC heapDesc{
-	//		.SizeInBytes = size,
-	//		.Properties = D3D12_HEAP_PROPERTIES{
-	//			.Type = D3D12_HEAP_TYPE_CUSTOM,
-	//			.CPUPageProperty = pageProperty,
-	//			.MemoryPoolPreference = memoryPool,
-	//			.CreationNodeMask = 0u,
-	//			.VisibleNodeMask = 0u
-	//		},
-	//		.Alignment = 0u, 
-	//	};
-
-	//	pDevice->mpDevice->CreateHeap()
-	//}
-
-	
-
 	D3D12_HEAP_TYPE MapHeapType(MemoryHeapType heapType) {
 		switch (heapType) {
 			case erhi::MemoryHeapType::Default:
@@ -330,17 +274,19 @@ namespace erhi::dx12 {
 
 
 
-	PlacedBuffer::PlacedBuffer(Memory * pMemory, uint64_t offset, uint64_t actualSize, BufferDesc const & desc) :
-		IBuffer(desc), mMemoryHandle(pMemory), mOffset(offset), mActualSize(actualSize), mpBuffer(nullptr) {
+	ID3D12Resource * Memory::CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & desc) {
+		ID3D12Resource * pBuffer = nullptr;
 
 		auto const resourceDesc = GetResourceState(desc);
-		auto const initialState = GetInitialState(mMemoryHandle->mpHeap->GetDesc().Properties.Type);
+		auto const initialState = GetInitialState(mpHeap->GetDesc().Properties.Type);
 
-		D3D12CheckResult(mMemoryHandle->mDeviceHandle->mpDevice->CreatePlacedResource(mMemoryHandle->mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpBuffer)));
+		D3D12CheckResult(mDeviceHandle->mpDevice->CreatePlacedResource(mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&pBuffer)));
+
+		return pBuffer;
 	}
 
-	PlacedBuffer::~PlacedBuffer() {
-		mpBuffer->Release();
+	void Memory::DestroyNativeBuffer(ID3D12Resource * pBuffer) {
+		pBuffer->Release();
 	}
 
 	IBufferHandle Memory::CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
@@ -348,7 +294,10 @@ namespace erhi::dx12 {
 		assert(mDesc.size >= offset + actualSize);
 		assert(actualSize >= bufferDesc.size);
 
-		return MakeHandle<PlacedBuffer>(this, offset, actualSize, bufferDesc);
+		return MakeHandle<PlacedBuffer<Slice>>(
+			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
+			bufferDesc
+		);
 	}
 
 
@@ -636,23 +585,26 @@ namespace erhi::dx12 {
 
 
 
-	PlacedTexture::PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & desc) :
-		ITexture(desc), mMemoryHandle(pMemory), mOffset(offset), mActualSize(actualSize), mpTexture(nullptr) {
+	ID3D12Resource * Memory::CreateNativeTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
+		ID3D12Resource * pTexture = nullptr;
 
-		Device * pDevice = pMemory->mDeviceHandle.get();
+		D3D12_RESOURCE_DESC const resourceDesc = MapTextureDesc(mDeviceHandle.get(), desc);
+		D3D12_RESOURCE_STATES const initialState = GetInitialState(mpHeap->GetDesc().Properties.Type);
 
-		D3D12_RESOURCE_DESC const resourceDesc = MapTextureDesc(pDevice, desc);
-		D3D12_RESOURCE_STATES const initialState = GetInitialState(pMemory->mpHeap->GetDesc().Properties.Type);
+		D3D12CheckResult(mDeviceHandle->mpDevice->CreatePlacedResource(mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&pTexture)));
 
-		D3D12CheckResult(pDevice->mpDevice->CreatePlacedResource(pMemory->mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpTexture)));
+		return pTexture;
 	}
 
-	PlacedTexture::~PlacedTexture() {
-		mpTexture->Release();
+	void Memory::DestroyNativeTexture(ID3D12Resource * pTexture) {
+		pTexture->Release();
 	}
 
 	ITextureHandle Memory::CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
-		return MakeHandle<PlacedTexture>(this, offset, actualSize, desc);
+		return MakeHandle<PlacedTexture<Slice>>(
+			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
+			desc
+		);
 	}
 
 

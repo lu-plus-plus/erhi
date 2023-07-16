@@ -18,13 +18,21 @@ namespace erhi {
 		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) = 0;
 		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) = 0;
 
-	};
+		struct Slice {
+			IMemoryHandle mMemoryHandle;
+			uint64_t mOffset;
+			uint64_t mSize;
 
-	//struct MemoryView {
-	//	virtual IMemoryHandle MemoryHandle() const = 0;
-	//	virtual uint64_t Offset() const = 0;
-	//	virtual uint64_t Size() const = 0;
-	//};
+			IMemoryHandle GetMemoryHandle() const { return mMemoryHandle; }
+			uint64_t GetOffset() const { return mOffset; }
+			uint64_t GetSize() const { return mSize; }
+		};
+
+		Slice SliceAt(uint64_t offset, uint64_t size) {
+			return { .mMemoryHandle = this, .mOffset = offset, .mSize = size };
+		}
+
+	};
 
 	namespace traits {
 

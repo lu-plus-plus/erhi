@@ -20,18 +20,11 @@ namespace erhi::vk {
 		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
 		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
 
-		struct Slice {
-			MemoryHandle mMemoryHandle;
-			uint64_t mOffset;
-			uint64_t mSize;
-
-			MemoryHandle GetMemoryHandle() const { return mMemoryHandle; }
-			uint64_t GetOffset() const { return mOffset; }
-			uint64_t GetSize() const { return mSize; }
-		};
-
 		VkBuffer CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & desc);
 		void DestroyNativeBuffer(VkBuffer buffer);
+
+		VkImage CreateNativeTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc);
+		void DestroyNativeTexture(VkImage image);
 
 	};
 
@@ -48,25 +41,28 @@ namespace erhi::vk {
 
 	};
 
+
+
 	template <typename MemoryView>
+		requires (traits::IsMemoryView<MemoryView> and std::movable<MemoryView>)
 	struct PlacedBuffer : public IPlacedBuffer<MemoryView> {
 		
 		using IPlacedBuffer<MemoryView>::mMemoryView;
 		VkBuffer			mBuffer;
 
 		PlacedBuffer(MemoryView && memoryView, BufferDesc const & desc) : IPlacedBuffer<MemoryView>(std::move(memoryView), desc), mBuffer(VK_NULL_HANDLE) {
-			mBuffer = mMemoryView.GetMemoryHandle()->CreateNativeBuffer(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
+			mBuffer = dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->CreateNativeBuffer(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
 		}
 
 		virtual ~PlacedBuffer() override {
-			mMemoryView.GetMemoryHandle()->DestroyNativeBuffer(mBuffer);
+			dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->DestroyNativeBuffer(mBuffer);
 		}
 
 	};
 
 
 
-	struct CommittedTexture : ITexture {
+	struct CommittedTexture : public ITexture {
 
 		DeviceHandle		mDeviceHandle;
 		VkDeviceMemory		mDeviceMemory;
@@ -77,15 +73,22 @@ namespace erhi::vk {
 
 	};
 
-	struct PlacedTexture : ITexture {
 
-		MemoryHandle		mMemoryHandle;
-		uint64_t			mOffset;
-		uint64_t			mActualSize;
+
+	template <typename MemoryView>
+		requires (traits::IsMemoryView<MemoryView> and std::movable<MemoryView>)
+	struct PlacedTexture : public IPlacedTexture<MemoryView> {
+
+		using IPlacedTexture<MemoryView>::mMemoryView;
 		VkImage				mImage;
 
-		PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc);
-		virtual ~PlacedTexture() override;
+		PlacedTexture(MemoryView && memoryView, TextureDesc const & desc) : IPlacedTexture<MemoryView>(std::move(memoryView), desc), mImage(VK_NULL_HANDLE) {
+			mImage = dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->CreateNativeTexture(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
+		}
+
+		virtual ~PlacedTexture() override {
+			dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->DestroyNativeTexture(mImage);
+		}
 
 	};
 

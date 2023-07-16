@@ -602,23 +602,27 @@ namespace erhi::vk {
 
 
 
-	PlacedTexture::PlacedTexture(Memory * pMemory, uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) :
-		ITexture(textureDesc),
-		mMemoryHandle(pMemory), mOffset(offset), mActualSize(actualSize) {
+	VkImage Memory::CreateNativeTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
+		VkImage image = VK_NULL_HANDLE;
 
-		VkImageCreateInfo createInfo = GetImageCreateInfo(textureDesc);
+		VkImageCreateInfo createInfo = GetImageCreateInfo(desc);
 
-		vkCheckResult(vkCreateImage(mMemoryHandle->mDeviceHandle->mDevice, &createInfo, nullptr, &mImage));
+		vkCheckResult(vkCreateImage(mDeviceHandle->mDevice, &createInfo, nullptr, &image));
 
-		vkCheckResult(vkBindImageMemory(mMemoryHandle->mDeviceHandle->mDevice, mImage, mMemoryHandle->mMemory, offset));
+		vkCheckResult(vkBindImageMemory(mDeviceHandle->mDevice, image, mMemory, offset));
+		
+		return image;
 	}
 
-	PlacedTexture::~PlacedTexture() {
-		vkDestroyImage(mMemoryHandle->mDeviceHandle->mDevice, mImage, nullptr);
+	void Memory::DestroyNativeTexture(VkImage image) {
+		vkDestroyImage(mDeviceHandle->mDevice, image, nullptr);
 	}
 
 	ITextureHandle Memory::CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) {
-		return MakeHandle<PlacedTexture>(this, offset, actualSize, textureDesc);
+		return MakeHandle<PlacedTexture<Slice>>(
+			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
+			textureDesc
+		);
 	}
 
 }
