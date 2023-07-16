@@ -1,5 +1,4 @@
-#ifndef ERHI_MEMORY_HPP
-#define ERHI_MEMORY_HPP
+#pragma once
 
 #include "../common.hpp"
 
@@ -9,16 +8,10 @@ namespace erhi {
 
 	struct IMemory : IObject {
 		
-	protected:
-
 		MemoryDesc mDesc;
-
-	public:
 
 		IMemory(MemoryDesc const & desc);
 		virtual ~IMemory() override;
-
-		virtual MemoryDesc const & GetDesc() const;
 
 		virtual IDeviceHandle GetDevice() const = 0;
 
@@ -26,21 +19,44 @@ namespace erhi {
 		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) = 0;
 
 	};
+
+	//struct MemoryView {
+	//	virtual IMemoryHandle MemoryHandle() const = 0;
+	//	virtual uint64_t Offset() const = 0;
+	//	virtual uint64_t Size() const = 0;
+	//};
+
+	namespace traits {
+
+		template <typename T>
+		concept IsMemoryView = requires (T const x) {
+			{ x.GetMemoryHandle() } -> std::convertible_to<IMemoryHandle>;
+			{ x.GetOffset() } -> std::convertible_to<uint64_t>;
+			{ x.GetSize() } -> std::convertible_to<uint64_t>;
+		};
+
+	}
 	
 
 
 	struct IBuffer : IObject {
-
-	protected:
-
+		
 		BufferDesc mDesc;
-
-	public:
 
 		IBuffer(BufferDesc const & desc);
 		virtual ~IBuffer() override;
 
-		virtual BufferDesc const & GetDesc() const;
+	};
+
+	template <typename MemoryView>
+		requires (traits::IsMemoryView<MemoryView> and std::movable<MemoryView>)
+	struct IPlacedBuffer : IBuffer {
+
+		MemoryView mMemoryView;
+
+		IPlacedBuffer(MemoryView && memoryView, BufferDesc const & desc) : IBuffer(desc), mMemoryView(std::move(memoryView)) {}
+
+		virtual ~IPlacedBuffer() override = default;
 
 	};
 
@@ -48,70 +64,25 @@ namespace erhi {
 
 	struct ITexture : IObject {
 
-	protected:
-
 		TextureDesc mDesc;
-
-	public:
 
 		ITexture(TextureDesc const & desc);
 		~ITexture();
 
-		virtual TextureDesc const & GetDesc() const;
-
 	};
 
+	template <traits::IsMemoryView MemoryView>
+		requires std::movable<MemoryView>
+	struct IPlacedTexture : ITexture {
 
+		MemoryView mMemoryView;
 
-	//struct ICommittedBuffer : IBuffer {
+		IPlacedTexture(MemoryView && memoryView, TextureDesc const & desc) : ITexture(desc), mMemoryView(std::move(memoryView)) {}
 
-	//	ICommittedBuffer(BufferDesc const & desc);
-	//	virtual ~ICommittedBuffer() override;
+		virtual ~IPlacedTexture() override = default;
 
-	//	virtual bool IsCommittedResource() const;
-
-	//};
-
-
-
-	//struct IPlacedBuffer : IBuffer {
-
-	//	uint64_t mOffsetInMemory;
-	//	uint64_t mAlignment;
-
-	//	IPlacedBuffer(BufferDesc const & desc, uint64_t offsetInMemory, uint64_t alignment);
-	//	virtual ~IPlacedBuffer() override;
-
-	//	virtual bool IsCommittedResource() const;
-
-	//	virtual IMemoryHandle GetMemory() const = 0;
-
-	//};
-
-
-
-
-	//struct ICommittedTexture : ITexture {
-
-	//	ICommittedTexture(TextureDesc const & desc);
-	//	virtual ~ICommittedTexture() override;
-
-	//};
-
-	//struct IPlacedTexture : ITexture {
-
-	//	uint64_t mOffsetInMemory;
-	//	uint64_t mAlignment;
-
-	//	IPlacedTexture(TextureDesc const & desc, uint64_t offsetInMemory, uint64_t alignment);
-	//	virtual ~IPlacedTexture() override;
-
-	//	virtual IMemoryHandle GetMemory() const = 0;
-
-	//};
+	};
 
 }
 
 
-
-#endif // ERHI_MEMORY_HPP

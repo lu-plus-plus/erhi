@@ -21,17 +21,17 @@ namespace erhi {
 
 
 
-	AllocImpl::Linear::Arena::Arena(uint64_t size) : mSize(size), mFreeRegionBegin(0), mFreeRegionEnd(size), mFragments() {
+	VirtAlloc::Linear::Arena::Arena(uint64_t size) : mSize(size), mFreeRegionBegin(0), mFreeRegionEnd(size), mFragments() {
 		assert(std::has_single_bit(size));
 	}
 
-	AllocImpl::Linear::Arena::~Arena() {
+	VirtAlloc::Linear::Arena::~Arena() {
 		assert(mFreeRegionBegin == 0);
 		assert(mFreeRegionEnd == mSize);
 		assert(mFragments.size() == 0);
 	}
 
-	AllocImpl::Linear::FragmentRef AllocImpl::Linear::Arena::TryAllocate(uint64_t size, uint64_t alignment) {
+	VirtAlloc::Linear::FragmentRef VirtAlloc::Linear::Arena::TryAllocate(uint64_t size, uint64_t alignment) {
 		assert(std::has_single_bit(alignment));
 
 		// mFreeRegionBegin and mFreeRegionEnd may exceed mSize - they are circular counters.
@@ -73,7 +73,7 @@ namespace erhi {
 		return FragmentRef(nullptr, ListType<Fragment>::iterator());
 	}
 
-	void AllocImpl::Linear::Arena::Free(ListType<Fragment>::iterator pFragment) {
+	void VirtAlloc::Linear::Arena::Free(ListType<Fragment>::iterator pFragment) {
 		assert(not mFragments.empty());
 		
 		if (mFragments.size() == 1) {
@@ -102,22 +102,22 @@ namespace erhi {
 
 
 
-	void AllocImpl::Linear::FragmentRef::Free() {
+	void VirtAlloc::Linear::FragmentRef::Free() {
 		if (mpArena) mpArena->Free(mpSelf);
 	}
 
-	void AllocImpl::Linear::FragmentRef::Invalidate() {
+	void VirtAlloc::Linear::FragmentRef::Invalidate() {
 		mpArena = nullptr;
 		mpSelf = ListType<Fragment>::iterator();
 	}
 
-	AllocImpl::Linear::FragmentRef::FragmentRef(Arena * pArena, ListType<Fragment>::iterator pSelf) : mpArena(pArena), mpSelf(pSelf) {}
+	VirtAlloc::Linear::FragmentRef::FragmentRef(Arena * pArena, ListType<Fragment>::iterator pSelf) : mpArena(pArena), mpSelf(pSelf) {}
 
-	AllocImpl::Linear::FragmentRef::FragmentRef(FragmentRef && other) noexcept : mpArena(other.mpArena), mpSelf(other.mpSelf) {
+	VirtAlloc::Linear::FragmentRef::FragmentRef(FragmentRef && other) noexcept : mpArena(other.mpArena), mpSelf(other.mpSelf) {
 		other.Invalidate();
 	}
 
-	AllocImpl::Linear::FragmentRef & AllocImpl::Linear::FragmentRef::operator=(FragmentRef && other) noexcept {
+	VirtAlloc::Linear::FragmentRef & VirtAlloc::Linear::FragmentRef::operator=(FragmentRef && other) noexcept {
 		FragmentRef & self = *this;
 		self.Free();
 		self.mpArena = other.mpArena;
@@ -126,11 +126,11 @@ namespace erhi {
 		return self;
 	}
 
-	AllocImpl::Linear::FragmentRef::~FragmentRef() {
+	VirtAlloc::Linear::FragmentRef::~FragmentRef() {
 		Free();
 	}
 
-	bool AllocImpl::Linear::FragmentRef::IsValid() const { return mpArena != nullptr; }
+	bool VirtAlloc::Linear::FragmentRef::IsValid() const { return mpArena != nullptr; }
 
 
 
@@ -138,7 +138,7 @@ namespace erhi {
 
 	ILinearAllocator::~ILinearAllocator() = default;
 
-	AllocImpl::Linear::FragmentRef ILinearAllocator::CreateFragment(MemoryRequirements requirements) {
+	VirtAlloc::Linear::FragmentRef ILinearAllocator::CreateFragment(MemoryRequirements requirements) {
 		uint32_t const memoryTypeIndex = std::countr_zero(requirements.memoryTypeBits);
 
 		if (memoryTypeIndex >= mPools.size()) mPools.resize(memoryTypeIndex + 1);
@@ -153,7 +153,7 @@ namespace erhi {
 
 		uint64_t const allocationSize = std::max(gDefaultArenaSize, requirements.size);
 		pool.mArenas.emplace_back(Arena{
-			.mArenaImpl = AllocImpl::Linear::Arena(allocationSize),
+			.mArenaImpl = VirtAlloc::Linear::Arena(allocationSize),
 			.mMemoryHandle = mDeviceHandle->AllocateMemory(MemoryDesc{
 				.memoryTypeIndex = memoryTypeIndex,
 				.size = allocationSize
@@ -195,7 +195,7 @@ namespace erhi {
 
 
 
-	//AllocImpl::Linear::FragmentRef AllocImpl::Linear::TryAllocate(uint64_t size, uint64_t alignment) {
+	//VirtAlloc::Linear::FragmentRef VirtAlloc::Linear::TryAllocate(uint64_t size, uint64_t alignment) {
 	//	for (Arena & arena : mArenas) {
 	//		auto pFragment = arena.Allocate(size, alignment);
 	//		if (pFragment == arena.mFragments.end()) continue;
@@ -206,7 +206,7 @@ namespace erhi {
 	//	return FragmentRef(nullptr, ListType<Fragment>::iterator());
 	//}
 
-	//AllocImpl::Linear::Arena & AllocImpl::Linear::CreateArena(uint64_t size) {
+	//VirtAlloc::Linear::Arena & VirtAlloc::Linear::CreateArena(uint64_t size) {
 	//	return mArenas.emplace_back(size);
 	//}
 

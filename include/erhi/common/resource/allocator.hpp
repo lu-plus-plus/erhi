@@ -34,25 +34,7 @@ namespace erhi {
 
 
 
-	//template <typename T = uint64_t>
-	//struct CircularCounter {
-	//	T value;
-	//	T modulus;
-
-	//	T get() { return value & modulus; }
-
-	//	CircularCounter & operator+=(T x) {
-	//		value += x;
-	//		return *this;
-	//	}
-
-	//	CircularCounter & operator-=(T x) {
-	//		value -= x;
-	//		return *this;
-	//	}
-	//};
-
-	namespace AllocImpl::Linear {
+	namespace VirtAlloc::Linear {
 
 		template <typename U>
 		using ListType = std::list<U>;
@@ -110,7 +92,7 @@ namespace erhi {
 
 		// Each arena is a large block of memory.
 		struct Arena {
-			AllocImpl::Linear::Arena mArenaImpl;
+			VirtAlloc::Linear::Arena mArenaImpl;
 			IMemoryHandle mMemoryHandle;
 		};
 
@@ -121,10 +103,10 @@ namespace erhi {
 
 		std::vector<Pool> mPools;
 
-		AllocImpl::Linear::FragmentRef CreateFragment(MemoryRequirements requirements);
+		VirtAlloc::Linear::FragmentRef CreateFragment(MemoryRequirements requirements);
 
-		virtual IBufferHandle CreateBuffer(AllocImpl::Linear::FragmentRef && fragment, BufferDesc const & desc) = 0;
-		virtual ITextureHandle CreateTexture(AllocImpl::Linear::FragmentRef && fragement, TextureDesc const & desc) = 0;
+		virtual IBufferHandle CreateBuffer(VirtAlloc::Linear::FragmentRef && fragment, BufferDesc const & desc) = 0;
+		virtual ITextureHandle CreateTexture(VirtAlloc::Linear::FragmentRef && fragement, TextureDesc const & desc) = 0;
 
 	};
 

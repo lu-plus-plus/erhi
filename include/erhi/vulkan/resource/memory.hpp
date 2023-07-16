@@ -7,7 +7,8 @@
 
 namespace erhi::vk {
 
-	struct Memory : IMemory {
+	struct Memory : public IMemory {
+		
 		DeviceHandle		mDeviceHandle;
 		VkDeviceMemory		mMemory;
 
@@ -18,11 +19,25 @@ namespace erhi::vk {
 
 		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
 		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
+
+		struct Slice {
+			MemoryHandle mMemoryHandle;
+			uint64_t mOffset;
+			uint64_t mSize;
+
+			MemoryHandle GetMemoryHandle() const { return mMemoryHandle; }
+			uint64_t GetOffset() const { return mOffset; }
+			uint64_t GetSize() const { return mSize; }
+		};
+
+		VkBuffer CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & desc);
+		void DestroyNativeBuffer(VkBuffer buffer);
+
 	};
 
 
 
-	struct CommittedBuffer : IBuffer {
+	struct CommittedBuffer : public IBuffer {
 
 		DeviceHandle		mDeviceHandle;
 		VkDeviceMemory		mDeviceMemory;
@@ -33,15 +48,19 @@ namespace erhi::vk {
 
 	};
 
-	struct PlacedBuffer : IBuffer {
-
-		MemoryHandle		mMemoryHandle;
-		uint64_t			mOffset;
-		uint64_t			mActualSize;
+	template <typename MemoryView>
+	struct PlacedBuffer : public IPlacedBuffer<MemoryView> {
+		
+		using IPlacedBuffer<MemoryView>::mMemoryView;
 		VkBuffer			mBuffer;
 
-		PlacedBuffer(MemoryHandle memoryHandle, uint64_t offset, uint64_t actualSize, BufferDesc const & desc);
-		virtual ~PlacedBuffer() override;
+		PlacedBuffer(MemoryView && memoryView, BufferDesc const & desc) : IPlacedBuffer<MemoryView>(std::move(memoryView), desc), mBuffer(VK_NULL_HANDLE) {
+			mBuffer = mMemoryView.GetMemoryHandle()->CreateNativeBuffer(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
+		}
+
+		virtual ~PlacedBuffer() override {
+			mMemoryView.GetMemoryHandle()->DestroyNativeBuffer(mBuffer);
+		}
 
 	};
 

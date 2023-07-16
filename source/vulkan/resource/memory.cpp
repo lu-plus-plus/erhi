@@ -261,26 +261,29 @@ namespace erhi::vk {
 
 
 
-	PlacedBuffer::PlacedBuffer(MemoryHandle memoryHandle, uint64_t offset, uint64_t actualSize, BufferDesc const & desc) :
-		IBuffer(desc),
-		mMemoryHandle(std::move(memoryHandle)), mOffset(offset), mActualSize(actualSize),
-		mBuffer(VK_NULL_HANDLE) {
+	VkBuffer Memory::CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & desc) {
+		VkBuffer buffer = VK_NULL_HANDLE;
 
 		VkBufferCreateInfo createInfo = MapBufferDescToVkBufferCreateInfo(desc);
 
-		vkCheckResult(vkCreateBuffer(mMemoryHandle->mDeviceHandle->mDevice, &createInfo, nullptr, &mBuffer));
+		vkCheckResult(vkCreateBuffer(mDeviceHandle->mDevice, &createInfo, nullptr, &buffer));
 
-		vkCheckResult(vkBindBufferMemory(mMemoryHandle->mDeviceHandle->mDevice, mBuffer, mMemoryHandle->mMemory, offset));
+		vkCheckResult(vkBindBufferMemory(mDeviceHandle->mDevice, buffer, mMemory, offset));
+
+		return buffer;
 	}
 
-	PlacedBuffer::~PlacedBuffer() {
-		vkDestroyBuffer(mMemoryHandle->mDeviceHandle->mDevice, mBuffer, nullptr);
+	void Memory::DestroyNativeBuffer(VkBuffer buffer) {
+		vkDestroyBuffer(mDeviceHandle->mDevice, buffer, nullptr);
 	}
 
 
 
 	IBufferHandle Memory::CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
-		return MakeHandle<PlacedBuffer>(this, offset, actualSize, bufferDesc);
+		return MakeHandle<PlacedBuffer<Slice>>(
+			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
+			bufferDesc
+		);
 	}
 
 	IBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
