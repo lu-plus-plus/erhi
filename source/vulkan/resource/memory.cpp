@@ -9,6 +9,8 @@
 #include <utility>		// for std::pair used in enum mapping
 #include <bit>			// for bit manipulation in selecting memory type
 
+#include "magic_enum_format.hpp"
+
 
 
 namespace erhi::vk {
@@ -211,7 +213,7 @@ namespace erhi::vk {
 		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
 			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Info(std::format(
 				"Dedicated allocation is not preferred when memory heap type = {}, buffer usage = {}.\n",
-				uint32_t(heapType), desc.usage
+				magic_enum::enum_name(heapType), desc.usage
 			));
 		}
 
@@ -222,7 +224,7 @@ namespace erhi::vk {
 		if (not std::has_single_bit(memoryTypeBits)) {
 			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Warning(std::format(
 				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
-				uint32_t(heapType), desc.usage
+				magic_enum::enum_name(heapType), desc.usage
 			));
 		}
 
@@ -499,18 +501,18 @@ namespace erhi::vk {
 		if (dedicatedRequirements.prefersDedicatedAllocation == false) {
 			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Info(std::format(
 				"Dedicated allocation is not preferred when memory heap type = {}, texture usage = {}.\n",
-				uint32_t(heapType), desc.usage
+				magic_enum::enum_name(heapType), desc.usage
 			));
 		}
 
-		// Get the final memory type, which is an intersection between those specified by heap type and buffer description.
+		// Get the final memory type, which is an intersection between those specified by heap type and texture description.
 
 		uint32_t const memoryTypeBits = heapMemoryTypeBits & memoryRequirements.memoryRequirements.memoryTypeBits;
 
 		if (not std::has_single_bit(memoryTypeBits)) {
 			mDeviceHandle->mPhysicalDeviceHandle->mInstanceHandle->mMessageCallbackHandle->Warning(std::format(
-				"Multiple memory types are available when memory heap type = {}, buffer usage = {}.\n",
-				uint32_t(heapType), desc.usage
+				"Multiple memory types are available when memory heap type = {}, texture usage = {}.\n",
+				magic_enum::enum_name(heapType), desc.usage
 			));
 		}
 

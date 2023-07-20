@@ -16,6 +16,8 @@ set(erhi_examples_dir		${PROJECT_SOURCE_DIR}/examples)
 
 
 
+# third-party dependencies
+
 set(VOLK_STATIC_DEFINES)
 if(WIN32)
 	set(VK_USE_PLATFORM_WIN32_KHR)
@@ -23,6 +25,8 @@ endif()
 add_subdirectory(${erhi_packages_dir}/volk EXCLUDE_FROM_ALL)
 
 add_subdirectory(${erhi_packages_dir}/magic_enum EXCLUDE_FROM_ALL)
+
+add_subdirectory(${erhi_packages_dir}/eflc EXCLUDE_FROM_ALL)
 
 
 
@@ -34,6 +38,7 @@ target_include_directories(erhi_headers_interface
 
 target_link_libraries(erhi_headers_interface
 	INTERFACE magic_enum::magic_enum
+	INTERFACE eflc::eflc
 )
 
 

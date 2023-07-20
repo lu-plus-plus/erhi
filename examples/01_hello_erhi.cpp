@@ -35,11 +35,18 @@ int main() {
 		auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Primary);
 
 		auto indexBufferDesc = BufferDesc{
-			.usage = BufferUsageCopySource | BufferUsageCopyTarget | BufferUsageIndexBuffer,
+			.usage = BufferUsageCopyTarget | BufferUsageIndexBuffer,
 			.size = 2 * 3 * sizeof(uint32_t)
 		};
 
 		auto indexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, indexBufferDesc);
+
+		auto vertexBufferDesc = BufferDesc{
+			.usage = BufferUsageCopyTarget | BufferUsageVertexBuffer,
+			.size = 4 * 3 * sizeof(float)
+		};
+
+		auto vertexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, vertexBufferDesc);
 
 		auto renderTargetDesc = TextureDesc{
 			.dimension = TextureDimension::Texture2D,
