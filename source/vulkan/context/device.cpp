@@ -1,3 +1,4 @@
+#include "erhi/vulkan/context/instance.hpp"
 #include "erhi/vulkan/context/physical_device.hpp"
 #include "erhi/vulkan/context/device.hpp"
 
@@ -22,21 +23,13 @@ namespace erhi::vk {
 		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mPhysicalDeviceHandle->mQueueFamilies.size(); ++queueFamilyIndex) {
 			auto const & queueFamilyProperties = mPhysicalDeviceHandle->mQueueFamilies[queueFamilyIndex];
 
-			//std::cout << std::format("queue: {}{}{}{}{}\n",
-			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT ? "graphics, " : "",
-			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_COMPUTE_BIT ? "compute, " : "",
-			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_TRANSFER_BIT ? "transfer, " : "",
-			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_SPARSE_BINDING_BIT ? "sparse binding, " : "",
-			//	queueFamilyProperties.queueFamilyProperties.queueFlags & VK_QUEUE_PROTECTED_BIT ? "protected." : ""
-			//);
-
 			if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == graphicsQueueFlags) {
 				mGraphicsQueueFamilyIndex = queueFamilyIndex;
 			}
-			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == computeQueueFlags) {
+			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & computeQueueFlags) == computeQueueFlags) {
 				mComputeQueueFamilyIndex = queueFamilyIndex;
 			}
-			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == copyQueueFlags) {
+			else if ((queueFamilyProperties.queueFamilyProperties.queueFlags & copyQueueFlags) == copyQueueFlags) {
 				mCopyQueueFamilyIndex = queueFamilyIndex;
 			}
 		}
@@ -83,11 +76,51 @@ namespace erhi::vk {
 		};
 
 		vkCheckResult(vkCreateDevice(mPhysicalDeviceHandle->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
+
+		VmaVulkanFunctions vulkanFunctions = {
+			.vkGetInstanceProcAddr = vkGetInstanceProcAddr,
+			.vkGetDeviceProcAddr = vkGetDeviceProcAddr,
+			.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties,
+			.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties,
+			.vkAllocateMemory = vkAllocateMemory,
+			.vkFreeMemory = vkFreeMemory,
+			.vkMapMemory = vkMapMemory,
+			.vkUnmapMemory = vkUnmapMemory,
+			.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges,
+			.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges,
+			.vkBindBufferMemory = vkBindBufferMemory,
+			.vkBindImageMemory = vkBindImageMemory,
+			.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements,
+			.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements,
+			.vkCreateBuffer = vkCreateBuffer,
+			.vkDestroyBuffer = vkDestroyBuffer,
+			.vkCreateImage = vkCreateImage,
+			.vkDestroyImage = vkDestroyImage,
+			.vkCmdCopyBuffer = vkCmdCopyBuffer,
+			.vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2,
+			.vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2,
+			.vkBindBufferMemory2KHR = vkBindBufferMemory2,
+			.vkBindImageMemory2KHR = vkBindImageMemory2,
+			.vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2,
+			.vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements,
+			.vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements
+		};
+		
+		VmaAllocatorCreateInfo allocatorCreateInfo = {};
+		allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
+		allocatorCreateInfo.physicalDevice = *mPhysicalDeviceHandle;
+		allocatorCreateInfo.device = mDevice;
+		allocatorCreateInfo.instance = *mPhysicalDeviceHandle->mInstanceHandle;
+		allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+		vkCheckResult(vmaCreateAllocator(&allocatorCreateInfo, &mAllocator));
 	}
 
 
 
 	Device::~Device() {
+		vmaDestroyAllocator(mAllocator);
+
 		vkDestroyDevice(mDevice, nullptr);
 	}
 

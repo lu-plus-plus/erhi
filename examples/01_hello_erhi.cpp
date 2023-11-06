@@ -24,11 +24,11 @@ int main() {
 		auto pInstance = backend::CreateInstance(InstanceDesc{
 			.enableDebug = true,
 			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
-			});
+		});
 
 		auto pPhysicalDevice = pInstance->SelectPhysicalDevice(PhysicalDeviceDesc{
 			.type = PhysicalDeviceType::Discrete
-			});
+		});
 
 		auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
 
@@ -39,14 +39,14 @@ int main() {
 			.size = 2 * 3 * sizeof(uint32_t)
 		};
 
-		auto indexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, indexBufferDesc);
+		auto indexBuffer = pDevice->CreateBuffer(MemoryHeapType::Default, indexBufferDesc);
 
 		auto vertexBufferDesc = BufferDesc{
 			.usage = BufferUsageCopyTarget | BufferUsageVertexBuffer,
 			.size = 4 * 3 * sizeof(float)
 		};
 
-		auto vertexBuffer = pDevice->CreateCommittedBuffer(MemoryHeapType::Default, vertexBufferDesc);
+		auto vertexBuffer = pDevice->CreateBuffer(MemoryHeapType::Default, vertexBufferDesc);
 
 		auto renderTargetDesc = TextureDesc{
 			.dimension = TextureDimension::Texture2D,
@@ -58,7 +58,7 @@ int main() {
 			.tiling = TextureTiling::Optimal
 		};
 
-		auto renderTarget = pDevice->CreateCommittedTexture(MemoryHeapType::Default, renderTargetDesc);
+		auto renderTarget = pDevice->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
 
 		//auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
 		//	MemoryHeapType::Default,

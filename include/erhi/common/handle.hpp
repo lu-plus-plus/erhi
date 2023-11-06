@@ -178,74 +178,70 @@ namespace erhi {
 
 	using IObjectHandle				= Handle<IObject>;
 
-	using IMessageCallbackHandle	= Handle<struct IMessageCallback>;
-	using IInstanceHandle			= Handle<struct IInstance>;
-	using IPhysicalDeviceHandle		= Handle<struct IPhysicalDevice>;
-	using IDeviceHandle				= Handle<struct IDevice>;
+	#define DeclareHandle(type) \
+		using I ## type ## Handle = Handle<struct I ## type>; \
+		namespace vk { using type ## Handle = Handle<struct type>; } \
+		namespace dx12 { using type ## Handle = Handle<struct type>; }
 
-	using IQueueHandle				= Handle<struct IQueue>;
+	DeclareHandle(MessageCallback);
+	DeclareHandle(Instance);
+	DeclareHandle(PhysicalDevice);
+	DeclareHandle(Device);
 
-	using IMemoryHandle				= Handle<struct IMemory>;
-	
-	using IBufferHandle				= Handle<struct IBuffer>;
-	//using IPlacedBufferHandle		= Handle<struct IPlacedBuffer>;
-	//using ICommittedBufferHandle	= Handle<struct ICommittedBuffer>;
+	DeclareHandle(Queue);
 
-	using ITextureHandle			= Handle<struct ITexture>;
-	//using IPlacedTextureHandle		= Handle<struct IPlacedTexture>;
-	//using ICommittedTextureHandle	= Handle<struct ICommittedTexture>;
+	DeclareHandle(Memory);
+	DeclareHandle(Buffer);
+	DeclareHandle(Texture);
+	DeclareHandle(Allocator);
 
-	using IAllocatorHandle			= Handle<struct IAllocator>;
+	DeclareHandle(DescriptorHeap);
+	DeclareHandle(BufferShaderResourceView);
 
+	#undef DeclareHandle
 
+	//using IMessageCallbackHandle	= Handle<struct IMessageCallback>;
+	//using IInstanceHandle			= Handle<struct IInstance>;
+	//using IPhysicalDeviceHandle		= Handle<struct IPhysicalDevice>;
+	//using IDeviceHandle				= Handle<struct IDevice>;
 
-	namespace vk {
+	//using IQueueHandle				= Handle<struct IQueue>;
 
-		using MessageCallbackHandle		= Handle<struct MessageCallback>;
-		using InstanceHandle			= Handle<struct Instance>;
-		using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
-		using DeviceHandle				= Handle<struct Device>;
+	//using IMemoryHandle				= Handle<struct IMemory>;
+	//using IBufferHandle				= Handle<struct IBuffer>;
+	//using ITextureHandle			= Handle<struct ITexture>;
 
-		using QueueHandle				= Handle<struct Queue>;
+	//using IAllocatorHandle			= Handle<struct IAllocator>;
 
-		using MemoryHandle				= Handle<struct Memory>;
+	//namespace vk {
+	//	using MessageCallbackHandle		= Handle<struct MessageCallback>;
+	//	using InstanceHandle			= Handle<struct Instance>;
+	//	using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
+	//	using DeviceHandle				= Handle<struct Device>;
 
-		using BufferHandle				= Handle<struct Buffer>;
-		//using PlacedBufferHandle		= Handle<struct PlacedBuffer>;
-		//using CommittedBufferHandle		= Handle<struct CommittedBuffer>;
-		
-		using TextureHandle				= Handle<struct Texture>;
-		//using PlacedTextureHandle		= Handle<struct PlacedTexture>;
-		//using CommittedTextureHandle	= Handle<struct CommittedTexture>;
+	//	using QueueHandle				= Handle<struct Queue>;
 
-		using IAllocatorHandle			= Handle<struct IAllocator>;
+	//	using MemoryHandle				= Handle<struct Memory>;
+	//	using BufferHandle				= Handle<struct Buffer>;
+	//	using TextureHandle				= Handle<struct Texture>;
 
-	}
-	
+	//	using IAllocatorHandle			= Handle<struct IAllocator>;
+	//}
+	//
+	//namespace dx12 {
+	//	using MessageCallbackHandle		= Handle<struct MessageCallback>;
+	//	using InstanceHandle			= Handle<struct Instance>;
+	//	using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
+	//	using DeviceHandle				= Handle<struct Device>;
 
+	//	using QueueHandle				= Handle<struct Queue>;
 
-	namespace dx12 {
+	//	using MemoryHandle				= Handle<struct Memory>;
+	//	using BufferHandle				= Handle<struct Buffer>;
+	//	using TextureHandle				= Handle<struct Texture>;
 
-		using MessageCallbackHandle		= Handle<struct MessageCallback>;
-		using InstanceHandle			= Handle<struct Instance>;
-		using PhysicalDeviceHandle		= Handle<struct PhysicalDevice>;
-		using DeviceHandle				= Handle<struct Device>;
-
-		using QueueHandle				= Handle<struct Queue>;
-
-		using MemoryHandle				= Handle<struct Memory>;
-
-		using BufferHandle				= Handle<struct Buffer>;
-		//using PlacedBufferHandle		= Handle<struct PlacedBuffer>;
-		//using CommittedBufferHandle		= Handle<struct CommittedBuffer>;
-		
-		using TextureHandle				= Handle<struct Texture>;
-		//using PlacedTextureHandle		= Handle<struct PlacedTexture>;
-		//using CommittedTextureHandle	= Handle<struct CommittedTexture>;
-
-		using IAllocatorHandle			= Handle<struct IAllocator>;
-
-	}
+	//	using IAllocatorHandle			= Handle<struct IAllocator>;
+	//}
 
 }
 

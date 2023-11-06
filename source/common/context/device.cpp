@@ -14,9 +14,9 @@ namespace erhi {
 	void IDevice::Log(MessageType type, MessageSeverity severity, std::string_view message) {
 		(*GetPhysicalDevice()->pInstance()->mMessageCallbackHandle)(type, severity, message.data());
 	}
-	void IDevice::Verbose(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Verbose(message.data()); }
-	void IDevice::Info(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Info(message.data()); }
-	void IDevice::Warning(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Warning(message.data()); }
-	void IDevice::Error(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Error(message.data()); }
+	void IDevice::LogVerbose(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Verbose(message.data()); }
+	void IDevice::LogInfo(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Info(message.data()); }
+	void IDevice::LogWarning(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Warning(message.data()); }
+	void IDevice::LogError(std::string_view message) { GetPhysicalDevice()->pInstance()->mMessageCallbackHandle->Error(message.data()); }
 
 }

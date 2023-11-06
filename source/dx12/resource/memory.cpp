@@ -14,7 +14,7 @@
 
 namespace erhi::dx12 {
 
-	D3D12_HEAP_TYPE MapHeapType(MemoryHeapType heapType) {
+	D3D12_HEAP_TYPE MapMemoryHeapType(MemoryHeapType heapType) {
 		switch (heapType) {
 			case erhi::MemoryHeapType::Default:
 				return D3D12_HEAP_TYPE_DEFAULT;
@@ -32,11 +32,10 @@ namespace erhi::dx12 {
 
 
 	/*
-		In DX12, resources are divided into three categories: buffer, textures used as render target or depth stencil, and other textures.
-		On devices with D3D12_RESOURCE_HEAP_TIER_1, resources of different categories must be created upon different heaps.
-		On devices with D3D12_RESOURCE_HEAP_TIER_2, all kinds of resources may be mixed on a single heap.
+		In DX12, resources are divided into three categories: buffer, texture used as render target or depth stencil, and texture of other kinds.
+		With D3D12_RESOURCE_HEAP_TIER_1, resources of different categories must be created upon different heaps.
+		With D3D12_RESOURCE_HEAP_TIER_2, all kinds of resources may be mixed on a single heap.
 	*/
-
 	enum class ResourceCategory : uint32_t {
 		Buffer = 0,
 		RT_DS_Texture = 1,
@@ -73,34 +72,7 @@ namespace erhi::dx12 {
 		}		
 	}
 
-	//static ResourceCategory MakeCategory_Buffer(Device * pDevice) {
-	//	if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
-	//		return ResourceCategory::Buffer;
-	//	}
-	//	else {
-	//		return ResourceCategory::None;
-	//	}
-	//}
-
-	//static ResourceCategory MakeCategory_RT_DS_Texture(Device * pDevice) {
-	//	if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
-	//		return ResourceCategory::RT_DS_Texture;
-	//	}
-	//	else {
-	//		return ResourceCategory::None;
-	//	}
-	//}
-
-	//static ResourceCategory MakeCategory_Non_RT_DS_Texture(Device * pDevice) {
-	//	if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
-	//		return ResourceCategory::Non_RT_DS_Texture;
-	//	}
-	//	else {
-	//		return ResourceCategory::None;
-	//	}
-	//}
-
-	static uint32_t MakeMemoryTypeIndex(Device * pDevice, MemoryHeapType heapType, ResourceCategory category) {
+	static uint32_t EncodeMemoryTypeIndex(Device * pDevice, MemoryHeapType heapType, ResourceCategory category) {
 		if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
 			return uint32_t(heapType) * uint32_t(magic_enum::enum_count<ResourceCategory>()) + uint32_t(category);
 		}
@@ -109,7 +81,7 @@ namespace erhi::dx12 {
 		}
 	}
 
-	static std::pair<MemoryHeapType, ResourceCategory> ParseMemoryTypeIndex(Device * pDevice, uint32_t memoryTypeIndex) {
+	static std::pair<MemoryHeapType, ResourceCategory> DecodeMemoryTypeIndex(Device * pDevice, uint32_t memoryTypeIndex) {
 		if (pDevice->mPhysicalDeviceHandle->mFeatureD3D12Options.ResourceHeapTier == D3D12_RESOURCE_HEAP_TIER_1) {
 			return {
 				MemoryHeapType(memoryTypeIndex / magic_enum::enum_count<ResourceCategory>()),
@@ -135,11 +107,7 @@ namespace erhi::dx12 {
 		return flags;
 	}
 
-
-
-	MemoryRequirements Device::GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
-		uint32_t const memoryTypeIndex = MakeMemoryTypeIndex(this, heapType, ResourceCategory::Buffer);
-		
+	static D3D12_RESOURCE_DESC GetD3D12ResourceDesc(BufferDesc const & bufferDesc) {
 		/*
 			<todo>
 			Per D3D12 document,
@@ -147,7 +115,6 @@ namespace erhi::dx12 {
 			A test is needed to verify this statement.
 			</todo>
 		*/
-
 		D3D12_RESOURCE_DESC const resourceDesc{
 			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
 			.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT,
@@ -163,11 +130,23 @@ namespace erhi::dx12 {
 			.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
 			.Flags = MapBufferUsageFlags(bufferDesc.usage)
 		};
+		return resourceDesc;
+	}
+
+
+
+	MemoryRequirements Device::GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
+		uint32_t const memoryTypeIndex = EncodeMemoryTypeIndex(this, heapType, ResourceCategory::Buffer);
+		
+		D3D12_RESOURCE_DESC const resourceDesc = GetD3D12ResourceDesc(bufferDesc);
 
 		D3D12_RESOURCE_ALLOCATION_INFO const allocationInfo = mpDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
 
 		return MemoryRequirements{
 			.memoryTypeBits = (1u << memoryTypeIndex),
+			.prefersCommittedResource = false,
+			.requiresCommittedResource = false,
+			.pageTypeIndex = 0,
 			.size = allocationInfo.SizeInBytes,
 			.alignment = allocationInfo.Alignment
 		};
@@ -175,80 +154,49 @@ namespace erhi::dx12 {
 
 
 
-	Memory::Memory(DeviceHandle deviceHandle, MemoryDesc const & desc) :
-		IMemory(desc),
-		mDeviceHandle(std::move(deviceHandle)),
-		mpHeap(nullptr) {
-
+	Memory::Memory(Device * pDevice, MemoryRequirements const & requirements) : IMemory(requirements), mDeviceHandle(pDevice), mpAllocation(nullptr) {
+		assert(std::has_single_bit(requirements.memoryTypeBits));
+		
 		// Map ERHI memory type index to ERHI heap type, and D3D12's "native memory categories".
 		// Resources of different categories may NOT be allocated on the same heap.
 
-		auto [heapType, memoryCategory] = ParseMemoryTypeIndex(mDeviceHandle.get(), desc.memoryTypeIndex);
+		auto [heapType, memoryCategory] = DecodeMemoryTypeIndex(mDeviceHandle.get(), std::countr_zero(requirements.memoryTypeBits));
 
-		// Map ERHI heap type to D3D12 heap type.
-
-		D3D12_HEAP_PROPERTIES heapProperty{
-			.Type = MapHeapType(heapType),
-			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-			.CreationNodeMask = 0,
-			.VisibleNodeMask = 0
-		};
-
-		// Map native category to D3D12 heap flags.
-
-		D3D12_HEAP_FLAGS heapFlags = MapResourceCategoryToD3D12HeapFlags(mDeviceHandle.get(), memoryCategory);
-		heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
+		D3D12MA::ALLOCATION_DESC allocDesc = {};
+		allocDesc.HeapType = MapMemoryHeapType(heapType);
+		allocDesc.ExtraHeapFlags = MapResourceCategoryToD3D12HeapFlags(mDeviceHandle.get(), memoryCategory);
+		// D3D12MA does NOT clear new resources and new memorys by default. 
+		// heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
+		// 
 		// <todo>
 		// Does atomic operation cost zero when it's not used at all?
 		// 
 		// heapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
 		// 
 		// </todo>
-		
-		// Allocate heap.
+		allocDesc.Flags = D3D12MA::ALLOCATION_FLAG_CAN_ALIAS;
 
-		D3D12_HEAP_DESC heapDesc{
-			.SizeInBytes = desc.size,
-			.Properties = heapProperty,
-			.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT,
-			.Flags = heapFlags
+		D3D12_RESOURCE_ALLOCATION_INFO allocInfo = {
+			.SizeInBytes = requirements.size,
+			.Alignment = requirements.alignment
 		};
 
-		D3D12CheckResult(mDeviceHandle->mpDevice->CreateHeap(&heapDesc, IID_PPV_ARGS(&mpHeap)));
+		D3D12CheckResult(pDevice->mpMemoryAllocator->AllocateMemory(&allocDesc, &allocInfo, &mpAllocation));
 	}
 
 	Memory::~Memory() {
-		mpHeap->Release();
+		mpAllocation->Release();
 	}
 
 	IDeviceHandle Memory::GetDevice() const {
 		return mDeviceHandle;
 	}
 
-	IMemoryHandle Device::AllocateMemory(MemoryDesc const & desc) {
-		return MakeHandle<Memory>(DeviceHandle(this), desc);
+	IMemoryHandle Device::AllocateMemory(MemoryRequirements const & requirements) {
+		return MakeHandle<Memory>(this, requirements);
 	}
 
 
-
-	D3D12_RESOURCE_DESC GetResourceState(BufferDesc const & desc) {
-		return D3D12_RESOURCE_DESC{
-			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-			.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT,
-			.Width = desc.size,
-			.Height = 1,
-			.DepthOrArraySize = 1,
-			.MipLevels = 1,
-			.Format = DXGI_FORMAT_UNKNOWN,
-			.SampleDesc = DXGI_SAMPLE_DESC{
-				.Count = 1,
-				.Quality = 0
-			},
-			.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-			.Flags = MapBufferUsageFlags(desc.usage)
-		};
-	}
 
 	D3D12_RESOURCE_STATES GetInitialState(D3D12_HEAP_TYPE heapType) {
 		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COMMON;
@@ -274,66 +222,45 @@ namespace erhi::dx12 {
 
 
 
-	ID3D12Resource * Memory::CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & desc) {
-		ID3D12Resource * pBuffer = nullptr;
-
-		auto const resourceDesc = GetResourceState(desc);
-		auto const initialState = GetInitialState(mpHeap->GetDesc().Properties.Type);
-
-		D3D12CheckResult(mDeviceHandle->mpDevice->CreatePlacedResource(mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&pBuffer)));
-
-		return pBuffer;
-	}
-
-	void Memory::DestroyNativeBuffer(ID3D12Resource * pBuffer) {
-		pBuffer->Release();
-	}
-
-	IBufferHandle Memory::CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) {
-		assert(mpHeap != nullptr);
-		assert(mDesc.size >= offset + actualSize);
-		assert(actualSize >= bufferDesc.size);
-
-		return MakeHandle<PlacedBuffer<Slice>>(
-			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
-			bufferDesc
-		);
-	}
-
-
-
-	CommittedBuffer::CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) :
-		IBuffer(desc), mDeviceHandle(pDevice), mpBuffer(nullptr) {
+	Buffer::Buffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) : IBuffer(desc), mDeviceHandle(pDevice), mpAllocation(nullptr), mpResource(nullptr) {
+		D3D12MA::ALLOCATION_DESC allocDesc = {};
+		allocDesc.HeapType = MapMemoryHeapType(heapType);
 		
-		D3D12_HEAP_PROPERTIES heapProperty{
-			.Type = MapHeapType(heapType),
-			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-			.CreationNodeMask = 0,
-			.VisibleNodeMask = 0
-		};
+		auto const resourceDesc = GetD3D12ResourceDesc(desc);
+		auto const initialState = GetInitialState(allocDesc.HeapType);
 
-		D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
-		heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
-		// <todo>
-		// Does atomic operation cost zero when it's not used at all?
-		// 
-		// heapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
-		// 
-		// </todo>
-
-		auto const resourceDesc = GetResourceState(desc);
-		auto const initialState = GetInitialState(MapHeapType(heapType));
-
-		D3D12CheckResult(pDevice->mpDevice->CreateCommittedResource(&heapProperty, heapFlags, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpBuffer)));
+		D3D12CheckResult(pDevice->mpMemoryAllocator->CreateResource(&allocDesc, &resourceDesc, initialState, nullptr, &mpAllocation, IID_PPV_ARGS(&mpResource)));
 	}
 
-	CommittedBuffer::~CommittedBuffer() {
+	Buffer::~Buffer() {
+		mpResource->Release();
+		mpAllocation->Release();
+	}
+
+	IBufferHandle Device::CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) {
+		return MakeHandle<Buffer>(this, heapType, bufferDesc);
+	}
+
+
+
+	PlacedBuffer::PlacedBuffer(Memory * pMemory, uint64_t offset, BufferDesc const & desc) : IBuffer(desc), mMemoryHandle(pMemory), mpBuffer(nullptr) {
+		assert(pMemory != nullptr);
+		assert(pMemory->mRequirements.size >= offset + desc.size);
+
+		auto [heapType, memoryCategory] = DecodeMemoryTypeIndex(pMemory->mDeviceHandle.get(), std::countr_zero(pMemory->mRequirements.memoryTypeBits));
+
+		auto const resourceDesc = GetD3D12ResourceDesc(desc);
+		auto const initialState = GetInitialState(MapMemoryHeapType(heapType));
+
+		D3D12CheckResult(pMemory->mDeviceHandle->mpMemoryAllocator->CreateAliasingResource(pMemory->mpAllocation, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpBuffer)));
+	}
+
+	PlacedBuffer::~PlacedBuffer() {
 		mpBuffer->Release();
 	}
 
-	IBufferHandle Device::CreateCommittedBuffer(MemoryHeapType heapType, BufferDesc const & desc) {
-		return MakeHandle<CommittedBuffer>(this, heapType, desc);
+	IBufferHandle Device::CreatePlacedBuffer(IMemoryHandle memoryHandle, uint64_t offset, BufferDesc const & bufferDesc) {
+		return MakeHandle<PlacedBuffer>(dynamic_cast<Memory *>(memoryHandle.get()), offset, bufferDesc);
 	}
 
 
@@ -469,7 +396,18 @@ namespace erhi::dx12 {
 		return 1u << static_cast<uint32_t>(sampleCount);
 	}
 
+	[[maybe_unused]]
+	static uint64_t GetDefaultTextureAlignment(TextureSampleCount sampleCount) {
+		return sampleCount == TextureSampleCount::Count_1
+			? D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT
+			: D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
+	}
 
+	static uint64_t GetSmallTextureAlignment(TextureSampleCount sampleCount) {
+		return sampleCount == TextureSampleCount::Count_1
+			? D3D12_SMALL_RESOURCE_PLACEMENT_ALIGNMENT
+			: D3D12_SMALL_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
+	}
 
 	static D3D12_RESOURCE_FLAGS MapTextureUsageFlags(TextureUsageFlags flags) {
 		D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
@@ -489,7 +427,7 @@ namespace erhi::dx12 {
 
 
 
-	static D3D12_RESOURCE_DESC MapTextureDesc(Device * pDevice, TextureDesc const & desc) {
+	static D3D12_RESOURCE_DESC GetD3D12ResourceDesc(Device * pDevice, TextureDesc const & desc) {
 		D3D12_RESOURCE_DIMENSION dimension = D3D12_RESOURCE_DIMENSION_UNKNOWN;
 		switch (desc.dimension) {
 			case TextureDimension::Texture1D:
@@ -508,11 +446,9 @@ namespace erhi::dx12 {
 				break;
 		}
 
-		// <todo> small texture optimization </todo>
-		uint64_t alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-		if (desc.sampleCount != TextureSampleCount::Count_1) {
-			alignment = D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT;
-		}
+		// In allocating placed resources with D3D12MA, the alignments and offsets
+		// are still required to be specified explicitly by user.
+		uint64_t const smallTextureAlignment = GetSmallTextureAlignment(desc.sampleCount);
 
 		DXGI_FORMAT const format = MapFormat(desc.format);
 		uint32_t const sampleCount = MapSampleCount(desc.sampleCount);
@@ -530,9 +466,9 @@ namespace erhi::dx12 {
 			}
 		}
 
-		return D3D12_RESOURCE_DESC{
+		D3D12_RESOURCE_DESC resourceDesc = {
 			.Dimension = dimension,
-			.Alignment = alignment,
+			.Alignment = smallTextureAlignment,
 			.Width = desc.extent[0],
 			.Height = desc.extent[1],
 			.DepthOrArraySize = uint16_t(desc.extent[2]),
@@ -545,66 +481,16 @@ namespace erhi::dx12 {
 			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
 			.Flags = MapTextureUsageFlags(desc.usage)
 		};
-	}
 
+		D3D12_RESOURCE_ALLOCATION_INFO const smallTextureAllocationInfo = pDevice->mpDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
 
+		// If the alignment requested is not granted, then let D3D tell us the alignment that needs to be used for these resources.
+		// https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12SmallResources/src/D3D12SmallResources.cpp
+		if (smallTextureAllocationInfo.Alignment != smallTextureAlignment) {
+			resourceDesc.Alignment = 0;
+		}
 
-	CommittedTexture::CommittedTexture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc) :
-		ITexture(desc), mDeviceHandle(pDevice), mpTexture(nullptr) {
-
-		D3D12_HEAP_PROPERTIES heapProperty{
-			.Type = MapHeapType(heapType),
-			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
-			.CreationNodeMask = 0,
-			.VisibleNodeMask = 0
-		};
-
-		D3D12_HEAP_FLAGS heapFlags = D3D12_HEAP_FLAG_NONE;
-		heapFlags |= D3D12_HEAP_FLAG_CREATE_NOT_ZEROED;
-		// <todo>
-		// Does atomic operation cost zero when it's not used at all?
-		// 
-		// heapFlags |= D3D12_HEAP_FLAG_ALLOW_SHADER_ATOMICS;
-		// 
-		// </todo>
-
-		auto const resourceDesc = MapTextureDesc(pDevice, desc);
-		auto const initialState = GetInitialState(MapHeapType(heapType));
-
-		D3D12CheckResult(pDevice->mpDevice->CreateCommittedResource(&heapProperty, heapFlags, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpTexture)));
-	}
-
-	CommittedTexture::~CommittedTexture() {
-		mpTexture->Release();
-	}
-
-	ITextureHandle Device::CreateCommittedTexture(MemoryHeapType heapType, TextureDesc const & desc) {
-		return MakeHandle<CommittedTexture>(this, heapType, desc);
-	}
-
-
-
-	ID3D12Resource * Memory::CreateNativeTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
-		ID3D12Resource * pTexture = nullptr;
-
-		D3D12_RESOURCE_DESC const resourceDesc = MapTextureDesc(mDeviceHandle.get(), desc);
-		D3D12_RESOURCE_STATES const initialState = GetInitialState(mpHeap->GetDesc().Properties.Type);
-
-		D3D12CheckResult(mDeviceHandle->mpDevice->CreatePlacedResource(mpHeap, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&pTexture)));
-
-		return pTexture;
-	}
-
-	void Memory::DestroyNativeTexture(ID3D12Resource * pTexture) {
-		pTexture->Release();
-	}
-
-	ITextureHandle Memory::CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & desc) {
-		return MakeHandle<PlacedTexture<Slice>>(
-			Slice{ .mMemoryHandle = this, .mOffset = offset, .mSize = actualSize },
-			desc
-		);
+		return resourceDesc;
 	}
 
 
@@ -612,16 +498,15 @@ namespace erhi::dx12 {
 	MemoryRequirements Device::GetTextureMemoryRequirements(MemoryHeapType heapType, TextureDesc const & textureDesc) {
 		uint32_t memoryTypeIndex = 0xFFFF'FFFFu;
 		if (textureDesc.usage & (TextureUsageRenderTargetAttachment | TextureUsageDepthStencilAttachment)) {
-			memoryTypeIndex = MakeMemoryTypeIndex(this, heapType, ResourceCategory::RT_DS_Texture);
+			memoryTypeIndex = EncodeMemoryTypeIndex(this, heapType, ResourceCategory::RT_DS_Texture);
 		}
 		else {
-			memoryTypeIndex = MakeMemoryTypeIndex(this, heapType, ResourceCategory::Non_RT_DS_Texture);
+			memoryTypeIndex = EncodeMemoryTypeIndex(this, heapType, ResourceCategory::Non_RT_DS_Texture);
 		}
 
-		auto const resourceDesc = MapTextureDesc(this, textureDesc);
-
-		D3D12_RESOURCE_ALLOCATION_INFO const allocationInfo = mpDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
-
+		D3D12_RESOURCE_DESC resourceDesc = GetD3D12ResourceDesc(this, textureDesc);
+		D3D12_RESOURCE_ALLOCATION_INFO allocationInfo = mpDevice->GetResourceAllocationInfo(0, 1, &resourceDesc);
+		
 		return MemoryRequirements{
 			.memoryTypeBits = (1u << memoryTypeIndex),
 			.prefersCommittedResource = false,
@@ -629,6 +514,48 @@ namespace erhi::dx12 {
 			.size = allocationInfo.SizeInBytes,
 			.alignment = allocationInfo.Alignment,
 		};
+	}
+
+
+
+	Texture::Texture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc) : ITexture(desc), mDeviceHandle(pDevice), mpAllocation(nullptr), mpResource(nullptr) {
+		D3D12MA::ALLOCATION_DESC allocDesc = {};
+		allocDesc.HeapType = MapMemoryHeapType(heapType);
+
+		auto const resourceDesc = GetD3D12ResourceDesc(pDevice, desc);
+		auto const initialState = GetInitialState(allocDesc.HeapType);
+
+		D3D12CheckResult(pDevice->mpMemoryAllocator->CreateResource(&allocDesc, &resourceDesc, initialState, nullptr, &mpAllocation, IID_PPV_ARGS(&mpResource)));
+	}
+
+	Texture::~Texture() {
+		mpResource->Release();
+		mpAllocation->Release();
+	}
+
+	ITextureHandle Device::CreateTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) {
+		return MakeHandle<Texture>(this, heapType, textureDesc);
+	}
+
+
+
+	PlacedTexture::PlacedTexture(Memory * pMemory, uint64_t offset, TextureDesc const & desc) : ITexture(desc), mMemoryHandle(pMemory), mpTexture(nullptr) {
+		assert(pMemory != nullptr);
+		
+		auto [heapType, memoryCategory] = DecodeMemoryTypeIndex(pMemory->mDeviceHandle.get(), std::countr_zero(pMemory->mRequirements.memoryTypeBits));
+
+		auto const resourceDesc = GetD3D12ResourceDesc(pMemory->mDeviceHandle.get(), desc);
+		auto const initialState = GetInitialState(MapMemoryHeapType(heapType));
+
+		D3D12CheckResult(pMemory->mDeviceHandle->mpMemoryAllocator->CreateAliasingResource(pMemory->mpAllocation, offset, &resourceDesc, initialState, nullptr, IID_PPV_ARGS(&mpTexture)));
+	}
+
+	PlacedTexture::~PlacedTexture() {
+		mpTexture->Release();
+	}
+
+	ITextureHandle Device::CreatePlacedTexture(IMemoryHandle memoryHandle, uint64_t offset, TextureDesc const & desc) {
+		return MakeHandle<PlacedTexture>(dynamic_cast<Memory *>(memoryHandle.get()), offset, desc);
 	}
 
 }

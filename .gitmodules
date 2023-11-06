@@ -7,3 +7,9 @@
 [submodule "packages/eflc"]
 	path = packages/eflc
 	url = git@github.com:lu-plus-plus/eflc.git
+[submodule "packages/D3D12MemoryAllocator"]
+	path = packages/D3D12MemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git
+[submodule "packages/VulkanMemoryAllocator"]
+	path = packages/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git

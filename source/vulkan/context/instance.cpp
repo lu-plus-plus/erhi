@@ -60,7 +60,7 @@ namespace erhi::vk {
 			.applicationVersion = VK_MAKE_VERSION(0, 0, 1),
 			.pEngineName = "erhi",
 			.engineVersion = VK_MAKE_VERSION(0, 0, 1),
-			.apiVersion = VK_MAKE_VERSION(1, 3, 0)
+			.apiVersion = VK_API_VERSION_1_3
 		};
 
 		std::vector<char const *> pEnabledLayerNames;

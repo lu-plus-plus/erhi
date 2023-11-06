@@ -28,6 +28,10 @@ add_subdirectory(${erhi_packages_dir}/magic_enum EXCLUDE_FROM_ALL)
 
 add_subdirectory(${erhi_packages_dir}/eflc EXCLUDE_FROM_ALL)
 
+add_subdirectory(${erhi_packages_dir}/D3D12MemoryAllocator EXCLUDE_FROM_ALL)
+
+add_subdirectory(${erhi_packages_dir}/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
+
 
 
 add_library(erhi_headers_interface INTERFACE)
@@ -52,7 +56,7 @@ function(add_file_group group_name group_root group_prefix file_expr)
 		${group_root}/utils/*${file_postfix}
 		${group_root}/context/*${file_postfix}
 		${group_root}/resource/memory*${file_postfix}
-		${group_root}/resource/allocator*${file_postfix}
+		${group_root}/resource/vk_mem_alloc*${file_postfix}
 		${group_root}/command/*${file_postfix}
 	)
 	
@@ -88,7 +92,8 @@ add_library(erhi_vulkan STATIC
 
 target_link_libraries(erhi_vulkan
 	PRIVATE erhi_headers_interface
-	PUBLIC volk::volk
+	PRIVATE volk::volk
+	PRIVATE GPUOpen::VulkanMemoryAllocator
 )
 
 
@@ -106,6 +111,7 @@ target_link_libraries(erhi_dx12
 	PRIVATE erhi_headers_interface
 	PRIVATE dxgi
 	PRIVATE d3d12
+	PRIVATE D3D12MemoryAllocator
 )
 
 

@@ -34,10 +34,65 @@ namespace erhi {
 
 
 
+	struct IAllocator : IObject {
+		struct MemoryInterface : IObject {
+			virtual IObjectHandle Allocate(uint64_t size) = 0;
+			virtual void Free(IObjectHandle memory) = 0;
+		};
+		
+
+	};
+
+	namespace VirtualAllocation {
+
+		template <typename T>
+		using ListType = std::list<T>;
+
+		struct Fragment {
+			uint64_t mOffset;
+			uint64_t mSize;
+		};
+
+		struct Arena {
+			uint64_t mSize;
+			uint64_t mFreeRegionBegin;
+			uint64_t mFreeRegionEnd;
+			ListType<Fragment> mFragments;
+
+			Arena(uint64_t size);
+			~Arena();
+
+			ListType<Fragment>::iterator TryToAllocate(uint64_t size, uint64_t alignment);
+			void Free(ListType<Fragment>::iterator pFragment);
+		};
+
+		struct Pool;
+
+		struct AllocatedRange {
+			Pool * mPool;
+			ListType<Arena>::iterator mArena;
+			ListType<Fragment>::iterator mFragment;
+
+			AllocatedRange(Pool * pPool, ListType<Arena>::iterator pArena, ListType<Fragment>::iterator pFragment);
+			~AllocatedRange();
+		};
+
+		struct Pool {
+			static constexpr uint64_t gDefaultArenaSize = 1u << 16u;
+			ListType<Arena> mArenas;
+
+			AllocatedRange Allocate(uint64_t size, uint64_t alignment);
+		};
+
+	}
+
 	namespace VirtAlloc::Linear {
 
-		template <typename U>
-		using ListType = std::list<U>;
+		template <typename T>
+		using ListType = std::list<T>;
+
+		template <typename T>
+		using VectorType = std::vector<T>;
 
 		struct Fragment {
 			uint64_t mOffset;
@@ -72,6 +127,10 @@ namespace erhi {
 
 			FragmentRef TryAllocate(uint64_t size, uint64_t alignment);
 			void Free(ListType<Fragment>::iterator pFragment);
+		};
+
+		struct Pool {
+			VectorType<Arena> mArenas;
 		};
 
 	};

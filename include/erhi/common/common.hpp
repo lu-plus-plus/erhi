@@ -82,13 +82,9 @@ namespace erhi {
 		uint32_t memoryTypeBits;
 		bool prefersCommittedResource;
 		bool requiresCommittedResource;
+		uint8_t pageTypeIndex;
 		uint64_t size;
 		uint64_t alignment;
-	};
-
-	struct MemoryDesc {
-		uint32_t memoryTypeIndex;
-		uint64_t size;
 	};
 
 	// buffer
@@ -223,6 +219,22 @@ namespace erhi {
 		TextureSampleCount sampleCount;
 		TextureUsageFlags usage;
 		TextureTiling tiling;
+	};
+
+	struct BufferShaderResourceViewDesc {
+		Format format;
+		uint32_t strideInBytes;
+		uint64_t offsetInItems;
+		uint64_t countInItems;
+	};
+
+	enum class TextureShaderResourceViewDimension {
+		// ... ...
+	};
+
+	struct TextureShaderResourceViewDesc {
+		Format format;
+		// ... ...
 	};
 
 }

@@ -5,80 +5,62 @@
 
 #include "../native.hpp"
 
+#include "D3D12MemAlloc.h"
+
 
 
 namespace erhi::dx12 {
 
 	struct Memory : IMemory {
-		DeviceHandle mDeviceHandle;
-		ID3D12Heap * mpHeap;
+		DeviceHandle			mDeviceHandle;
+		D3D12MA::Allocation *	mpAllocation;
 
-		Memory(DeviceHandle deviceHandle, MemoryDesc const & desc);
+		Memory(Device * pDevice, MemoryRequirements const & requirements);
 		virtual ~Memory() override;
 
 		virtual IDeviceHandle GetDevice() const override;
-
-		virtual IBufferHandle CreatePlacedBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc) override;
-		virtual ITextureHandle CreatePlacedTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc) override;
-
-		ID3D12Resource * CreateNativeBuffer(uint64_t offset, uint64_t actualSize, BufferDesc const & bufferDesc);
-		void DestroyNativeBuffer(ID3D12Resource * pBuffer);
-		
-		ID3D12Resource * CreateNativeTexture(uint64_t offset, uint64_t actualSize, TextureDesc const & textureDesc);
-		void DestroyNativeTexture(ID3D12Resource * pBuffer);
-	};
-
-
-	struct CommittedBuffer : IBuffer {
-		DeviceHandle		mDeviceHandle;
-		ID3D12Resource *	mpBuffer;
-
-		CommittedBuffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc);
-		virtual ~CommittedBuffer() override;
 	};
 
 
 
-	template <typename MemoryView>
-		requires (traits::IsMemoryView<MemoryView> and std::movable<MemoryView>)
-	struct PlacedBuffer : IPlacedBuffer<MemoryView> {
-		using IPlacedBuffer<MemoryView>::mMemoryView;
-		ID3D12Resource *	mpBuffer;
+	struct Buffer : IBuffer {
+		DeviceHandle			mDeviceHandle;
+		D3D12MA::Allocation *	mpAllocation;
+		ID3D12Resource *		mpResource;
 
-		PlacedBuffer(MemoryView && memoryView, BufferDesc const & desc) : IPlacedBuffer<MemoryView>(std::move(memoryView), desc), mpBuffer(nullptr) {
-			mpBuffer = dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->CreateNativeBuffer(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
-		}
-
-		virtual ~PlacedBuffer() override {
-			dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->DestroyNativeBuffer(mpBuffer);
-		}
+		Buffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc);
+		virtual ~Buffer() override;
 	};
 
 
 
-	struct CommittedTexture : ITexture {
-		DeviceHandle		mDeviceHandle;
-		ID3D12Resource *	mpTexture;
+	struct PlacedBuffer : IBuffer {
+		MemoryHandle			mMemoryHandle;
+		ID3D12Resource *		mpBuffer;
 
-		CommittedTexture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc);
-		virtual ~CommittedTexture() override;
+		PlacedBuffer(Memory * pMemory, uint64_t offset, BufferDesc const & desc);
+		virtual ~PlacedBuffer() override;
 	};
 
 
 
-	template <typename MemoryView>
-		requires (traits::IsMemoryView<MemoryView> and std::movable<MemoryView>)
-	struct PlacedTexture : IPlacedTexture<MemoryView> {
-		using IPlacedTexture<MemoryView>::mMemoryView;
-		ID3D12Resource *	mpTexture;
+	struct Texture : ITexture {
+		DeviceHandle			mDeviceHandle;
+		D3D12MA::Allocation *	mpAllocation;
+		ID3D12Resource *		mpResource;
 
-		PlacedTexture(MemoryView && memoryView, TextureDesc const & desc) : IPlacedTexture<MemoryView>(std::move(memoryView), desc), mpTexture(nullptr) {
-			mpTexture = dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->CreateNativeTexture(mMemoryView.GetOffset(), mMemoryView.GetSize(), desc);
-		}
+		Texture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc);
+		virtual ~Texture() override;
+	};
 
-		virtual ~PlacedTexture() override {
-			dynamic_handle_cast<Memory>(mMemoryView.GetMemoryHandle())->DestroyNativeTexture(mpTexture);
-		}
+
+
+	struct PlacedTexture : ITexture {
+		MemoryHandle			mMemoryHandle;
+		ID3D12Resource *		mpTexture;
+
+		PlacedTexture(Memory * pMemory, uint64_t offset, TextureDesc const & desc);
+		virtual ~PlacedTexture() override;
 	};
 
 }
