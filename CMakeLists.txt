@@ -29,11 +29,16 @@ function(add_file_group group_name group_root group_prefix file_expr)
 		GLOB ${group_name}
 		LIST_DIRECTORIES false
 
+		# root directory
 		${group_root}/*${file_postfix}
-		${group_root}/utils/*${file_postfix}
+
+		# modules
 		${group_root}/context/*${file_postfix}
 		${group_root}/resource/*${file_postfix}
 		${group_root}/command/*${file_postfix}
+
+		# miscellaneous
+		${group_root}/utility/*${file_postfix}
 	)
 	
 	source_group(
@@ -132,21 +137,6 @@ target_link_libraries(erhi
 
 
 
-add_library(erhi_examples_utils SHARED
-	${erhi_example_dir}/utility/default_message_callback.hpp
-	${erhi_example_dir}/utility/default_message_callback.cpp
-)
-
-target_include_directories(erhi_examples_utils
-	PRIVATE ${erhi_include_dir}
-)
-
-target_link_libraries(erhi_examples_utils
-	PRIVATE erhi
-)
-
-
-
 add_executable(01_hello_erhi
 	${erhi_example_dir}/01_hello_erhi.cpp
 )
@@ -157,5 +147,4 @@ target_include_directories(01_hello_erhi
 
 target_link_libraries(01_hello_erhi
 	PRIVATE erhi
-	PRIVATE erhi_examples_utils
 )

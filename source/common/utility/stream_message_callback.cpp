@@ -1,7 +1,6 @@
 #include <format>
-#include <iostream>
 
-#include "default_message_callback.hpp"
+#include "erhi/common/utility/stram_message_callback.hpp"
 
 
 
@@ -25,32 +24,32 @@
 
 namespace erhi {
 
-	DefaultMessageCallback::DefaultMessageCallback(MessageSeverity minSeverity) : mMinSeverity(minSeverity) {}
+	StreamMessageCallback::StreamMessageCallback(std::ostream & os, MessageSeverity minSeverity) : mOS(os), mMinSeverity(minSeverity) {}
 
-	DefaultMessageCallback::~DefaultMessageCallback() = default;
+	StreamMessageCallback::~StreamMessageCallback() = default;
 
-	void DefaultMessageCallback::operator()(MessageType type, MessageSeverity severity, char const * pMessage) const {
+	void StreamMessageCallback::operator()(MessageType type, MessageSeverity severity, char const * pMessage) const {
 		if (severity < mMinSeverity) return;
 
 		switch (severity) {
 			case MessageSeverity::Error: {
-				std::cout << std::format("{} {}", ERHI_LOG_PREFIX_ERROR, pMessage) << std::endl;
+				mOS << std::format("{} {}", ERHI_LOG_PREFIX_ERROR, pMessage) << std::endl;
 			} break;
 
 			case MessageSeverity::Warning: {
-				std::cout << std::format("{} {}", ERHI_LOG_PREFIX_WARNING, pMessage) << std::endl;
+				mOS << std::format("{} {}", ERHI_LOG_PREFIX_WARNING, pMessage) << std::endl;
 			} break;
 
 			case MessageSeverity::Info: {
-				std::cout << std::format("{} {}", ERHI_LOG_PREFIX_INFO, pMessage) << std::endl;
+				mOS << std::format("{} {}", ERHI_LOG_PREFIX_INFO, pMessage) << std::endl;
 			} break;
 
 			case MessageSeverity::Verbose: {
-				std::cout << std::format("{} {}", ERHI_LOG_PREFIX_VERBOSE, pMessage) << std::endl;
+				mOS << std::format("{} {}", ERHI_LOG_PREFIX_VERBOSE, pMessage) << std::endl;
 			} break;
 
 			default: {
-				std::cout << std::format("{} {}", ERHI_LOG_PREFIX_UNKNOWN, pMessage) << std::endl;
+				mOS << std::format("{} {}", ERHI_LOG_PREFIX_UNKNOWN, pMessage) << std::endl;
 			} break;
 		}
 
