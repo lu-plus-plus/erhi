@@ -11,6 +11,7 @@ namespace erhi {
 		std::shared_ptr<IMessageCallback> mpMessageCallback;
 
 		IInstance(InstanceDesc const & desc);
+		virtual ~IInstance() = 0;
 
 		virtual IPhysicalDeviceHandle SelectPhysicalDevice(PhysicalDeviceDesc const & desc) = 0;
 	};

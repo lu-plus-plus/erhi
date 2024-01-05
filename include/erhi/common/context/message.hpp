@@ -8,9 +8,9 @@
 
 namespace erhi {
 
-	struct IMessageCallback : IObject {
+	struct IMessageCallback {
 		IMessageCallback();
-		virtual ~IMessageCallback();
+		virtual ~IMessageCallback() = 0;
 
 		virtual void operator()(MessageType type, MessageSeverity severity, char const * pMessage) const = 0;
 
