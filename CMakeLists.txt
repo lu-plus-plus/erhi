@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.26)
 
 project(erhi)
 
 set(CMAKE_CXX_STANDARD_REQUIRED true)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS true)
 
@@ -11,38 +11,15 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS true)
 
 set(erhi_include_dir		${PROJECT_SOURCE_DIR}/include)
 set(erhi_source_dir			${PROJECT_SOURCE_DIR}/source)
-set(erhi_packages_dir		${PROJECT_SOURCE_DIR}/packages)
-set(erhi_examples_dir		${PROJECT_SOURCE_DIR}/examples)
+set(erhi_package_dir		${PROJECT_SOURCE_DIR}/packages)
+set(erhi_example_dir		${PROJECT_SOURCE_DIR}/examples)
 
 
 
-# third-party dependencies
+add_library(erhi_abstract_interface INTERFACE)
 
-set(VOLK_STATIC_DEFINES)
-if(WIN32)
-	set(VK_USE_PLATFORM_WIN32_KHR)
-endif()
-add_subdirectory(${erhi_packages_dir}/volk EXCLUDE_FROM_ALL)
-
-add_subdirectory(${erhi_packages_dir}/magic_enum EXCLUDE_FROM_ALL)
-
-add_subdirectory(${erhi_packages_dir}/eflc EXCLUDE_FROM_ALL)
-
-add_subdirectory(${erhi_packages_dir}/D3D12MemoryAllocator EXCLUDE_FROM_ALL)
-
-add_subdirectory(${erhi_packages_dir}/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
-
-
-
-add_library(erhi_headers_interface INTERFACE)
-
-target_include_directories(erhi_headers_interface
+target_include_directories(erhi_abstract_interface
 	INTERFACE ${erhi_include_dir}
-)
-
-target_link_libraries(erhi_headers_interface
-	INTERFACE magic_enum::magic_enum
-	INTERFACE eflc::eflc
 )
 
 
@@ -55,8 +32,7 @@ function(add_file_group group_name group_root group_prefix file_expr)
 		${group_root}/*${file_postfix}
 		${group_root}/utils/*${file_postfix}
 		${group_root}/context/*${file_postfix}
-		${group_root}/resource/memory*${file_postfix}
-		${group_root}/resource/vk_mem_alloc*${file_postfix}
+		${group_root}/resource/*${file_postfix}
 		${group_root}/command/*${file_postfix}
 	)
 	
@@ -81,8 +57,9 @@ endfunction()
 
 
 
-add_header_group(erhi_vk_headers ${erhi_include_dir}/erhi/vulkan)
+# create Vulkan backend
 
+add_header_group(erhi_vk_headers ${erhi_include_dir}/erhi/vulkan)
 add_source_group(erhi_vk_sources ${erhi_source_dir}/vulkan)
 
 add_library(erhi_vulkan STATIC
@@ -90,16 +67,31 @@ add_library(erhi_vulkan STATIC
 	${erhi_vk_sources}
 )
 
+# import volk
+
+set(VOLK_STATIC_DEFINES)
+if(WIN32)
+	set(VK_USE_PLATFORM_WIN32_KHR)
+endif()
+add_subdirectory(${erhi_package_dir}/volk EXCLUDE_FROM_ALL)
+
+# import VulkanMemoryAllocator
+
+add_subdirectory(${erhi_package_dir}/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
+
+# set up dependencies
+
 target_link_libraries(erhi_vulkan
-	PRIVATE erhi_headers_interface
-	PRIVATE volk::volk
-	PRIVATE GPUOpen::VulkanMemoryAllocator
+	PRIVATE erhi_abstract_interface
+	PRIVATE volk
+	PRIVATE VulkanMemoryAllocator
 )
 
 
 
-add_header_group(erhi_dx12_headers ${erhi_include_dir}/erhi/dx12)
+# create D3D12 backend
 
+add_header_group(erhi_dx12_headers ${erhi_include_dir}/erhi/dx12)
 add_source_group(erhi_dx12_sources ${erhi_source_dir}/dx12)
 
 add_library(erhi_dx12 STATIC
@@ -107,8 +99,14 @@ add_library(erhi_dx12 STATIC
 	${erhi_dx12_sources}
 )
 
+# import D3D12MemoryAllocator
+
+add_subdirectory(${erhi_package_dir}/D3D12MemoryAllocator EXCLUDE_FROM_ALL)
+
+# set up dependencies
+
 target_link_libraries(erhi_dx12
-	PRIVATE erhi_headers_interface
+	PRIVATE erhi_abstract_interface
 	PRIVATE dxgi
 	PRIVATE d3d12
 	PRIVATE D3D12MemoryAllocator
@@ -116,8 +114,9 @@ target_link_libraries(erhi_dx12
 
 
 
-add_header_group(erhi_common_headers ${erhi_include_dir}/erhi/common)
+# create main library
 
+add_header_group(erhi_common_headers ${erhi_include_dir}/erhi/common)
 add_source_group(erhi_common_sources ${erhi_source_dir}/common)
 
 add_library(erhi SHARED
@@ -126,7 +125,7 @@ add_library(erhi SHARED
 )
 
 target_link_libraries(erhi
-	PRIVATE erhi_headers_interface
+	PRIVATE erhi_abstract_interface
 	PUBLIC erhi_vulkan
 	PUBLIC erhi_dx12
 )
@@ -134,8 +133,8 @@ target_link_libraries(erhi
 
 
 add_library(erhi_examples_utils SHARED
-	${erhi_examples_dir}/utility/default_message_callback.hpp
-	${erhi_examples_dir}/utility/default_message_callback.cpp
+	${erhi_example_dir}/utility/default_message_callback.hpp
+	${erhi_example_dir}/utility/default_message_callback.cpp
 )
 
 target_include_directories(erhi_examples_utils
@@ -149,7 +148,7 @@ target_link_libraries(erhi_examples_utils
 
 
 add_executable(01_hello_erhi
-	${erhi_examples_dir}/01_hello_erhi.cpp
+	${erhi_example_dir}/01_hello_erhi.cpp
 )
 
 target_include_directories(01_hello_erhi

@@ -1,11 +1,10 @@
-#include "erhi/common/context/physical_device.hpp"
+#include "erhi/common/context/context.hpp"
 
 
 
 namespace erhi {
 
-	IPhysicalDevice::IPhysicalDevice() : IObject{} {}
-
+	IPhysicalDevice::IPhysicalDevice(PhysicalDeviceDesc const & desc) : mDesc(desc) {}
 	IPhysicalDevice::~IPhysicalDevice() = default;
 
 }

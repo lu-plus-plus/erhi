@@ -1,29 +1,28 @@
 #pragma once
 
-#include "object.hpp"
-#include "handle.hpp"
+#include <cstdint>
 
-#include <string_view>
+#include "handle.hpp"
 
 
 
 namespace erhi {
 
-	using Flags = uint32_t;
+	using Flags = int32_t;
 
 
 
 	// module: context
 
 	// message
-	  
-	enum class MessageType : uint32_t {
+	
+	enum class MessageType {
 		General,
 		Validation,
 		Performance
 	};
 
-	enum class MessageSeverity : uint32_t {
+	enum class MessageSeverity {
 		Verbose,
 		Info,
 		Warning,
@@ -33,24 +32,25 @@ namespace erhi {
 	// instance
 
 	struct InstanceDesc {
-		bool					enableDebug;
-		IMessageCallbackHandle	pMessageCallback;
+		bool enableDebug;
+		IMessageCallback * pMessageCallback;
 	};
 
 	// physical device
 
-	enum class PhysicalDeviceType : uint32_t {
-		Integrated,
-		Discrete
+	enum class PhysicalDevicePreference {
+		HighPerformance,
+		MinimalPower
 	};
 
 	struct PhysicalDeviceDesc {
-		PhysicalDeviceType		type;
+		PhysicalDevicePreference preference;
 	};
 
 	// device
 
 	struct DeviceDesc {
+		/* nothing for now */
 	};
 
 
@@ -59,7 +59,7 @@ namespace erhi {
 
 	// queue
 
-	enum class QueueType : uint32_t {
+	enum class QueueType {
 		Primary,
 		AsyncCompute,
 		AsyncCopy
@@ -71,25 +71,16 @@ namespace erhi {
 
 	// memory
 
-	enum class MemoryHeapType : uint32_t {
+	enum class MemoryHeapType {
 		Default		= 0,
 		Upload		= 1,
 		ReadBack	= 2,
 		/* <todo> Direct </todo> */
 	};
 
-	struct MemoryRequirements {
-		uint32_t memoryTypeBits;
-		bool prefersCommittedResource;
-		bool requiresCommittedResource;
-		uint8_t pageTypeIndex;
-		uint64_t size;
-		uint64_t alignment;
-	};
-
 	// buffer
 
-	enum BufferUsageFlagBits : uint32_t {
+	enum BufferUsageFlagBits {
 		BufferUsageCopySource = 0x0000'0001,
 		BufferUsageCopyTarget = 0x0000'0002,
 		BufferUsageUniformBuffer = 0x0000'0004,
@@ -107,12 +98,12 @@ namespace erhi {
 
 	// texture
 
-	enum TextureUsageFlagBits : uint32_t {
+	enum TextureUsageFlagBits {
 		TextureUsageCopySource = 0x0000'0001,
 		TextureUsageCopyTarget = 0x0000'0002,
 		/*
 			<todo>
-			It seems that the "Sampled" flag is not needed in D3D12 at all - the sampler and the texture are separate objects.
+			It seems that the "Sampled" flag is not needed in D3D12 at all, where samplers and textures are separate objects.
 			The problem is, is it possible to separate them in Vulkan, instead of binding them together as combined image sampler?
 			</todo>
 		*/
@@ -137,7 +128,7 @@ namespace erhi {
 	#define Channel2(r, g, bits, type) ConcatChannels(r ## bits, g ## bits, , , type)
 	#define Channel1(r, bits, type) ConcatChannels(r ## bits, , , , type)
 
-	enum class Format : uint32_t {
+	enum class Format {
 		Unknown,
 
 		Channel4(R, G, B, A, 32, Typeless),
