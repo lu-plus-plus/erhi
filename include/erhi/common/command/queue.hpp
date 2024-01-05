@@ -1,5 +1,4 @@
-#ifndef ERHI_QUEUE_HPP
-#define ERHI_QUEUE_HPP
+#pragma once
 
 #include "../common.hpp"
 
@@ -7,17 +6,11 @@
 
 namespace erhi {
 
-	struct IQueue : IObject {
+	struct IQueue {
 		QueueType mQueueType;
 
 		IQueue(QueueType queueType);
-		virtual ~IQueue();
-
-		virtual IDevice * pDevice() const = 0;
+		virtual ~IQueue() = 0;
 	};
 
 }
-
-
-
-#endif // ERHI_QUEUE_HPP

@@ -2,7 +2,7 @@
 
 namespace erhi {
 
-	IQueue::IQueue(QueueType queueType) : IObject(), mQueueType(queueType) {}
+	IQueue::IQueue(QueueType queueType) : mQueueType(queueType) {}
 
 	IQueue::~IQueue() = default;
 
