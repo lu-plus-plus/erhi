@@ -22,11 +22,11 @@ namespace erhi {
 	};
 
 	namespace vk {
-		IInstanceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
+		IDeviceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
 	}
 
 	namespace dx12 {
-		IInstanceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
+		IDeviceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
 	}
 
 }

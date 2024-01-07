@@ -5,6 +5,12 @@
 
 namespace erhi::dx12 {
 
+	IDeviceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) {
+		return new Device(desc, pMessageCallback);
+	}
+
+
+
 	Device::Device(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) : IDevice(desc, pMessageCallback), mMessageCallbackCookie(0)
 	{
 		// Create a DXGI factory.

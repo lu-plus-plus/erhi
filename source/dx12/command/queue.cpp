@@ -29,4 +29,15 @@ namespace erhi::dx12 {
 		mpCommandQueue.Reset();
 	}
 
+
+
+	IQueueHandle Device::SelectQueue(QueueType queueType) {
+		switch (queueType) {
+			case QueueType::Primary: return mpPrimaryQueue.get();
+			case QueueType::AsyncCompute: return mpAsyncComputeQueue.get();
+			case QueueType::AsyncCopy: return mpAsyncCopyQueue.get();
+		}
+		return nullptr;
+	}
+
 }

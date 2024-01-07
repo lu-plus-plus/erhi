@@ -8,6 +8,12 @@
 
 namespace erhi::vk {
 
+	IDeviceHandle CreateDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) {
+		return new Device(desc, pMessageCallback);
+	}
+
+
+
 	Device::Device(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) :
 		IDevice(desc, pMessageCallback),
 		mInstance(VK_NULL_HANDLE),

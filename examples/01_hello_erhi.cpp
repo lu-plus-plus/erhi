@@ -1,36 +1,25 @@
-#include <format>
 #include <iostream>
 
 #include "erhi/common/common.hpp"
 #include "erhi/common/context/context.hpp"
-
-// <todo> resource.hpp </todo>
-#include "erhi/common/resource/memory.hpp"
-
-// <todo> command.hpp </todo>
-#include "erhi/common/command/queue.hpp"
-
-#include "utility/default_message_callback.hpp"
-
-#include "erhi/common/exception.hpp"
+#include "erhi/common/resource/resource.hpp"
+#include "erhi/common/utility/stram_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = vk;
+namespace backend = dx12;
 
 
 
 int main() {
 	try {
-		auto pInstance = backend::CreateInstance(InstanceDesc{
+		auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Info);
+
+		DeviceDesc deviceDesc = {
 			.enableDebug = true,
-			.pMessageCallback = MakeHandle<DefaultMessageCallback>(MessageSeverity::Info)
-		});
+			.physicalDevicePreference = PhysicalDevicePreference::HighPerformance,
+		};
 
-		auto pPhysicalDevice = pInstance->SelectPhysicalDevice(PhysicalDeviceDesc{
-			.type = PhysicalDeviceType::Discrete
-		});
-
-		auto pDevice = pPhysicalDevice->createDevice(DeviceDesc{});
+		auto pDevice = backend::CreateDevice(deviceDesc, pMessageCallback);
 
 		auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Primary);
 
@@ -77,10 +66,14 @@ int main() {
 		//auto indexBuffer = pDevice->CreatePlacedBuffer(indexBufferMemory, 0, memoryRequirements.alignment, indexBufferDesc);
 	}
 	catch (std::exception const & e) {
-		std::cout << e.what() << std::endl;
+		std::cout << e.what();
+		std::cout << "TERMINATED on exception.\n";
+		std::terminate();
 	}
-	catch (erhi::base_exception const & e) {
-		std::cout << e.what() << std::endl;
+	catch (...) {
+		std::cout << "An unknown exception is thrown.\n";
+		std::cout << "TERMINATED on exception.\n";
+		std::terminate();
 	}
 
 	return 0;
