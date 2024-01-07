@@ -1,11 +1,15 @@
-#ifndef ERHI_VULKAN_NATIVE_HPP
-#define ERHI_VULKAN_NATIVE_HPP
-
-#include <string>			// for error message in exceptions
+#pragma once
 
 #include "volk.h"
 
-#include "../common/exception.hpp"
+#define VMA_VULKAN_VERSION 1003000
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 0
+#include "vk_mem_alloc.h"
+
+#include "../common/handle.hpp"			// forward declaration for abstract interfaces
+#include "../common/common.hpp"			// descriptive structs and enums
+#include "../common/exception.hpp"		// exception
 
 
 
@@ -51,8 +55,6 @@ namespace erhi::vk {
 
 }
 
-#define vkCheckResult(result) if (VkResult r = (result); r != VK_SUCCESS) throw bad_api_call(vkErrorCode(r), #result, std::source_location::current())
+#define vkCheckResult(result) if (VkResult r = (result); r != VK_SUCCESS) throw bad_graphics_api_call(vkErrorCode(r), #result, std::source_location::current())
 
 
-
-#endif // ERHI_VULKAN_NATIVE_HPP

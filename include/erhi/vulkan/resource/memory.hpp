@@ -7,51 +7,17 @@
 
 namespace erhi::vk {
 
-	struct Memory : public IMemory {
-		DeviceHandle		mDeviceHandle;
-		VmaAllocation		mAllocation;
-
-		Memory(DeviceHandle deviceHandle, MemoryRequirements const & requirements);
-		virtual ~Memory() override;
-
-		virtual IDeviceHandle GetDevice() const override;
-	};
-
-
-
-	struct PlacedBuffer : public IBuffer {
-		MemoryHandle		mMemoryHandle;
-		VkBuffer			mBuffer;
-
-		PlacedBuffer(Memory * pMemory, uint64_t offset, BufferDesc const & desc);
-		virtual ~PlacedBuffer() override;
-	};
-
-
-
 	struct Buffer : public IBuffer {
-		DeviceHandle		mDeviceHandle;
+		Device *			mpDevice;
 		VmaAllocation		mAllocation;
 		VkBuffer			mBuffer;
 
 		Buffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & bufferDesc);
-		~Buffer();
+		virtual ~Buffer() override;
 	};
-
-
-
-	struct PlacedTexture : public ITexture {
-		MemoryHandle		mMemoryHandle;
-		VkImage				mImage;
-
-		PlacedTexture(Memory * pMemory, uint64_t offset, TextureDesc const & desc);
-		virtual ~PlacedTexture() override;
-	};
-
-
 
 	struct Texture : public ITexture {
-		DeviceHandle		mDeviceHandle;
+		Device *			mpDevice;
 		VmaAllocation		mAllocation;
 		VkImage				mImage;
 

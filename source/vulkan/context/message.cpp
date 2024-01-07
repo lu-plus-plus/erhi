@@ -13,7 +13,7 @@ namespace erhi::vk {
 
 	static MessageType MapMessageType(VkDebugUtilsMessageTypeFlagsEXT native) {
 		if (native & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)		return MessageType::General;
-		if (native & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)	return MessageType::Validation;
+		if (native & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)	return MessageType::Debug;
 		return MessageType::Performance;
 	}
 

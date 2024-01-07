@@ -1,27 +1,143 @@
-#include "erhi/vulkan/context/instance.hpp"
-#include "erhi/vulkan/context/physical_device.hpp"
-#include "erhi/vulkan/context/device.hpp"
+#include "erhi/vulkan/context/context.hpp"
+#include "erhi/vulkan/command/command.hpp"
 
-#include <format>		// for formatting exception log
+#include <vector>
+#include <format>
 
 
 
 namespace erhi::vk {
 
-	Device::Device(PhysicalDevice * pPhysicalDevice) :
-		IDevice{},
-		mPhysicalDeviceHandle{ pPhysicalDevice },
-		mDevice{ VK_NULL_HANDLE },
-		mGraphicsQueueFamilyIndex{ std::numeric_limits<uint32_t>::max() },
-		mComputeQueueFamilyIndex{},
-		mCopyQueueFamilyIndex{} {
-	
+	Device::Device(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) :
+		IDevice(desc, pMessageCallback),
+		mInstance(VK_NULL_HANDLE),
+		mDebugUtilsMessenger(VK_NULL_HANDLE),
+		mPhysicalDevice(VK_NULL_HANDLE),
+		mDevice(VK_NULL_HANDLE),
+		mGraphicsQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
+		mComputeQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
+		mCopyQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
+		mAllocator(VK_NULL_HANDLE) {
+
+		vkCheckResult(volkInitialize());
+
+		// layers
+
+		uint32_t layerPropertyCount = 0u;
+		vkCheckResult(vkEnumerateInstanceLayerProperties(&layerPropertyCount, nullptr));
+		std::vector<VkLayerProperties> layers(layerPropertyCount);
+		vkCheckResult(vkEnumerateInstanceLayerProperties(&layerPropertyCount, layers.data()));
+
+		mpMessageCallback->Verbose("supported Vulkan layers:");
+		for (auto const & layer : layers) {
+			mpMessageCallback->Verbose(std::format("{}, ver.{}.{}.{}", layer.layerName, VK_API_VERSION_MAJOR(layer.specVersion), VK_API_VERSION_MINOR(layer.specVersion), VK_API_VERSION_PATCH(layer.specVersion)));
+		}
+		mpMessageCallback->Verbose("");
+
+		// extensions
+
+		uint32_t extensionPropertyCount{ 0u };
+		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, nullptr));
+		std::vector<VkExtensionProperties> extensions{ extensionPropertyCount };
+		vkCheckResult(vkEnumerateInstanceExtensionProperties(nullptr, &extensionPropertyCount, extensions.data()));
+
+		mpMessageCallback->Verbose("supported Vulkan extensions:");
+		for (auto const & extension : extensions) {
+			mpMessageCallback->Verbose(std::format("{}, ver.{}.{}.{}", extension.extensionName, VK_API_VERSION_MAJOR(extension.specVersion), VK_API_VERSION_MINOR(extension.specVersion), VK_API_VERSION_PATCH(extension.specVersion)));
+		}
+		mpMessageCallback->Verbose("");
+
+		// create VkInstance
+
+		void * instanceCreateInfoPNext = nullptr;
+
+		VkApplicationInfo applicationInfo{
+			.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+			.pNext = nullptr,
+			.pApplicationName = "",
+			.applicationVersion = VK_MAKE_VERSION(0, 0, 1),
+			.pEngineName = "erhi",
+			.engineVersion = VK_MAKE_VERSION(0, 0, 1),
+			.apiVersion = VK_API_VERSION_1_3
+		};
+
+		std::vector<char const *> pEnabledLayerNames;
+
+		std::vector<char const *> pEnabledExtensionNames;
+
+		VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{
+			.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+			.pNext = nullptr,
+			.flags = 0,
+			.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+			.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+			.pfnUserCallback = adaptToMessageCallback,
+			.pUserData = mpMessageCallback.get()
+		};
+
+		if (desc.enableDebug) {
+			pEnabledLayerNames.push_back("VK_LAYER_KHRONOS_validation");
+			pEnabledExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+			instanceCreateInfoPNext = &debugUtilsMessengerCreateInfo;
+		}
+
+		VkInstanceCreateInfo instanceCreateInfo{
+			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+			.pNext = instanceCreateInfoPNext,
+			.pApplicationInfo = &applicationInfo,
+			.enabledLayerCount = uint32_t(pEnabledLayerNames.size()),
+			.ppEnabledLayerNames = pEnabledLayerNames.data(),
+			.enabledExtensionCount = uint32_t(pEnabledExtensionNames.size()),
+			.ppEnabledExtensionNames = pEnabledExtensionNames.data()
+		};
+
+		vkCheckResult(vkCreateInstance(&instanceCreateInfo, nullptr, &mInstance));
+
+		volkLoadInstance(mInstance);
+
+		if (desc.enableDebug) {
+			vkCheckResult(vkCreateDebugUtilsMessengerEXT(mInstance, &debugUtilsMessengerCreateInfo, nullptr, &mDebugUtilsMessenger));
+		}
+
+		// list physical devices
+
+		std::vector<VkPhysicalDevice> availableVkPhysicalDevices;
+
+		uint32_t physicalDeviceCount{ 0u };
+		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, nullptr);
+		availableVkPhysicalDevices.resize(physicalDeviceCount);
+		vkEnumeratePhysicalDevices(mInstance, &physicalDeviceCount, availableVkPhysicalDevices.data());
+
+		// select a physical device
+
+		for (auto pd : availableVkPhysicalDevices) {
+			PhysicalDevice physicalDevice(pd);
+
+			bool const is_high_performance =
+				desc.physicalDevicePreference == PhysicalDevicePreference::HighPerformance
+				and physicalDevice.deviceType() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+			bool const is_minimal_power =
+				desc.physicalDevicePreference == PhysicalDevicePreference::MinimalPower
+				and physicalDevice.deviceType() == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+
+			if (is_high_performance or is_minimal_power) {
+				mPhysicalDevice = physicalDevice;
+				break;
+			}
+		}
+
+		if (mPhysicalDevice == VK_NULL_HANDLE)
+			throw std::runtime_error("Failed to find a proper physical device.");
+
+		// create a Vulkan device, along with
+		// queues for Graphics & Compute & Transfer, asynchronous compute, and asynchronous transfer
+
 		constexpr VkQueueFlags graphicsQueueFlags{ VK_QUEUE_GRAPHICS_BIT | VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags computeQueueFlags{ VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags copyQueueFlags{ VK_QUEUE_TRANSFER_BIT };
 
-		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mPhysicalDeviceHandle->mQueueFamilies.size(); ++queueFamilyIndex) {
-			auto const & queueFamilyProperties = mPhysicalDeviceHandle->mQueueFamilies[queueFamilyIndex];
+		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mPhysicalDevice.mQueueFamilies.size(); ++queueFamilyIndex) {
+			auto const & queueFamilyProperties = mPhysicalDevice.mQueueFamilies[queueFamilyIndex];
 
 			if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == graphicsQueueFlags) {
 				mGraphicsQueueFamilyIndex = queueFamilyIndex;
@@ -50,17 +166,19 @@ namespace erhi::vk {
 		};
 
 		if (mGraphicsQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
-			throw std::runtime_error(std::format("Failed to find a graphics queue family on device '{}'.", mPhysicalDeviceHandle->name()));
+			throw std::runtime_error(std::format("Failed to find a graphics & compute & transfer queue family on device '{}'.", mPhysicalDevice.deviceName()));
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mGraphicsQueueFamilyIndex));
 
-		if (mComputeQueueFamilyIndex) {
-			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mComputeQueueFamilyIndex.value()));
+		if (mComputeQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
+			throw std::runtime_error(std::format("Failed to find a asynchronous compute queue family on device '{}'.", mPhysicalDevice.deviceName()));
 		}
+		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mComputeQueueFamilyIndex));
 
-		if (mCopyQueueFamilyIndex) {
-			queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mCopyQueueFamilyIndex.value()));
+		if (mCopyQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
+			throw std::runtime_error(std::format("Failed to find a asynchronous transfer queue family on device '{}'.", mPhysicalDevice.deviceName()));
 		}
+		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mCopyQueueFamilyIndex));
 
 		VkDeviceCreateInfo deviceCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -75,7 +193,13 @@ namespace erhi::vk {
 			.pEnabledFeatures = nullptr
 		};
 
-		vkCheckResult(vkCreateDevice(mPhysicalDeviceHandle->mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
+		vkCheckResult(vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
+
+		mPrimaryQueue = std::make_unique<Queue>(mDevice, QueueType::Primary, mGraphicsQueueFamilyIndex);
+		mAsyncComputeQueue = std::make_unique<Queue>(mDevice, QueueType::AsyncCompute, mComputeQueueFamilyIndex);
+		mAsyncCopyQueue = std::make_unique<Queue>(mDevice, QueueType::AsyncCopy, mCopyQueueFamilyIndex);
+
+		// create Vulkan memory allocator
 
 		VmaVulkanFunctions vulkanFunctions = {
 			.vkGetInstanceProcAddr = vkGetInstanceProcAddr,
@@ -108,9 +232,9 @@ namespace erhi::vk {
 		
 		VmaAllocatorCreateInfo allocatorCreateInfo = {};
 		allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-		allocatorCreateInfo.physicalDevice = *mPhysicalDeviceHandle;
+		allocatorCreateInfo.physicalDevice = mPhysicalDevice;
 		allocatorCreateInfo.device = mDevice;
-		allocatorCreateInfo.instance = *mPhysicalDeviceHandle->mInstanceHandle;
+		allocatorCreateInfo.instance = mInstance;
 		allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
 		vkCheckResult(vmaCreateAllocator(&allocatorCreateInfo, &mAllocator));
@@ -122,18 +246,17 @@ namespace erhi::vk {
 		vmaDestroyAllocator(mAllocator);
 
 		vkDestroyDevice(mDevice, nullptr);
+
+		if (mDebugUtilsMessenger != VK_NULL_HANDLE) {
+			vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugUtilsMessenger, nullptr);
+		}
+		vkDestroyInstance(mInstance, nullptr);
 	}
 
 
 
 	Device::operator VkDevice() const {
 		return mDevice;
-	}
-
-
-
-	IPhysicalDeviceHandle Device::GetPhysicalDevice() const {
-		return mPhysicalDeviceHandle;
 	}
 
 }

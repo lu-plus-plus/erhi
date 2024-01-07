@@ -1,5 +1,4 @@
-#ifndef ERHI_VULKAN_QUEUE_HPP
-#define ERHI_VULKAN_QUEUE_HPP
+#pragma once
 
 #include "../../common/command/queue.hpp"
 #include "../native.hpp"
@@ -9,17 +8,13 @@
 namespace erhi::vk {
 
 	struct Queue : IQueue {
-		DeviceHandle	mDeviceHandle;
 		VkQueue			mQueue;
+		uint32_t		mQueueFamilyIndex;
 
-		Queue(DeviceHandle deviceHandle, QueueType queueType, uint32_t queueFamilyIndex, uint32_t queueIndexInFamily);
-		~Queue();
-
-		virtual IDevice * pDevice() const override;
+		Queue(VkDevice device, QueueType queueType, uint32_t queueFamilyIndex);
+		virtual ~Queue() override;
 	};
 
 }
 
 
-
-#endif // ERHI_VULKAN_QUEUE_HPP

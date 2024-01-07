@@ -1,5 +1,4 @@
-#ifndef ERHI_VULKAN_MESSAGE_HPP
-#define ERHI_VULKAN_MESSAGE_HPP
+#pragma once
 
 #include "../../common/context/message.hpp"
 #include "../native.hpp"
@@ -16,7 +15,3 @@ namespace erhi::vk {
 	);
 
 }
-
-
-
-#endif // ERHI_VULKAN_MESSAGE_HPP
