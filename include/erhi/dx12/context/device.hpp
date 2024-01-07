@@ -21,16 +21,16 @@ namespace erhi::dx12 {
 
 		ComPtr<D3D12MA::Allocator>			mpMemoryAllocator;
 
-		std::unique_ptr<Queue> mpPrimaryQueue;
-		std::unique_ptr<Queue> mpAsyncComputeQueue;
-		std::unique_ptr<Queue> mpAsyncCopyQueue;
+		std::unique_ptr<Queue>				mpPrimaryQueue;
+		std::unique_ptr<Queue>				mpAsyncComputeQueue;
+		std::unique_ptr<Queue>				mpAsyncCopyQueue;
 
 		std::vector<UINT>					mLookUpTable_descriptorHandleIncrementSize;
 
 		Device(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
 		virtual ~Device() override;
 
-		ID3D12DeviceLatest * operator->() const;
+		operator ID3D12DeviceLatest &() const;
 
 		virtual IQueueHandle				SelectQueue(QueueType queueType) override;
 

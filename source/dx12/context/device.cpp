@@ -120,9 +120,9 @@ namespace erhi::dx12 {
 		mpMessageCallback.reset();
 	}
 
-	ID3D12DeviceLatest * Device::operator->() const
+	Device::operator ID3D12DeviceLatest &() const
 	{
-		return mpDevice.Get();
+		return *mpDevice.Get();
 	}
 
 }
