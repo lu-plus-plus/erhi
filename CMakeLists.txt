@@ -18,8 +18,18 @@ set(erhi_example_dir		${PROJECT_SOURCE_DIR}/examples)
 
 add_library(erhi_abstract_interface INTERFACE)
 
+# import magic_enum: it is header-only
+
+add_subdirectory(${erhi_package_dir}/magic_enum)
+
+# set up interfaces
+
 target_include_directories(erhi_abstract_interface
 	INTERFACE ${erhi_include_dir}
+)
+
+target_link_libraries(erhi_abstract_interface
+	INTERFACE magic_enum
 )
 
 

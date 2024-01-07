@@ -18,7 +18,7 @@ namespace erhi {
 	
 	enum class MessageType {
 		General,
-		Validation,
+		Debug,
 		Performance
 	};
 
@@ -29,28 +29,16 @@ namespace erhi {
 		Error
 	};
 
-	// instance
-
-	struct InstanceDesc {
-		bool enableDebug;
-		IMessageCallback * pMessageCallback;
-	};
-
-	// physical device
+	// instance, physical device, and device
 
 	enum class PhysicalDevicePreference {
 		HighPerformance,
 		MinimalPower
 	};
 
-	struct PhysicalDeviceDesc {
-		PhysicalDevicePreference preference;
-	};
-
-	// device
-
 	struct DeviceDesc {
-		/* nothing for now */
+		bool enableDebug;
+		PhysicalDevicePreference physicalDevicePreference;
 	};
 
 
@@ -83,8 +71,8 @@ namespace erhi {
 	enum BufferUsageFlagBits {
 		BufferUsageCopySource = 0x0000'0001,
 		BufferUsageCopyTarget = 0x0000'0002,
-		BufferUsageUniformBuffer = 0x0000'0004,
-		BufferUsageStorageBuffer = 0x0000'0008,
+		BufferUsageShaderResource = 0x0000'0004,
+		BufferUsageUnorderedAccess = 0x0000'0008,
 		BufferUsageIndexBuffer = 0x0000'0010,
 		BufferUsageVertexBuffer = 0x0000'0020
 	};
@@ -202,6 +190,19 @@ namespace erhi {
 		Count_64
 	};
 
+	enum class TextureLayout {
+		Undefined,
+		Common,
+		Present,
+		ShaderResource,
+		UnorderedAccess,
+		RenderTarget,
+		DepthStencilWrite,
+		DepthStencilRead,
+		CopySource,
+		CopyTarget,
+	};
+
 	struct TextureDesc {
 		TextureDimension dimension;
 		uint32_t extent[3];
@@ -210,6 +211,8 @@ namespace erhi {
 		TextureSampleCount sampleCount;
 		TextureUsageFlags usage;
 		TextureTiling tiling;
+		TextureLayout initialLayout;
+		QueueType initialQueueType;
 	};
 
 	struct BufferShaderResourceViewDesc {

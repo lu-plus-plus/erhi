@@ -4,9 +4,7 @@
 
 namespace erhi {
 
-	IDevice::IDevice(DeviceDesc const & desc) : mDesc(desc), mpMessageCallback(nullptr) {
-		mpMessageCallback = GetPhysicalDevice()->GetInstance()->mpMessageCallback;
-	}
+	IDevice::IDevice(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) : mDesc(desc), mpMessageCallback(pMessageCallback) {}
 	
 	IDevice::~IDevice() = default;
 

@@ -1,43 +1,41 @@
-#ifndef ERHI_DX12_DEVICE_HPP
-#define ERHI_DX12_DEVICE_HPP
+#pragma once
+
+#include <vector>
 
 #include "../../common/context/device.hpp"
 #include "../native.hpp"
-#include "D3D12MemAlloc.h"
 
 
 
 namespace erhi::dx12 {
 
 	struct Device : IDevice {
-		PhysicalDeviceHandle			mPhysicalDeviceHandle;
+		ComPtr<IDXGIFactoryLatest>			mpDXGIFactory;
+		ComPtr<ID3D12DebugLatest>			mpD3D12DebugLayer;
 
-		ID3D12Device *					mpDevice;
-		ID3D12InfoQueue1 *				mpInfoQueue;
-		DWORD							mMessageCallbackCookie;
+		ComPtr<IDXGIAdapterLatest>			mpDXGIAdapter;
 
-		D3D12MA::Allocator *			mpMemoryAllocator;
+		ComPtr<ID3D12DeviceLatest>			mpDevice;
+		ComPtr<ID3D12InfoQueueLatest>		mpInfoQueue;
+		DWORD								mMessageCallbackCookie;
 
-		Device(PhysicalDevice * pPhysicalDevice, ID3D12Device * pDevice);
+		ComPtr<D3D12MA::Allocator>			mpMemoryAllocator;
+
+		std::unique_ptr<Queue> mpPrimaryQueue;
+		std::unique_ptr<Queue> mpAsyncComputeQueue;
+		std::unique_ptr<Queue> mpAsyncCopyQueue;
+
+		std::vector<UINT>					mLookUpTable_descriptorHandleIncrementSize;
+
+		Device(DeviceDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
 		virtual ~Device() override;
 
-		virtual IPhysicalDeviceHandle		GetPhysicalDevice() const override;
+		ID3D12DeviceLatest * operator->() const;
 
 		virtual IQueueHandle				SelectQueue(QueueType queueType) override;
 
-		virtual IMemoryHandle				AllocateMemory(MemoryRequirements const & requirements) override;
-
 		virtual IBufferHandle				CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
-		virtual MemoryRequirements			GetBufferMemoryRequirements(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
-		virtual IBufferHandle				CreatePlacedBuffer(IMemoryHandle memory, uint64_t offset, BufferDesc const & bufferDesc) override;
-
 		virtual ITextureHandle				CreateTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) override;
-		virtual MemoryRequirements			GetTextureMemoryRequirements(MemoryHeapType heapType, TextureDesc const & textureDesc) override;
-		virtual ITextureHandle				CreatePlacedTexture(IMemoryHandle memory, uint64_t offset, TextureDesc const & textureDesc) override;
 	};
 
 }
-
-
-
-#endif // ERHI_DX12_DEVICE_HPP
