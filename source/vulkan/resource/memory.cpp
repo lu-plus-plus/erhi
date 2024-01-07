@@ -220,16 +220,16 @@ namespace erhi::vk {
 		if (flags & TextureUsageCopyTarget) {
 			result |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		}
-		if (flags & TextureUsageSampled) {
+		if (flags & TextureUsageSampling) {
 			result |= VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
-		if (flags & TextureUsageStorage) {
+		if (flags & TextureUsageLoadStoreAtomic) {
 			result |= VK_IMAGE_USAGE_STORAGE_BIT;
 		}
-		if (flags & TextureUsageRenderTargetAttachment) {
+		if (flags & TextureUsageRenderTarget) {
 			result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		}
-		if (flags & TextureUsageDepthStencilAttachment) {
+		if (flags & TextureUsageDepthStencil) {
 			result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
 		return result;

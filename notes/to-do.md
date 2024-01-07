@@ -1,0 +1,1 @@
+- Separate the CMake script into smaller ones

@@ -6,7 +6,7 @@
 #include "erhi/common/utility/stram_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = vk;
+namespace backend = dx12;
 
 
 
@@ -43,27 +43,25 @@ int main() {
 			.format = Format::R32G32B32A32_Float,
 			.mipLevels = 1u,
 			.sampleCount = TextureSampleCount::Count_1,
-			.usage = TextureUsageRenderTargetAttachment,
-			.tiling = TextureTiling::Optimal
+			.usage = TextureUsageRenderTarget,
+			.tiling = TextureTiling::Optimal,
+			.initialLayout = TextureLayout::RenderTarget,
+			.initialQueueType = QueueType::Primary
 		};
 
 		auto renderTarget = pDevice->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
 
-		//auto memoryRequirements = pDevice->GetBufferMemoryRequirements(
-		//	MemoryHeapType::Default,
-		//	indexBufferDesc
-		//);
-
-		//if (memoryRequirements.memoryTypeBits == 0u) {
-		//	throw std::exception("Failed to find any compatible memory type.\n");
-		//}
-
-		//auto indexBufferMemory = pDevice->AllocateMemory(MemoryDesc{
-		//	.memoryTypeIndex = uint32_t(std::countr_zero(memoryRequirements.memoryTypeBits)),
-		//	.size = memoryRequirements.size
-		//	});
-
-		//auto indexBuffer = pDevice->CreatePlacedBuffer(indexBufferMemory, 0, memoryRequirements.alignment, indexBufferDesc);
+		auto depthDesc = TextureDesc{
+			.dimension = TextureDimension::Texture2D,
+			.extent = { 1920u, 1080u, 1u },
+			.format = Format::D32_Float,
+			.mipLevels = 1u,
+			.sampleCount = TextureSampleCount::Count_1,
+			.usage = TextureUsageDepthStencil,
+			.tiling = TextureTiling::Optimal,
+			.initialLayout = TextureLayout::DepthStencilWrite,
+			.initialQueueType = QueueType::Primary
+		};
 	}
 	catch (std::exception const & e) {
 		std::cout << e.what();

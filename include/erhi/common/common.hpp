@@ -89,23 +89,22 @@ namespace erhi {
 	enum TextureUsageFlagBits {
 		TextureUsageCopySource = 0x0000'0001,
 		TextureUsageCopyTarget = 0x0000'0002,
+
+		/* It seems that there exists no concept like read-only texture or readable-and-writable texture in D3D12. */
+		TextureUsageShaderResource = 0x0000'0004,
+		TextureUsageUnorderedAccess = 0x0000'0008,
+
+		/* It seems that there exists no concepts like "Sampled" and "Storage" in D3D12 at all. */
+		TextureUsageSampling = 0x0000'0010,
+		TextureUsageLoadStoreAtomic = 0x0000'0020,
+
+		TextureUsageRenderTarget = 0x0000'0040,
+		TextureUsageDepthStencil = 0x0000'0080,
 		/*
-			<todo>
-			It seems that the "Sampled" flag is not needed in D3D12 at all, where samplers and textures are separate objects.
-			The problem is, is it possible to separate them in Vulkan, instead of binding them together as combined image sampler?
-			</todo>
+			<todo> Are these following flags really needed on PC platform? </todo>
+			TextureUsageTransientAttachment = 0x0000'0040,
+			TextureUsageInputAttachment = 0x0000'0080,
 		*/
-		TextureUsageSampled = 0x0000'0004,
-		TextureUsageStorage = 0x0000'0008,
-		TextureUsageRenderTargetAttachment = 0x0000'0010,
-		TextureUsageDepthStencilAttachment = 0x0000'0020,
-		/*
-			<todo>
-			Are these following flags really needed on PC platform?
-			</todo>
-		*/
-		TextureUsageTransientAttachment = 0x0000'0040,
-		TextureUsageInputAttachment = 0x0000'0080,
 	};
 
 	using TextureUsageFlags = Flags;
