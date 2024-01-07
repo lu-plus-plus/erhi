@@ -191,7 +191,7 @@ namespace erhi::dx12 {
 
 		// If the alignment requested is not granted, then let D3D tell us the alignment that needs to be used for these resources.
 		// https://github.com/microsoft/DirectX-Graphics-Samples/blob/master/Samples/Desktop/D3D12SmallResources/src/D3D12SmallResources.cpp
-		if (smallTextureAllocationInfo.Alignment != smallTextureAlignment) {
+		if (resourceDesc.Alignment != smallTextureAllocationInfo.Alignment) {
 			resourceDesc.Alignment = 0;
 		}
 

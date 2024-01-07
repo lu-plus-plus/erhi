@@ -18,7 +18,7 @@ namespace erhi::vk {
 		IDevice(desc, pMessageCallback),
 		mInstance(VK_NULL_HANDLE),
 		mDebugUtilsMessenger(VK_NULL_HANDLE),
-		mPhysicalDevice(VK_NULL_HANDLE),
+		mpPhysicalDevice(),
 		mDevice(VK_NULL_HANDLE),
 		mGraphicsQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
 		mComputeQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
@@ -117,22 +117,22 @@ namespace erhi::vk {
 		// select a physical device
 
 		for (auto pd : availableVkPhysicalDevices) {
-			PhysicalDevice physicalDevice(pd);
+			std::unique_ptr<PhysicalDevice> pPhysicalDevice = std::make_unique<PhysicalDevice>(pd);
 
 			bool const is_high_performance =
 				desc.physicalDevicePreference == PhysicalDevicePreference::HighPerformance
-				and physicalDevice.deviceType() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+				and pPhysicalDevice->deviceType() == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 			bool const is_minimal_power =
 				desc.physicalDevicePreference == PhysicalDevicePreference::MinimalPower
-				and physicalDevice.deviceType() == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
+				and pPhysicalDevice->deviceType() == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
 
 			if (is_high_performance or is_minimal_power) {
-				mPhysicalDevice = physicalDevice;
+				mpPhysicalDevice = std::move(pPhysicalDevice);
 				break;
 			}
 		}
 
-		if (mPhysicalDevice == VK_NULL_HANDLE)
+		if (not mpPhysicalDevice)
 			throw std::runtime_error("Failed to find a proper physical device.");
 
 		// create a Vulkan device, along with
@@ -142,8 +142,8 @@ namespace erhi::vk {
 		constexpr VkQueueFlags computeQueueFlags{ VK_QUEUE_COMPUTE_BIT | VK_QUEUE_TRANSFER_BIT };
 		constexpr VkQueueFlags copyQueueFlags{ VK_QUEUE_TRANSFER_BIT };
 
-		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mPhysicalDevice.mQueueFamilies.size(); ++queueFamilyIndex) {
-			auto const & queueFamilyProperties = mPhysicalDevice.mQueueFamilies[queueFamilyIndex];
+		for (uint32_t queueFamilyIndex = 0; queueFamilyIndex < mpPhysicalDevice->mQueueFamilies.size(); ++queueFamilyIndex) {
+			auto const & queueFamilyProperties = mpPhysicalDevice->mQueueFamilies[queueFamilyIndex];
 
 			if ((queueFamilyProperties.queueFamilyProperties.queueFlags & graphicsQueueFlags) == graphicsQueueFlags) {
 				mGraphicsQueueFamilyIndex = queueFamilyIndex;
@@ -172,17 +172,17 @@ namespace erhi::vk {
 		};
 
 		if (mGraphicsQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
-			throw std::runtime_error(std::format("Failed to find a graphics & compute & transfer queue family on device '{}'.", mPhysicalDevice.deviceName()));
+			throw std::runtime_error(std::format("Failed to find a graphics & compute & transfer queue family on device '{}'.", mpPhysicalDevice->deviceName()));
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mGraphicsQueueFamilyIndex));
 
 		if (mComputeQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
-			throw std::runtime_error(std::format("Failed to find a asynchronous compute queue family on device '{}'.", mPhysicalDevice.deviceName()));
+			throw std::runtime_error(std::format("Failed to find a asynchronous compute queue family on device '{}'.", mpPhysicalDevice->deviceName()));
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mComputeQueueFamilyIndex));
 
 		if (mCopyQueueFamilyIndex == std::numeric_limits<uint32_t>::max()) [[unlikely]] {
-			throw std::runtime_error(std::format("Failed to find a asynchronous transfer queue family on device '{}'.", mPhysicalDevice.deviceName()));
+			throw std::runtime_error(std::format("Failed to find a asynchronous transfer queue family on device '{}'.", mpPhysicalDevice->deviceName()));
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mCopyQueueFamilyIndex));
 
@@ -199,7 +199,7 @@ namespace erhi::vk {
 			.pEnabledFeatures = nullptr
 		};
 
-		vkCheckResult(vkCreateDevice(mPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
+		vkCheckResult(vkCreateDevice(*mpPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
 
 		mPrimaryQueue = std::make_unique<Queue>(mDevice, QueueType::Primary, mGraphicsQueueFamilyIndex);
 		mAsyncComputeQueue = std::make_unique<Queue>(mDevice, QueueType::AsyncCompute, mComputeQueueFamilyIndex);
@@ -238,7 +238,7 @@ namespace erhi::vk {
 		
 		VmaAllocatorCreateInfo allocatorCreateInfo = {};
 		allocatorCreateInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-		allocatorCreateInfo.physicalDevice = mPhysicalDevice;
+		allocatorCreateInfo.physicalDevice = *mpPhysicalDevice;
 		allocatorCreateInfo.device = mDevice;
 		allocatorCreateInfo.instance = mInstance;
 		allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;

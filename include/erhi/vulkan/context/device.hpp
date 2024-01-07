@@ -9,10 +9,10 @@
 namespace erhi::vk {
 
 	struct Device : IDevice {
-		VkInstance					mInstance;
-		VkDebugUtilsMessengerEXT	mDebugUtilsMessenger;
-		PhysicalDevice				mPhysicalDevice;
-		VkDevice					mDevice;
+		VkInstance mInstance;
+		VkDebugUtilsMessengerEXT mDebugUtilsMessenger;
+		std::unique_ptr<PhysicalDevice> mpPhysicalDevice;
+		VkDevice mDevice;
 		
 		uint32_t mGraphicsQueueFamilyIndex;
 		uint32_t mComputeQueueFamilyIndex;

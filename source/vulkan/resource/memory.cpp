@@ -37,7 +37,7 @@ namespace erhi::vk {
 
 		auto const propertyFlags = GetVkMemoryPropertyFlags(heapType);
 
-		auto const & memoryProperties = pDevice->mPhysicalDevice.mMemoryProperties.memoryProperties;
+		auto const & memoryProperties = pDevice->mpPhysicalDevice->mMemoryProperties.memoryProperties;
 
 		auto memoryTypeBits = 0u;
 
