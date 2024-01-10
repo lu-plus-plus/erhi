@@ -35,4 +35,15 @@ namespace erhi::vk {
 		return nullptr;
 	}
 
+
+
+	uint32_t MapQueueTypeToFamilyIndex(Device * pDevice, QueueType queueType) {
+		switch (queueType) {
+			case QueueType::Primary: return pDevice->mGraphicsQueueFamilyIndex;
+			case QueueType::AsyncCompute: return pDevice->mComputeQueueFamilyIndex;
+			case QueueType::AsyncCopy: return pDevice->mCopyQueueFamilyIndex;
+		}
+		return std::numeric_limits<uint32_t>::max();
+	}
+
 }

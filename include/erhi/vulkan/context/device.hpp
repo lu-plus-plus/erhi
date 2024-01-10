@@ -30,6 +30,7 @@ namespace erhi::vk {
 		operator VkDevice() const;
 
 		virtual IQueueHandle		SelectQueue(QueueType queueType) override;
+		virtual ICommandPoolHandle	CreateCommandPool(CommandPoolDesc const & desc) override;
 
 		virtual IBufferHandle		CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
 		virtual ITextureHandle		CreateTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) override;

@@ -2,11 +2,12 @@
 
 #include "erhi/common/common.hpp"
 #include "erhi/common/context/context.hpp"
+#include "erhi/common/command/command.hpp"
 #include "erhi/common/resource/resource.hpp"
 #include "erhi/common/utility/stream_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = dx12;
+namespace backend = vk;
 
 
 
@@ -18,23 +19,16 @@ void hello_erhi() {
 		.physicalDevicePreference = PhysicalDevicePreference::HighPerformance,
 	};
 
-	auto pDevice = backend::CreateDevice(deviceDesc, pMessageCallback);
+	auto device = backend::CreateDevice(deviceDesc, pMessageCallback);
 
-	auto pPrimaryQueue = pDevice->SelectQueue(QueueType::Primary);
-
-	auto indexBufferDesc = BufferDesc{
-		.usage = BufferUsageCopyTarget | BufferUsageIndexBuffer,
-		.size = 2 * 3 * sizeof(uint32_t)
-	};
-
-	auto indexBuffer = pDevice->CreateBuffer(MemoryHeapType::Default, indexBufferDesc);
+	auto primaryQueue = device->SelectQueue(QueueType::Primary);
 
 	auto vertexBufferDesc = BufferDesc{
 		.usage = BufferUsageCopyTarget | BufferUsageVertexBuffer,
 		.size = 4 * 3 * sizeof(float)
 	};
 
-	auto vertexBuffer = pDevice->CreateBuffer(MemoryHeapType::Default, vertexBufferDesc);
+	auto vertexBuffer = device->CreateBuffer(MemoryHeapType::Default, vertexBufferDesc);
 
 	auto renderTargetDesc = TextureDesc{
 		.dimension = TextureDimension::Texture2D,
@@ -48,7 +42,7 @@ void hello_erhi() {
 		.initialQueueType = QueueType::Primary
 	};
 
-	auto renderTarget = pDevice->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
+	auto renderTarget = device->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
 
 	auto depthDesc = TextureDesc{
 		.dimension = TextureDimension::Texture2D,
@@ -61,6 +55,26 @@ void hello_erhi() {
 		.initialLayout = TextureLayout::DepthStencilWrite,
 		.initialQueueType = QueueType::Primary
 	};
+
+	auto depthTexture = device->CreateTexture(MemoryHeapType::Default, depthDesc);
+
+	auto commandPool = device->CreateCommandPool(CommandPoolDesc{
+		.queueType = QueueType::Primary,
+		.lifetime = CommandListLifetime::ShortLived
+	});
+
+	auto commandList = commandPool->AllocateCommandList(CommandListDesc{
+		.level = CommandListLevel::Direct
+	});
+
+	commandList->BeginCommands({ CommandListUsageOneTime });
+
+	delete commandList;
+	delete commandPool;
+	delete depthTexture;
+	delete renderTarget;
+	delete vertexBuffer;
+	delete device;
 }
 
 

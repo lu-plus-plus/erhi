@@ -1,5 +1,9 @@
 #pragma once
 
+#ifndef NOMINMAX
+	#define NOMINMAX
+#endif
+
 #include <wrl/client.h>			// ComPtr
 #include <dxgi1_6.h>			// DXGI
 #include <d3d12.h>				// D3D12
@@ -20,6 +24,8 @@ namespace erhi::dx12 {
 	using ID3D12DebugLatest = ID3D12Debug6;
 	using ID3D12DeviceLatest = ID3D12Device10;
 	using ID3D12InfoQueueLatest = ID3D12InfoQueue1;
+
+	using ID3D12GraphicsCommandListLatest = ID3D12GraphicsCommandList7;
 
 	char const * ErrorCode(HRESULT result);
 

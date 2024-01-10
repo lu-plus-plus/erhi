@@ -17,6 +17,8 @@ namespace erhi {
 	DeclareHandle(Device);
 
 	DeclareHandle(Queue);
+	DeclareHandle(CommandPool);
+	DeclareHandle(CommandList);
 
 	DeclareHandle(Memory);
 	DeclareHandle(Buffer);

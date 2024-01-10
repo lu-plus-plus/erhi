@@ -16,6 +16,7 @@ namespace erhi {
 		virtual IMessageCallback &			Log() const;
 
 		virtual IQueueHandle				SelectQueue(QueueType queueType) = 0;
+		virtual ICommandPoolHandle			CreateCommandPool(CommandPoolDesc const & desc) = 0;
 
 		virtual IBufferHandle				CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) = 0;
 		virtual ITextureHandle				CreateTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) = 0;

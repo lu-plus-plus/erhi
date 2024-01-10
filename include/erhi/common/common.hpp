@@ -53,6 +53,33 @@ namespace erhi {
 		AsyncCopy
 	};
 
+	enum class CommandListLifetime {
+		ShortLived,
+		Persistent
+	};
+
+	enum class CommandListLevel {
+		Direct,
+		Bundle
+	};
+
+	enum CommandListUsageFlags {
+		CommandListUsageOneTime = 0x01
+	};
+
+	struct CommandPoolDesc {
+		QueueType queueType;
+		CommandListLifetime lifetime;
+	};
+
+	struct CommandListDesc {
+		CommandListLevel level;
+	};
+
+	struct CommandListBeginInfo {
+		CommandListUsageFlags usageFlags;
+	};
+
 
 
 	// module: resource

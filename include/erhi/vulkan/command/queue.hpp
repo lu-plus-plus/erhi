@@ -7,6 +7,8 @@
 
 namespace erhi::vk {
 
+	uint32_t MapQueueTypeToFamilyIndex(Device * pDevice, QueueType queueType);
+
 	struct Queue : IQueue {
 		VkQueue			mQueue;
 		uint32_t		mQueueFamilyIndex;
