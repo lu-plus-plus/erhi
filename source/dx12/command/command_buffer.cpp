@@ -24,6 +24,24 @@ namespace erhi::dx12 {
 		D3D12CheckResult(mpCommandList->Close());
 	}
 
+	void CommandList::SetPrimitiveTopology(PrimitiveTopology pt) {
+		mpCommandList->IASetPrimitiveTopology(static_cast<D3D_PRIMITIVE_TOPOLOGY>(1 + static_cast<int>(pt)));
+	}
+
+	void CommandList::BindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount, VertexBufferView const * views) {
+		std::vector<D3D12_VERTEX_BUFFER_VIEW> vbvs(bindingCount);
+		for (auto i = 0u; i < bindingCount; ++i) {
+			vbvs[i].BufferLocation = dynamic_cast<Buffer *>(views[i].pBuffer)->mpResource->GetGPUVirtualAddress() + views[i].offset;
+			vbvs[i].SizeInBytes = UINT(views[i].size);
+			vbvs[i].StrideInBytes = UINT(views[i].stride);
+		}
+		mpCommandList->IASetVertexBuffers(firstBinding, bindingCount, vbvs.data());
+	}
+
+	void CommandList::DrawInstanced(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
+		mpCommandList->DrawInstanced(vertexCount, instanceCount, firstVertex, firstInstance);
+	}
+
 	void CommandList::CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) {
 		mpCommandList->CopyBufferRegion(
 			dynamic_cast<Buffer *>(dst)->mpResource.Get(), dstOffset,

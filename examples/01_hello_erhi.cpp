@@ -7,7 +7,7 @@
 #include "erhi/common/utility/stream_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = vk;
+namespace backend = dx12;
 
 
 
@@ -68,6 +68,17 @@ void hello_erhi() {
 	});
 
 	commandList->BeginCommands({ CommandListUsageOneTime });
+
+	commandList->SetPrimitiveTopology(PrimitiveTopology::TriangleList);
+
+	VertexBufferView vertexBufferView{
+		.pBuffer = vertexBuffer,
+		.offset = 0,
+		.size = vertexBuffer->mDesc.size,
+		.stride = 12
+	};
+
+	commandList->BindVertexBuffers(0, 1, &vertexBufferView);
 
 	delete commandList;
 	delete commandPool;

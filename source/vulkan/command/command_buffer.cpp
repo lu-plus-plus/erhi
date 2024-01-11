@@ -107,6 +107,30 @@ namespace erhi::vk {
 		vkCheckResult(vkEndCommandBuffer(mCommandBuffer));
 	}
 
+	void CommandList::SetPrimitiveTopology(PrimitiveTopology pt) {
+		vkCmdSetPrimitiveTopology(mCommandBuffer, static_cast<VkPrimitiveTopology>(pt));
+	}
+
+	void CommandList::BindVertexBuffers(uint32_t firstBinding, uint32_t bindingCount, VertexBufferView const * views) {
+		std::vector<VkBuffer> buffers(bindingCount);
+		std::vector<VkDeviceSize> offsets(bindingCount);
+		std::vector<VkDeviceSize> sizes(bindingCount);
+		std::vector<VkDeviceSize> strides(bindingCount);
+
+		for (auto i = 0u; i < bindingCount; ++i) {
+			buffers[i] = dynamic_cast<Buffer *>(views[i].pBuffer)->mBuffer;
+			offsets[i] = views[i].offset;
+			sizes[i] = views[i].size;
+			strides[i] = views[i].stride;
+		}
+
+		vkCmdBindVertexBuffers2(mCommandBuffer, firstBinding, bindingCount, buffers.data(), offsets.data(), sizes.data(), strides.data());
+	}
+
+	void CommandList::DrawInstanced(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) {
+		vkCmdDraw(mCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+	}
+
 	void CommandList::CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) {
 		VkBufferCopy const copy{
 			.srcOffset = srcOffset,
@@ -115,6 +139,5 @@ namespace erhi::vk {
 		};
 		vkCmdCopyBuffer(mCommandBuffer, dynamic_cast<Buffer *>(src)->mBuffer, dynamic_cast<Buffer *>(dst)->mBuffer, 1, &copy);
 	}
-
 
 }

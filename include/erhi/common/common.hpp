@@ -80,6 +80,21 @@ namespace erhi {
 		CommandListUsageFlags usageFlags;
 	};
 
+	struct VertexBufferView {
+		IBuffer * pBuffer;
+		uint64_t offset;
+		uint64_t size;
+		uint64_t stride;
+	};
+
+	enum class PrimitiveTopology {
+		PointList = 0,
+		LineList = 1,
+		LineStrip = 2,
+		TriangleList = 3,
+		TriangleStrip = 4
+	};
+
 
 
 	// module: resource
