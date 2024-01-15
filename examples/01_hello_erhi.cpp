@@ -12,7 +12,7 @@ namespace backend = dx12;
 
 
 void hello_erhi() {
-	auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Info);
+	auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Warning);
 
 	DeviceDesc deviceDesc = {
 		.enableDebug = true,
@@ -79,6 +79,8 @@ void hello_erhi() {
 	};
 
 	commandList->BindVertexBuffers(0, 1, &vertexBufferView);
+
+	commandList->EndCommands();
 
 	delete commandList;
 	delete commandPool;

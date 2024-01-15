@@ -20,7 +20,11 @@ add_library(erhi_abstract_interface INTERFACE)
 
 # import magic_enum: it is header-only
 
-add_subdirectory(${erhi_package_dir}/magic_enum)
+add_subdirectory(${erhi_package_dir}/magic_enum EXCLUDE_FROM_ALL)
+
+# pre-compiled DXC
+
+add_subdirectory(${erhi_package_dir}/dxc EXCLUDE_FROM_ALL)
 
 # set up interfaces
 
@@ -30,6 +34,7 @@ target_include_directories(erhi_abstract_interface
 
 target_link_libraries(erhi_abstract_interface
 	INTERFACE magic_enum
+	INTERFACE dxc
 )
 
 

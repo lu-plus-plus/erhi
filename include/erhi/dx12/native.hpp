@@ -12,6 +12,7 @@
 #include "../common/handle.hpp"			// forward declaration for abstract interfaces
 #include "../common/common.hpp"			// descriptive structs and enums
 #include "../common/exception.hpp"		// exception
+#include "../common/h_result.hpp"		// handling HRESULT
 
 
 

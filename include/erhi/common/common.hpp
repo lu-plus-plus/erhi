@@ -264,12 +264,30 @@ namespace erhi {
 	};
 
 	enum class TextureShaderResourceViewDimension {
-		// ... ...
+		Texture1D,
+		Texture1DArray,
+		Texture2D,
+		Texture2DArray,
+		Texture2DMS,
+		Texture2DMSArray,
+		Texture3D
 	};
 
+	enum TextureAspectFlagBits {
+		TextureAspectColor = 0x0001,
+		TextureAspectDepth = 0x0002,
+		TextureAspectStencil = 0x0004
+	};
+
+	using TextureAspectFlags = Flags;
+
 	struct TextureShaderResourceViewDesc {
+		ITexture * pTexture;
+		TextureShaderResourceViewDimension dimension;
+		TextureAspectFlags aspectFlags;
 		Format format;
-		// ... ...
+		uint32_t mostDetailedMipLevel;
+		uint32_t mipLevelCount;
 	};
 
 }

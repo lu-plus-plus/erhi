@@ -1,7 +1,6 @@
-#include <format>
-#include <print>
-
 #include <comdef.h>
+
+#include <print>
 
 #include "erhi/dx12/native.hpp"
 
@@ -10,18 +9,15 @@
 namespace erhi::dx12 {
 
 	char const * ErrorCode(HRESULT result) {
-		_com_error comError(result);
-		return comError.ErrorMessage();
+		return windows::ErrorCode(result);
 	}
 
 	void ThrowOnError(HRESULT result, char const * statement, std::source_location const location) {
-		throw bad_graphics_api_call(ErrorCode(result), statement, location);
+		windows::ThrowOnError(result, statement, location);
 	}
 
 	void ExitOnError(HRESULT result, char const * statement, std::source_location const location) noexcept {
-		bad_graphics_api_call e(ErrorCode(result), statement, location);
-		std::print("{}", e.what());
-		std::terminate();
+		windows::ExitOnError(result, statement, location);
 	}
 
 }

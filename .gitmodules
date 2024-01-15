@@ -13,3 +13,6 @@
 [submodule "packages/VulkanMemoryAllocator"]
 	path = packages/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "packages/dxc"]
+	path = packages/dxc
+	url = git@github.com:lu-plus-plus/dxc.git
