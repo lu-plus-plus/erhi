@@ -223,7 +223,7 @@ namespace erhi::vk {
 		if (flags & TextureUsageSampling) {
 			result |= VK_IMAGE_USAGE_SAMPLED_BIT;
 		}
-		if (flags & TextureUsageLoadStoreAtomic) {
+		if (flags & (TextureUsageLoad | TextureUsageStore | TextureUsageAtomic)) {
 			result |= VK_IMAGE_USAGE_STORAGE_BIT;
 		}
 		if (flags & TextureUsageRenderTarget) {
@@ -233,6 +233,26 @@ namespace erhi::vk {
 			result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		}
 		return result;
+	}
+
+	static VkImageLayout MapTextureLayout(TextureLayout layout) {
+		switch (layout) {
+			case TextureLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+			case TextureLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;
+			case TextureLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			case TextureLayout::ShaderResource: {
+				return VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+			}
+			case TextureLayout::UnorderedAccess: {
+				return VK_IMAGE_LAYOUT_GENERAL;
+			}
+			case TextureLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			case TextureLayout::DepthStencilWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			case TextureLayout::DepthStencilRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			case TextureLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			case TextureLayout::CopyTarget: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		}
+		return VK_IMAGE_LAYOUT_UNDEFINED;
 	}
 
 	static VkImageCreateInfo GetImageCreateInfo(TextureDesc const & desc) {

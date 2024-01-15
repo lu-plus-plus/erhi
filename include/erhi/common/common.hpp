@@ -132,21 +132,29 @@ namespace erhi {
 		TextureUsageCopySource = 0x0000'0001,
 		TextureUsageCopyTarget = 0x0000'0002,
 
-		/* It seems that there exists no concept like read-only texture or readable-and-writable texture in D3D12. */
-		TextureUsageShaderResource = 0x0000'0004,
-		TextureUsageUnorderedAccess = 0x0000'0008,
+		/* There is no concept like read-only texture or readable-and-writable texture in Vulkan,
+		 * while there is no fine-grained control like Sampled Image (sampling) and Storage Image (load, store, and atomic operations) in D3D12.
+		 * At here, we keep the abstraction as fine-grained as possible.
+		 *
+		 * TextureUsageShaderResource = 0x0000'0004,
+		   TextureUsageUnorderedAccess = 0x0000'0008,
+		 */
+
+		/*
+		 * <todo> Are these following flags needed in a render pass with only one subpass? </todo>
+		 *
+		 * TextureUsageTransientAttachment = 0x0000'0040,
+		 * TextureUsageInputAttachment = 0x0000'0080,
+		 */
 
 		/* It seems that there exists no concepts like "Sampled" and "Storage" in D3D12 at all. */
-		TextureUsageSampling = 0x0000'0010,
-		TextureUsageLoadStoreAtomic = 0x0000'0020,
+		TextureUsageSampling = 0x0000'0004,
+		TextureUsageLoad = 0x0000'0008,
+		TextureUsageStore = 0x0000'0010,
+		TextureUsageAtomic = 0x0000'0020,
 
 		TextureUsageRenderTarget = 0x0000'0040,
-		TextureUsageDepthStencil = 0x0000'0080,
-		/*
-			<todo> Are these following flags really needed on PC platform? </todo>
-			TextureUsageTransientAttachment = 0x0000'0040,
-			TextureUsageInputAttachment = 0x0000'0080,
-		*/
+		TextureUsageDepthStencil = 0x0000'0080
 	};
 
 	using TextureUsageFlags = Flags;
