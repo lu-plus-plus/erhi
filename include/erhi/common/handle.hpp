@@ -25,8 +25,16 @@ namespace erhi {
 	DeclareHandle(Texture);
 	DeclareHandle(Allocator);
 
-	DeclareHandle(DescriptorHeap);
+	DeclareHandle(CPUDescriptorHeap);
+	DeclareHandle(GPUDescriptorHeap);
+	DeclareHandle(DescriptorSet);
+	DeclareHandle(DescriptorSetLayout);
+
 	DeclareHandle(BufferShaderResourceView);
+	DeclareHandle(BufferUnorderedAccessView);
+	DeclareHandle(TextureView);
+	DeclareHandle(TextureShaderResourceView);
+	DeclareHandle(TextureUnorderedAccessView);
 
 	#undef DeclareHandle
 

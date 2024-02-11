@@ -34,6 +34,14 @@ namespace erhi::vk {
 
 		virtual IBufferHandle		CreateBuffer(MemoryHeapType heapType, BufferDesc const & bufferDesc) override;
 		virtual ITextureHandle		CreateTexture(MemoryHeapType heapType, TextureDesc const & textureDesc) override;
+
+		virtual ITextureViewHandle			CreateTextureView(ITextureHandle pTexture, TextureViewDesc const & desc) override;
+
+		virtual ICPUDescriptorHeapHandle	CreateCPUDescriptorHeap(DescriptorHeapDesc const & desc) override;
+		virtual IGPUDescriptorHeapHandle	CreateGPUDescriptorHeap(DescriptorHeapDesc const & desc) override;
+		virtual IDescriptorSetLayoutHandle	CreateDescriptorSetLayout(DescriptorSetLayoutDesc const & desc) override;
+		virtual uint64_t					GetDescriptorSetLayoutSize(IDescriptorSetLayoutHandle pLayout) override;
+		virtual uint64_t					GetDescriptorSetLayoutBindingOffset(IDescriptorSetLayoutHandle pLayout, uint64_t binding) override;
 	};
 
 }

@@ -10,20 +10,26 @@
 namespace erhi::vk {
 
 	struct PhysicalDevice {
-		VkPhysicalDevice						mPhysicalDevice;
+		VkPhysicalDevice mPhysicalDevice;
 
-		VkPhysicalDeviceProperties2				mProperties;
-		VkPhysicalDeviceFeatures2				mFeatures;
+		VkPhysicalDeviceProperties2						mProperties;
+		VkPhysicalDeviceDescriptorBufferPropertiesEXT	mDescriptorBufferProperties;
+
+		VkPhysicalDeviceFeatures2						mFeatures;
+		VkPhysicalDeviceBufferDeviceAddressFeatures		mBufferDeviceAddressFeatures;
+		
 		VkPhysicalDeviceMemoryProperties2		mMemoryProperties;
 		std::vector<VkExtensionProperties>		mExtensions;
 		std::vector<VkQueueFamilyProperties2>	mQueueFamilies;
 
 		PhysicalDevice(VkPhysicalDevice physicalDevice);
 
-		operator VkPhysicalDevice() const;
+		operator VkPhysicalDevice() const &;
 
-		char const * deviceName() const;
-		VkPhysicalDeviceType deviceType() const;
+		char const * DeviceName() const &;
+		VkPhysicalDeviceType DeviceType() const &;
+		
+		uint64_t DescriptorSizeInBytes(VkDescriptorType type) const &;
 	};
 
 }

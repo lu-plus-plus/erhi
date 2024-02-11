@@ -11,6 +11,7 @@ namespace erhi::vk {
 		Device *			mpDevice;
 		VmaAllocation		mAllocation;
 		VkBuffer			mBuffer;
+		VkDeviceAddress		mBufferDeviceAddress;
 
 		Buffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & bufferDesc);
 		virtual ~Buffer() override;

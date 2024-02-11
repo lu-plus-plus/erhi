@@ -123,6 +123,10 @@ add_library(erhi_dx12 STATIC
 
 add_subdirectory(${erhi_package_dir}/D3D12MemoryAllocator EXCLUDE_FROM_ALL)
 
+# import DirectX-Headers
+
+add_subdirectory(${erhi_package_dir}/DirectX-Headers EXCLUDE_FROM_ALL)
+
 # set up dependencies
 
 target_link_libraries(erhi_dx12
@@ -130,6 +134,7 @@ target_link_libraries(erhi_dx12
 	PRIVATE dxgi
 	PRIVATE d3d12
 	PRIVATE D3D12MemoryAllocator
+	PRIVATE DirectX-Headers
 )
 
 

@@ -2,6 +2,8 @@
 
 #include "erhi/vulkan/native.hpp"
 
+
+
 namespace erhi::vk {
 
 	char const * vkErrorCode(VkResult result) {
@@ -35,6 +37,220 @@ namespace erhi::vk {
 		}
 
 		#undef STR
+	}
+
+}
+
+
+
+namespace erhi::vk::mapping {
+
+	uint32_t MapHeapTypeToMemoryTypeBits(VkPhysicalDeviceMemoryProperties const & memoryProperties, MemoryHeapType heapType) {
+
+		auto GetVkMemoryPropertyFlags = [] (MemoryHeapType heapType) {
+			VkMemoryPropertyFlags property = 0;
+
+			switch (heapType) {
+				case erhi::MemoryHeapType::Default: {
+					property = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+				} break;
+
+				case erhi::MemoryHeapType::Upload: {
+					property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+				} break;
+
+				case erhi::MemoryHeapType::ReadBack: {
+					property = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+				} break;
+
+				default: break;
+			}
+
+			return property;
+			};
+
+		auto const propertyFlags = GetVkMemoryPropertyFlags(heapType);
+
+		auto memoryTypeBits = 0u;
+
+		for (auto i = 0u; i < memoryProperties.memoryTypeCount; ++i) {
+			if (memoryProperties.memoryTypes[i].propertyFlags == propertyFlags) {
+				memoryTypeBits |= 1 << i;
+			}
+		}
+
+		return memoryTypeBits;
+	}
+
+	VmaAllocationCreateInfo MapHeapType(MemoryHeapType heapType) {
+		VmaAllocationCreateInfo createInfo = {};
+		switch (heapType) {
+			case erhi::MemoryHeapType::Default:
+				createInfo.flags = 0u;
+				createInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+				break;
+			case erhi::MemoryHeapType::Upload:
+				createInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+				createInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+				break;
+			case erhi::MemoryHeapType::ReadBack:
+				createInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+				createInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+				break;
+			default:
+				break;
+		}
+		return createInfo;
+	}
+
+	VkBufferUsageFlags MapBufferUsage(BufferUsageFlags flags) {
+		VkBufferUsageFlags result = 0;
+
+		if (flags & BufferUsageCopySource) result |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		if (flags & BufferUsageCopyTarget) result |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		if ((flags & BufferUsageShaderResource) | (flags & BufferUsageUnorderedAccess)) result |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		if (flags & BufferUsageConstantBuffer) result |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		if (flags & BufferUsageIndexBuffer) result |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		if (flags & BufferUsageVertexBuffer) result |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		// if (flags & BufferUsageShaderAtomic) do nothing;
+
+		return result;
+	}
+
+	VkBufferCreateInfo MapBufferCreateInfo(BufferDesc const & desc) {
+		VkBufferCreateInfo createInfo{
+			.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+			.pNext = nullptr,
+			.flags = 0,
+			.size = desc.size,
+			.usage = MapBufferUsage(desc.usage),
+			.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+			.queueFamilyIndexCount = /* ignored */ 0,
+			.pQueueFamilyIndices = /* ignored */ nullptr
+		};
+
+		// always keep device address available
+		createInfo.usage |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+
+		return createInfo;
+	}
+
+	VkFormat MapFormat(Format format) {
+		switch (format) {
+			case Format::Unknown:
+				return VK_FORMAT_UNDEFINED;
+
+			case Format::R32G32B32A32_Typeless:
+			case Format::R32G32B32A32_Float:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case Format::R32G32B32A32_UInt:
+				return VK_FORMAT_R32G32B32A32_UINT;
+			case Format::R32G32B32A32_SInt:
+				return VK_FORMAT_R32G32B32A32_SINT;
+
+			case Format::R32G32B32_Typeless:
+			case Format::R32G32B32_Float:
+				return VK_FORMAT_R32G32B32_SFLOAT;
+			case Format::R32G32B32_UInt:
+				return VK_FORMAT_R32G32B32_UINT;
+			case Format::R32G32B32_SInt:
+				return VK_FORMAT_R32G32B32_SINT;
+
+			case Format::R16G16B16A16_Typeless:
+			case Format::R16G16B16A16_Float:
+				return VK_FORMAT_R16G16B16A16_SFLOAT;
+			case Format::R16G16B16A16_UNorm:
+				return VK_FORMAT_R16G16B16A16_UNORM;
+			case Format::R16G16B16A16_UInt:
+				return VK_FORMAT_R16G16B16A16_UINT;
+			case Format::R16G16B16A16_SNorm:
+				return VK_FORMAT_R16G16B16A16_SNORM;
+			case Format::R16G16B16A16_SInt:
+				return VK_FORMAT_R16G16B16A16_SINT;
+
+			case Format::R32G32_Typeless:
+			case Format::R32G32_Float:
+				return VK_FORMAT_R32G32_SFLOAT;
+			case Format::R32G32_UInt:
+				return VK_FORMAT_R32G32_UINT;
+			case Format::R32G32_SInt:
+				return VK_FORMAT_R32G32_SINT;
+
+			case Format::R8G8B8A8_Typeless:
+			case Format::R8G8B8A8_UNorm:
+				return VK_FORMAT_R8G8B8A8_UNORM;
+			case Format::R8G8B8A8_UInt:
+				return VK_FORMAT_R8G8B8A8_UINT;
+			case Format::R8G8B8A8_SNorm:
+				return VK_FORMAT_R8G8B8A8_SNORM;
+			case Format::R8G8B8A8_SInt:
+				return VK_FORMAT_R8G8B8A8_SINT;
+
+			case Format::R16G16_Typeless:
+			case Format::R16G16_Float:
+				return VK_FORMAT_R16G16_SFLOAT;
+			case Format::R16G16_UNorm:
+				return VK_FORMAT_R16G16_UNORM;
+			case Format::R16G16_UInt:
+				return VK_FORMAT_R16G16_UINT;
+			case Format::R16G16_SNorm:
+				return VK_FORMAT_R16G16_SNORM;
+			case Format::R16G16_SInt:
+				return VK_FORMAT_R16G16_SINT;
+
+			case Format::R32_Float:
+				return VK_FORMAT_R32_SFLOAT;
+			case Format::R32_UInt:
+				return VK_FORMAT_R32_UINT;
+			case Format::R32_SInt:
+				return VK_FORMAT_R32_SINT;
+
+			case Format::D32_Float:
+				return VK_FORMAT_D32_SFLOAT;
+			case Format::D16_UNorm:
+				return VK_FORMAT_D16_UNORM;
+			case Format::D24_UNorm_S8_UInt:
+				return VK_FORMAT_D24_UNORM_S8_UINT;
+		}
+
+		return VK_FORMAT_UNDEFINED;
+	}
+
+	VkDescriptorType MapDescriptorType(DescriptorType type) {
+		switch (type)
+		{
+			case erhi::DescriptorType::Sampler:
+				return VK_DESCRIPTOR_TYPE_SAMPLER;
+				break;
+			case erhi::DescriptorType::BufferShaderResource:
+				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				break;
+			case erhi::DescriptorType::BufferUnorderedAccess:
+				return VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				break;
+			case erhi::DescriptorType::BufferConstantBuffer:
+				return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				break;
+			case erhi::DescriptorType::TextureShaderResource:
+				return VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+				break;
+			case erhi::DescriptorType::TextureUnorderedAccess:
+				return VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+				break;
+			default:
+				return VK_DESCRIPTOR_TYPE_MAX_ENUM;
+				break;
+		}
+	}
+
+	VkShaderStageFlags MapShaderStageFlags(ShaderStageFlags flags) {
+		VkShaderStageFlags result = 0;
+		if (flags & ShaderStageVertex) result |= VK_SHADER_STAGE_VERTEX_BIT;
+		if (flags & ShaderStagePixel) result |= VK_SHADER_STAGE_FRAGMENT_BIT;
+		if (flags & ShaderStageCompute) result |= VK_SHADER_STAGE_COMPUTE_BIT;
+		if (flags & ShaderStageAllGraphics) result |= VK_SHADER_STAGE_ALL_GRAPHICS;
+		if (flags & ShaderStageAll) result |= VK_SHADER_STAGE_ALL;
+		return result;
 	}
 
 }

@@ -35,6 +35,20 @@ namespace erhi {
 		virtual void DrawInstanced(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) = 0;
 
 		virtual void CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) = 0;
+
+		virtual void CopyDescriptors(
+			uint32_t sizeInBytes,
+			ICPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+			ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+			DescriptorHeapType descriptorHeapsType
+		) = 0;
+
+		virtual void CopyDescriptors(
+			uint32_t sizeInBytes,
+			IGPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+			ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+			DescriptorHeapType descriptorHeapsType
+		) = 0;
 	};
 
 }

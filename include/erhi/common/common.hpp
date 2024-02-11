@@ -115,8 +115,10 @@ namespace erhi {
 		BufferUsageCopyTarget = 0x0000'0002,
 		BufferUsageShaderResource = 0x0000'0004,
 		BufferUsageUnorderedAccess = 0x0000'0008,
-		BufferUsageIndexBuffer = 0x0000'0010,
-		BufferUsageVertexBuffer = 0x0000'0020
+		BufferUsageConstantBuffer = 0x0000'0010,
+		BufferUsageIndexBuffer = 0x0000'0020,
+		BufferUsageVertexBuffer = 0x0000'0040,
+		BufferUsageShaderAtomic = 0x0000'0080
 	};
 
 	using BufferUsageFlags = Flags;
@@ -147,14 +149,22 @@ namespace erhi {
 		 * TextureUsageInputAttachment = 0x0000'0080,
 		 */
 
-		/* It seems that there exists no concepts like "Sampled" and "Storage" in D3D12 at all. */
-		TextureUsageSampling = 0x0000'0004,
-		TextureUsageLoad = 0x0000'0008,
-		TextureUsageStore = 0x0000'0010,
-		TextureUsageAtomic = 0x0000'0020,
+		/* It seems that there exists no concepts like "Sampled" and "Storage" in D3D12 at all.
+		 * A SRV of a texture may be sampled, or have a specific texel fetched.
+		 * An UAV of a texture cannot be sampled, but may load from or store to a texel.
+		 *
+		 * We are corresponding sampled image to SRV, and storage image to UAV.
+		 *
+		 * TextureUsageSampling = TextureUsageShaderResource,
+		 * TextureUsageStorage = TextureUsageUnorderedAccess,
+		 * TextureUsageLoadStoreAtomic = TextureUsageUnorderedAccess,
+		 */
+		TextureUsageShaderResource = 0x0000'0004,
+		TextureUsageUnorderedAccess = 0x0000'0008,
 
-		TextureUsageRenderTarget = 0x0000'0040,
-		TextureUsageDepthStencil = 0x0000'0080
+		TextureUsageRenderTarget = 0x0000'0010,
+		TextureUsageDepthStencil = 0x0000'0020,
+		TextureUsageShaderAtomic = 0x0000'0040
 	};
 
 	using TextureUsageFlags = Flags;
@@ -209,7 +219,9 @@ namespace erhi {
 
 		D32_Float,
 		D16_UNorm,
-		D24_UNorm_S8_UInt
+		D24_UNorm_S8_UInt,
+
+		EnumCount
 	};
 
 	#undef Channel1
@@ -264,20 +276,23 @@ namespace erhi {
 		QueueType initialQueueType;
 	};
 
-	struct BufferShaderResourceViewDesc {
-		Format format;
-		uint32_t strideInBytes;
-		uint64_t offsetInItems;
-		uint64_t countInItems;
+	enum BufferDescriptorFlagBits {
+		BufferDescriptorAllowByteAddressBuffer = 0x0001
 	};
 
-	enum class TextureShaderResourceViewDimension {
+	using BufferDescriptorFlags = Flags;
+
+	struct BufferDescriptorDesc {
+		Format format;
+		uint32_t structureSizeInBytes;
+		uint64_t offsetInElements;
+		uint64_t countInElements;
+		BufferDescriptorFlags flagBits;
+	};
+
+	enum class TextureViewDimension {
 		Texture1D,
-		Texture1DArray,
 		Texture2D,
-		Texture2DArray,
-		Texture2DMS,
-		Texture2DMSArray,
 		Texture3D
 	};
 
@@ -289,13 +304,66 @@ namespace erhi {
 
 	using TextureAspectFlags = Flags;
 
-	struct TextureShaderResourceViewDesc {
-		ITexture * pTexture;
-		TextureShaderResourceViewDimension dimension;
-		TextureAspectFlags aspectFlags;
+	struct TextureViewDesc {
+		TextureViewDimension dimension;
 		Format format;
 		uint32_t mostDetailedMipLevel;
 		uint32_t mipLevelCount;
+		TextureAspectFlagBits aspectFlags;
+	};
+
+	enum class DescriptorHeapType {
+		CBV_SRV_UAV,
+		Sampler
+	};
+
+	struct DescriptorHeapDesc {
+		uint64_t sizeInBytes;
+		DescriptorHeapType type;
+	};
+
+	enum class DescriptorType {
+		Sampler,
+		BufferShaderResource,
+		BufferUnorderedAccess,
+		BufferConstantBuffer,
+		TextureShaderResource,
+		TextureUnorderedAccess
+	};
+
+	enum ShaderStageFlagBits {
+		ShaderStageVertex = 0x0001,
+		ShaderStagePixel = 0x0002,
+		ShaderStageCompute = 0x0004,
+		ShaderStageAllGraphics = ShaderStageVertex | ShaderStagePixel,
+		ShaderStageAll = 0x7FFF'FFFF,
+	};
+
+	using ShaderStageFlags = Flags;
+
+	struct DescriptorSetLayoutBinding {
+		DescriptorType descriptorType;
+		uint32_t descriptorCount;
+		uint32_t registerSpace;
+		uint32_t firstRegister;
+		ShaderStageFlags shaderStageFlags;
+	};
+
+	struct DescriptorSetLayoutDesc {
+		uint32_t bindingCount;
+		DescriptorSetLayoutBinding const * bindings;
+		DescriptorHeapType descriptorHeapType;
+	};
+
+}
+
+
+
+namespace erhi {
+
+	struct GlobalConstants {
+		GlobalConstants();
+		uint32_t FormatSizeInBytes[static_cast<size_t>(Format::EnumCount)];
 	};
 
 }

@@ -58,3 +58,21 @@ namespace erhi::vk {
 #define vkCheckResult(result) if (VkResult r = (result); r != VK_SUCCESS) throw bad_graphics_api_call(vkErrorCode(r), #result, std::source_location::current())
 
 
+
+namespace erhi::vk::mapping {
+
+	[[deprecated]]
+	uint32_t MapHeapTypeToMemoryTypeBits(VkPhysicalDeviceMemoryProperties const & memoryProperties, MemoryHeapType heapType);
+	
+	VmaAllocationCreateInfo MapHeapType(MemoryHeapType heapType);
+
+	VkBufferUsageFlags MapBufferUsage(BufferUsageFlags flags);
+	VkBufferCreateInfo MapBufferCreateInfo(BufferDesc const & desc);
+
+	VkFormat MapFormat(Format format);
+
+	VkDescriptorType MapDescriptorType(DescriptorType type);
+
+	VkShaderStageFlags MapShaderStageFlags(ShaderStageFlags flags);
+
+}

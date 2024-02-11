@@ -52,6 +52,46 @@ namespace erhi::dx12 {
 
 
 
+	void CommandList::CopyDescriptors(
+		uint32_t sizeInBytes,
+		ICPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+		ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+		DescriptorHeapType descriptorHeapsType) {
+
+		auto dst = dynamic_cast<CPUDescriptorHeapHandle>(dstHeap);
+		auto src = dynamic_cast<CPUDescriptorHeapHandle>(srcHeap);
+
+		assert(dst->mDesc.type == src->mDesc.type);
+
+		mpPool->mpDevice->mpDevice->CopyDescriptorsSimple(
+			sizeInBytes / dst->mDescriptorSizeInBytes,
+			dst->CPUDescriptorHandleAt(dstOffsetInBytes),
+			src->CPUDescriptorHandleAt(srcOffsetInBytes),
+			MapDescriptorHeapType(descriptorHeapsType)
+		);
+	}
+
+	void CommandList::CopyDescriptors(
+		uint32_t sizeInBytes,
+		IGPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+		ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+		DescriptorHeapType descriptorHeapsType) {
+
+		auto dst = dynamic_cast<CPUDescriptorHeapHandle>(dstHeap);
+		auto src = dynamic_cast<GPUDescriptorHeapHandle>(srcHeap);
+
+		assert(dst->mDesc.type == src->mDesc.type);
+
+		mpPool->mpDevice->mpDevice->CopyDescriptorsSimple(
+			sizeInBytes / dst->mDescriptorSizeInBytes,
+			dst->CPUDescriptorHandleAt(dstOffsetInBytes),
+			src->CPUDescriptorHandleAt(srcOffsetInBytes),
+			MapDescriptorHeapType(descriptorHeapsType)
+		);
+	}
+
+
+
 	TypedCommandPool::TypedCommandPool(Device * pDevice, D3D12_COMMAND_LIST_TYPE commandListType) : mpDevice(pDevice), mCommandListType(commandListType) {
 		D3D12CheckResult(pDevice->mpDevice->CreateCommandAllocator(commandListType, IID_PPV_ARGS(mpCommandAllocator.GetAddressOf())));
 	}

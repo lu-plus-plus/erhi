@@ -1,6 +1,7 @@
 #include "erhi/vulkan/command/command.hpp"
 #include "erhi/vulkan/context/device.hpp"
-#include "erhi/vulkan/resource/memory.hpp"
+#include "erhi/vulkan/resource/resource.hpp"
+
 
 
 namespace erhi::vk {
@@ -131,13 +132,41 @@ namespace erhi::vk {
 		vkCmdDraw(mCommandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
 	}
 
-	void CommandList::CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) {
+	void CommandList::CopyBuffer(VkBuffer dst, uint64_t dstOffset, VkBuffer src, uint64_t srcOffset, uint64_t numBytes) {
 		VkBufferCopy const copy{
 			.srcOffset = srcOffset,
 			.dstOffset = dstOffset,
 			.size = numBytes
 		};
-		vkCmdCopyBuffer(mCommandBuffer, dynamic_cast<Buffer *>(src)->mBuffer, dynamic_cast<Buffer *>(dst)->mBuffer, 1, &copy);
+		vkCmdCopyBuffer(mCommandBuffer, src, dst, 1, &copy);
+	}
+
+	void CommandList::CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) {
+		CopyBuffer(dynamic_cast<Buffer *>(dst)->mBuffer, dstOffset, dynamic_cast<Buffer *>(src)->mBuffer, srcOffset, numBytes);
+	}
+
+	void CommandList::CopyDescriptors(
+		uint32_t sizeInBytes,
+		ICPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+		ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+		DescriptorHeapType descriptorHeapsType) {
+
+		auto dst = dynamic_cast<CPUDescriptorHeapHandle>(dstHeap);
+		auto src = dynamic_cast<CPUDescriptorHeapHandle>(srcHeap);
+
+		CopyBuffer(dst->mDescriptorBuffer, dstOffsetInBytes, src->mDescriptorBuffer, srcOffsetInBytes, sizeInBytes);
+	}
+
+	void CommandList::CopyDescriptors(
+		uint32_t sizeInBytes,
+		IGPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+		ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+		DescriptorHeapType descriptorHeapsType) {
+
+		auto dst = dynamic_cast<GPUDescriptorHeapHandle>(dstHeap);
+		auto src = dynamic_cast<CPUDescriptorHeapHandle>(srcHeap);
+
+		CopyBuffer(dst->mDescriptorBuffer, dstOffsetInBytes, src->mDescriptorBuffer, srcOffsetInBytes, sizeInBytes);
 	}
 
 }

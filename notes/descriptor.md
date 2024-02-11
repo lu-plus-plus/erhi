@@ -53,3 +53,25 @@ Creating a linear allocation description on heap is not a problem.
 Q: Is raw device memory from graphics API needed? VMA said that it's not commended, and usually not needed. But how do we allocated memory in multiple memory aliasing, say, frame graph?
 
 A: In section `memory aliasing`, `vmaAllocateMemory` is used, though convenient functions like aliasing buffer creation exist.
+
+## Texture Descriptor
+
+In D3D12, except RTV and DSV which are treated separately, texture descriptors include SRV and UAV. 
+
+In Vulkan, there is no single "view" for a texture. An image view must be created on an image first, and then a descriptor is created with both image view and image layout as arguments.
+
+The key difference at here is the image layout required only in Vulkan.
+However, for a usual texture used in shader, there are only several layouts that make sense: VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL.
+The difference between these layout roughly matches that of SRV and UAV.
+
+There is a separation between image layout and image view in Vulkan, yet they are fused together as SRV or UAV in D3D12.
+It seems that, it can be more efficient to cache VkImageViews for each VkImage, and reuse them whenever possible.
+But it needs a hash table, at least a vector, to store the cached VkImageViews - is it worth the cost?
+
+It's a little vague whether a resource' dimension may be reinterpreted or not - in SRV it cannot, but in UAV it's unclear.
+Nevertheless, We're not going to support it.
+
+So actually, what's left is only aspect (which is excluded as it's more like the difference between RTV/DSV and other views),
+format, and mipmap levels - starting level and level count.
+
+A 64-bit integer is already sufficient for that, though it does not make real difference if it's a little longer.

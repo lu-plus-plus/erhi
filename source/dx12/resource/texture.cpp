@@ -118,7 +118,7 @@ namespace erhi::dx12 {
 	D3D12_RESOURCE_FLAGS MapTextureUsageFlags(TextureUsageFlags flags) {
 		D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
 
-		if (flags & TextureUsageStore) {
+		if (flags & TextureUsageUnorderedAccess) {
 			result |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		}
 		if (flags & TextureUsageRenderTarget) {
@@ -126,7 +126,7 @@ namespace erhi::dx12 {
 		}
 		if (flags & TextureUsageDepthStencil) {
 			result |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-			if (not (flags & (TextureUsageLoad | TextureUsageSampling))) {
+			if (not (flags & TextureUsageShaderResource)) {
 				result |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 			}
 		}

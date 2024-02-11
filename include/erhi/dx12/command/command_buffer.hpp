@@ -30,6 +30,20 @@ namespace erhi::dx12 {
 		virtual void DrawInstanced(uint32_t vertexCount, uint32_t instanceCount, uint32_t firstVertex, uint32_t firstInstance) override;
 
 		virtual void CopyBuffer(IBuffer * dst, uint64_t dstOffset, IBuffer * src, uint64_t srcOffset, uint64_t numBytes) override;
+
+		virtual void CopyDescriptors(
+			uint32_t sizeInBytes,
+			ICPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+			ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+			DescriptorHeapType descriptorHeapsType
+		) override;
+
+		virtual void CopyDescriptors(
+			uint32_t sizeInBytes,
+			IGPUDescriptorHeapHandle dstHeap, uint64_t dstOffsetInBytes,
+			ICPUDescriptorHeapHandle srcHeap, uint64_t srcOffsetInBytes,
+			DescriptorHeapType descriptorHeapsType
+		) override;
 	};
 
 	struct TypedCommandPool {

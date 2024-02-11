@@ -15,4 +15,6 @@ namespace erhi::dx12 {
 		virtual ~Texture() override;
 	};
 
+	DXGI_FORMAT MapFormat(Format format);
+
 }

@@ -16,3 +16,6 @@
 [submodule "packages/dxc"]
 	path = packages/dxc
 	url = git@github.com:lu-plus-plus/dxc.git
+[submodule "packages/DirectX-Headers"]
+	path = packages/DirectX-Headers
+	url = https://github.com/microsoft/DirectX-Headers.git

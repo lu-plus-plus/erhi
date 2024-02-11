@@ -4,6 +4,9 @@
 	#define NOMINMAX
 #endif
 
+// always include it before other graphics headers to avoid possible conflict with headers from Windows SDK
+#include "directx/d3dx12.h"		// D3D12 Helpers
+
 #include <wrl/client.h>			// ComPtr
 #include <dxgi1_6.h>			// DXGI
 #include <d3d12.h>				// D3D12

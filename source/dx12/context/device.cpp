@@ -126,9 +126,13 @@ namespace erhi::dx12 {
 		mpMessageCallback.reset();
 	}
 
-	Device::operator ID3D12DeviceLatest &() const
+	Device::operator ID3D12DeviceLatest &() const &
 	{
 		return *mpDevice.Get();
+	}
+
+	UINT Device::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE descriptorHeapType) const & {
+		return mLookUpTable_descriptorHandleIncrementSize[descriptorHeapType];
 	}
 
 }
