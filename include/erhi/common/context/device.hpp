@@ -16,6 +16,8 @@ namespace erhi {
 
 		virtual IMessageCallback &			Log() const;
 
+		virtual IWindowHandle				CreateNewWindow(WindowDesc const & desc) = 0;
+
 		virtual IQueueHandle				SelectQueue(QueueType queueType) = 0;
 		virtual ICommandPoolHandle			CreateCommandPool(CommandPoolDesc const & desc) = 0;
 

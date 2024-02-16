@@ -25,6 +25,17 @@ namespace erhi::vk {
 		mCopyQueueFamilyIndex(std::numeric_limits<uint32_t>::max()),
 		mAllocator(VK_NULL_HANDLE) {
 
+		// GLFW as Window System Interface
+
+		if (GLFW_FALSE == glfwInit()) {
+			throw std::runtime_error("failed to initialize the GLFW library");
+		}
+
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
+		// Vulkan loader
+
 		vkCheckResult(volkInitialize());
 
 		// layers
@@ -86,6 +97,11 @@ namespace erhi::vk {
 			pEnabledExtensionNames.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			instanceCreateInfoPNext = &debugUtilsMessengerCreateInfo;
 		}
+
+		uint32_t glfwExtensionCount = 0;
+		char const * * glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		for (uint32_t i = 0; i < glfwExtensionCount; ++i)
+			pEnabledExtensionNames.push_back(glfwExtensions[i]);
 
 		VkInstanceCreateInfo instanceCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -213,9 +229,9 @@ namespace erhi::vk {
 
 		vkCheckResult(vkCreateDevice(*mpPhysicalDevice, &deviceCreateInfo, nullptr, &mDevice));
 
-		mPrimaryQueue = std::make_unique<Queue>(mDevice, QueueType::Primary, mGraphicsQueueFamilyIndex);
-		mAsyncComputeQueue = std::make_unique<Queue>(mDevice, QueueType::AsyncCompute, mComputeQueueFamilyIndex);
-		mAsyncCopyQueue = std::make_unique<Queue>(mDevice, QueueType::AsyncCopy, mCopyQueueFamilyIndex);
+		mPrimaryQueue = std::make_shared<Queue>(mDevice, QueueType::Primary, mGraphicsQueueFamilyIndex);
+		mAsyncComputeQueue = std::make_shared<Queue>(mDevice, QueueType::AsyncCompute, mComputeQueueFamilyIndex);
+		mAsyncCopyQueue = std::make_shared<Queue>(mDevice, QueueType::AsyncCopy, mCopyQueueFamilyIndex);
 
 		// create Vulkan memory allocator
 
@@ -270,6 +286,14 @@ namespace erhi::vk {
 			vkDestroyDebugUtilsMessengerEXT(mInstance, mDebugUtilsMessenger, nullptr);
 		}
 		vkDestroyInstance(mInstance, nullptr);
+
+		// Vulkan loader
+
+		volkFinalize();
+
+		// GLFW
+
+		glfwTerminate();
 	}
 
 

@@ -355,6 +355,23 @@ namespace erhi {
 		DescriptorHeapType descriptorHeapType;
 	};
 
+
+
+	// module: present
+
+	struct IWindowMessageCallback {
+		virtual void OnRender();
+	};
+
+	struct WindowDesc {
+		uint32_t width;
+		uint32_t height;
+		uint32_t left;
+		uint32_t top;
+		char const * windowName;
+		IWindowMessageCallback pMessageCallback;
+	};
+
 }
 
 

@@ -53,4 +53,8 @@ namespace erhi {
 		}
 	}
 
+
+
+	void IWindowMessageCallback::OnRender() {}
+
 }

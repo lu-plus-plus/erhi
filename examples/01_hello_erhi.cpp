@@ -2,6 +2,7 @@
 
 #include "erhi/common/common.hpp"
 #include "erhi/common/context/context.hpp"
+#include "erhi/common/present/present.hpp"
 #include "erhi/common/command/command.hpp"
 #include "erhi/common/resource/resource.hpp"
 #include "erhi/common/utility/stream_message_callback.hpp"
@@ -11,9 +12,14 @@ namespace backend = vk;
 
 
 
+struct WindowMessageCallback : IWindowMessageCallback
+{
+	void OnRender() override {}
+};
+
 void hello_erhi() {
 	auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Warning);
-
+	
 	DeviceDesc deviceDesc = {
 		.enableDebug = true,
 		.physicalDevicePreference = PhysicalDevicePreference::HighPerformance,
@@ -21,7 +27,18 @@ void hello_erhi() {
 
 	auto device = backend::CreateDevice(deviceDesc, pMessageCallback);
 
-	auto primaryQueue = device->SelectQueue(QueueType::Primary);
+	WindowDesc windowDesc = {
+		.width = 1920,
+		.height = 1080,
+		.left = 64,
+		.top = 64,
+		.windowName = "hello eRHI",
+		.pMessageCallback = WindowMessageCallback()
+	};
+	
+	auto window = device->CreateNewWindow(windowDesc);
+
+ 	auto primaryQueue = device->SelectQueue(QueueType::Primary);
 
 	auto vertexBufferDesc = BufferDesc{
 		.usage = BufferUsageCopyTarget | BufferUsageVertexBuffer,
@@ -87,6 +104,7 @@ void hello_erhi() {
 	delete depthTexture;
 	delete renderTarget;
 	delete vertexBuffer;
+	delete window;
 	delete device;
 }
 

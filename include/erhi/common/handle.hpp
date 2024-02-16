@@ -36,6 +36,8 @@ namespace erhi {
 	DeclareHandle(TextureShaderResourceView);
 	DeclareHandle(TextureUnorderedAccessView);
 
+	DeclareHandle(Window);
+
 	#undef DeclareHandle
 
 }

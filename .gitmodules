@@ -19,3 +19,6 @@
 [submodule "packages/DirectX-Headers"]
 	path = packages/DirectX-Headers
 	url = https://github.com/microsoft/DirectX-Headers.git
+[submodule "packages/glfw"]
+	path = packages/glfw
+	url = https://github.com/glfw/glfw.git

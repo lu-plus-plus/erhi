@@ -50,6 +50,7 @@ function(add_file_group group_name group_root group_prefix file_expr)
 		# modules
 		${group_root}/context/*${file_postfix}
 		${group_root}/resource/*${file_postfix}
+		${group_root}/present/*${file_postfix}
 		${group_root}/command/*${file_postfix}
 
 		# miscellaneous
@@ -99,12 +100,21 @@ add_subdirectory(${erhi_package_dir}/volk EXCLUDE_FROM_ALL)
 
 add_subdirectory(${erhi_package_dir}/VulkanMemoryAllocator EXCLUDE_FROM_ALL)
 
+# import GLFW
+
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(${erhi_package_dir}/glfw EXCLUDE_FROM_ALL)
+
 # set up dependencies
 
 target_link_libraries(erhi_vulkan
 	PRIVATE erhi_abstract_interface
 	PRIVATE volk
 	PRIVATE VulkanMemoryAllocator
+	PRIVATE glfw
 )
 
 

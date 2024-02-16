@@ -33,6 +33,8 @@ namespace erhi::dx12 {
 
 		operator ID3D12DeviceLatest &() const &;
 
+		virtual IWindowHandle				CreateNewWindow(WindowDesc const & desc) override;
+
 		virtual IQueueHandle				SelectQueue(QueueType queueType) override;
 		virtual ICommandPoolHandle			CreateCommandPool(CommandPoolDesc const & desc) override;
 
