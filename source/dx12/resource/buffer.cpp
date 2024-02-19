@@ -46,7 +46,7 @@ namespace erhi::dx12 {
 
 	Buffer::Buffer(Device * pDevice, MemoryHeapType heapType, BufferDesc const & desc) : IBuffer(desc), mpAllocation(nullptr), mpResource(nullptr) {
 		D3D12MA::ALLOCATION_DESC allocationDesc = {};
-		allocationDesc.HeapType = MapMemoryHeapType(heapType);
+		allocationDesc.HeapType = mapping::MapMemoryHeapType(heapType);
 
 		auto const resourceDesc = GetD3D12ResourceDesc(desc);
 

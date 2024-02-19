@@ -12,10 +12,17 @@ namespace erhi::vk
 	struct Window : IWindow {
 		Device * mpDevice;
 		GLFWwindow * mpWindow;
+
 		VkSurfaceKHR mSurface;
+		VkSurfaceCapabilitiesKHR mSurfaceCapabilities;
+		std::vector<VkSurfaceFormatKHR> mSurfaceFormats;
+		std::vector<VkPresentModeKHR> mSurfacePresentModes;
+
 		std::shared_ptr<Queue> mPresentQueue;
 
 		Window(DeviceHandle pDevice, WindowDesc const & desc);
 		virtual ~Window() override;
+
+		virtual ISwapChainHandle CreateSwapChain(SwapChainDesc const & desc) override;
 	};
 }

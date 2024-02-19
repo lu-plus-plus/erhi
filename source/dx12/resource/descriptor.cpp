@@ -71,7 +71,7 @@ namespace erhi::dx12 {
 		assert(not(desc.format != Format::Unknown and desc.structureSizeInBytes != 0));
 
 		D3D12_SHADER_RESOURCE_VIEW_DESC const srvDesc{
-			.Format = MapFormat(desc.format),
+			.Format = mapping::MapFormat(desc.format),
 			.ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
 			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 			.Buffer = D3D12_BUFFER_SRV{
@@ -93,7 +93,7 @@ namespace erhi::dx12 {
 		assert(not(desc.format != Format::Unknown and desc.structureSizeInBytes != 0));
 		
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {
-			.Format = MapFormat(desc.format),
+			.Format = mapping::MapFormat(desc.format),
 			.ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
 			.Buffer = D3D12_BUFFER_UAV{
 				.FirstElement = desc.offsetInElements,
@@ -127,7 +127,7 @@ namespace erhi::dx12 {
 		TextureView & textureView = *dynamic_cast<TextureViewHandle>(pTextureView);
 		
 		D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{
-			.Format = MapFormat(textureView.mDesc.format),
+			.Format = mapping::MapFormat(textureView.mDesc.format),
 			.ViewDimension = MapSRVDimension(textureView.mDesc.dimension),
 			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING
 		};
@@ -169,7 +169,7 @@ namespace erhi::dx12 {
 		TextureView & textureView = *dynamic_cast<TextureViewHandle>(pTextureView);
 
 		D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc{
-			.Format = MapFormat(textureView.mDesc.format),
+			.Format = mapping::MapFormat(textureView.mDesc.format),
 			.ViewDimension = MapUAVDimension(textureView.mDesc.dimension)
 		};
 

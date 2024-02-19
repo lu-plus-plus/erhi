@@ -202,6 +202,10 @@ namespace erhi::vk {
 		}
 		queueCreateInfos.push_back(GetDeviceQueueCreateInfo(mCopyQueueFamilyIndex));
 
+		std::vector<char const *> const enabledDeviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
+
 		VkDeviceCreateInfo deviceCreateInfo{
 			.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
 			.pNext = nullptr,
@@ -210,8 +214,8 @@ namespace erhi::vk {
 			.pQueueCreateInfos = queueCreateInfos.data(),
 			.enabledLayerCount = 0,
 			.ppEnabledLayerNames = nullptr,
-			.enabledExtensionCount = 0,
-			.ppEnabledExtensionNames = nullptr,
+			.enabledExtensionCount = uint32_t(enabledDeviceExtensions.size()),
+			.ppEnabledExtensionNames = enabledDeviceExtensions.data(),
 			.pEnabledFeatures = nullptr
 		};
 

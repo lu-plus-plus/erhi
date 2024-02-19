@@ -5,10 +5,11 @@
 #include "erhi/common/present/present.hpp"
 #include "erhi/common/command/command.hpp"
 #include "erhi/common/resource/resource.hpp"
+
 #include "erhi/common/utility/stream_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = vk;
+namespace backend = dx12;
 
 
 
@@ -37,6 +38,15 @@ void hello_erhi() {
 	};
 	
 	auto window = device->CreateNewWindow(windowDesc);
+
+	SwapChainDesc swapChainDesc = {
+		.pWindow = window,
+		.format = Format::B8G8R8A8_UNorm,
+		.bufferCount = 3,
+		.usageFlags = TextureUsageRenderTarget
+	};
+
+	auto swapChain = window->CreateSwapChain(swapChainDesc);
 
  	auto primaryQueue = device->SelectQueue(QueueType::Primary);
 
@@ -104,6 +114,7 @@ void hello_erhi() {
 	delete depthTexture;
 	delete renderTarget;
 	delete vertexBuffer;
+	delete swapChain;
 	delete window;
 	delete device;
 }
@@ -115,7 +126,7 @@ int main() {
 		hello_erhi();
 	}
 	catch (std::exception const & e) {
-		std::cout << e.what();
+		std::cout << e.what() << '\n';
 		std::cout << "TERMINATED on exception.\n";
 		std::terminate();
 	}

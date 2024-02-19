@@ -11,5 +11,7 @@ namespace erhi
 
 		IWindow(WindowDesc const & desc);
 		virtual ~IWindow() = 0;
+
+		virtual ISwapChainHandle CreateSwapChain(SwapChainDesc const & desc) = 0;
 	};
 }

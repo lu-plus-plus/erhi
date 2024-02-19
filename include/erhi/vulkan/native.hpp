@@ -74,5 +74,13 @@ namespace erhi::vk::mapping {
 	VkDescriptorType MapDescriptorType(DescriptorType type);
 
 	VkShaderStageFlags MapShaderStageFlags(ShaderStageFlags flags);
+	VkPipelineBindPoint MapPipelineBindPoint(PipelineBindPoint bindPoint);
+
+	VkSampleCountFlagBits MapTextureSampleCount(TextureSampleCount sampleCount);
+	VkImageUsageFlags MapTextureUsage(TextureUsageFlags flags);
+	VkImageLayout MapTextureLayout(TextureLayout layout);
+
+	VkAttachmentLoadOp MapAttachmentLoadOp(AttachmentLoadOp loadOp);
+	VkAttachmentStoreOp MapAttachmentStoreOp(AttachmentStoreOp storeOp);
 
 }

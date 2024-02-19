@@ -206,6 +206,9 @@ namespace erhi {
 		Channel4(R, G, B, A, 8, SNorm),
 		Channel4(R, G, B, A, 8, SInt),
 
+		Channel4(B, G, R, A, 8, UNorm),
+		Channel4(B, G, R, A, 8, UNormSRGB),
+
 		Channel2(R, G, 16, Typeless),
 		Channel2(R, G, 16, Float),
 		Channel2(R, G, 16, UNorm),
@@ -355,6 +358,50 @@ namespace erhi {
 		DescriptorHeapType descriptorHeapType;
 	};
 
+	enum class PipelineBindPoint {
+		Graphics,
+		Compute
+	};
+
+	enum class AttachmentLoadOp {
+		Load,
+		Clear,
+		DoNotCare
+	};
+
+	enum class AttachmentStoreOp {
+		Store,
+		DoNotCare
+	};
+
+	struct AttachmentDesc {
+		Format format;
+		TextureSampleCount sampleCount;
+		AttachmentLoadOp loadOp;
+		AttachmentStoreOp storeOp;
+		AttachmentLoadOp stencilLoadOp;
+		AttachmentStoreOp stencilStoreOp;
+		TextureLayout initialLayout;
+		TextureLayout subpassLayout;
+		TextureLayout finalLayout;
+	};
+
+	struct RenderPassDesc {
+		PipelineBindPoint pipelineBindPoint;
+		uint32_t renderTargetAttachmentCount;
+		AttachmentDesc const * renderTargetAttachments;
+		AttachmentDesc const * resolveAttachments;
+		AttachmentDesc const * pDepthStencilAttachment;
+	};
+
+	struct FrameBufferDesc {
+		IRenderPassHandle pRenderPass;
+		uint32_t attachmentCount;
+		ITextureView const * attachments;
+		uint32_t width;
+		uint32_t height;
+	};
+
 
 
 	// module: present
@@ -370,6 +417,13 @@ namespace erhi {
 		uint32_t top;
 		char const * windowName;
 		IWindowMessageCallback pMessageCallback;
+	};
+
+	struct SwapChainDesc {
+		IWindowHandle pWindow;
+		Format format;
+		uint32_t bufferCount;
+		TextureUsageFlags usageFlags;
 	};
 
 }

@@ -186,6 +186,11 @@ namespace erhi::vk::mapping {
 			case Format::R8G8B8A8_SInt:
 				return VK_FORMAT_R8G8B8A8_SINT;
 
+			case Format::B8G8R8A8_UNorm:
+				return VK_FORMAT_B8G8R8A8_UNORM;
+			case Format::B8G8R8A8_UNormSRGB:
+				return VK_FORMAT_B8G8R8A8_SRGB;
+
 			case Format::R16G16_Typeless:
 			case Format::R16G16_Float:
 				return VK_FORMAT_R16G16_SFLOAT;
@@ -251,6 +256,95 @@ namespace erhi::vk::mapping {
 		if (flags & ShaderStageAllGraphics) result |= VK_SHADER_STAGE_ALL_GRAPHICS;
 		if (flags & ShaderStageAll) result |= VK_SHADER_STAGE_ALL;
 		return result;
+	}
+
+	VkSampleCountFlagBits MapTextureSampleCount(TextureSampleCount sampleCount) {
+		return static_cast<VkSampleCountFlagBits>(1u << static_cast<uint32_t>(sampleCount));
+	}
+
+	VkImageUsageFlags MapTextureUsage(TextureUsageFlags flags) {
+		VkImageUsageFlags result = 0u;
+		if (flags & TextureUsageCopySource) {
+			result |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		}
+		if (flags & TextureUsageCopyTarget) {
+			result |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+		}
+		if (flags & TextureUsageShaderResource) {
+			result |= VK_IMAGE_USAGE_SAMPLED_BIT;
+		}
+		if (flags & (TextureUsageUnorderedAccess | TextureUsageShaderAtomic)) {
+			result |= VK_IMAGE_USAGE_STORAGE_BIT;
+		}
+		if (flags & TextureUsageRenderTarget) {
+			result |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		}
+		if (flags & TextureUsageDepthStencil) {
+			result |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		}
+		return result;
+	}
+
+	VkImageLayout MapTextureLayout(TextureLayout layout) {
+		switch (layout) {
+			case TextureLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+			case TextureLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;
+			case TextureLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			case TextureLayout::ShaderResource: {
+				return VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
+			}
+			case TextureLayout::UnorderedAccess: {
+				return VK_IMAGE_LAYOUT_GENERAL;
+			}
+			case TextureLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			case TextureLayout::DepthStencilWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+			case TextureLayout::DepthStencilRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			case TextureLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+			case TextureLayout::CopyTarget: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+		}
+		return VK_IMAGE_LAYOUT_UNDEFINED;
+	}
+
+	VkAttachmentLoadOp MapAttachmentLoadOp(AttachmentLoadOp loadOp) {
+		switch (loadOp)
+		{
+			case erhi::AttachmentLoadOp::Load:
+				return VK_ATTACHMENT_LOAD_OP_LOAD;
+				break;
+			case erhi::AttachmentLoadOp::Clear:
+				return VK_ATTACHMENT_LOAD_OP_CLEAR;
+				break;
+			case erhi::AttachmentLoadOp::DoNotCare:
+			default:
+				return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				break;
+		}
+	}
+
+	VkAttachmentStoreOp MapAttachmentStoreOp(AttachmentStoreOp storeOp) {
+		switch (storeOp)
+		{
+			case erhi::AttachmentStoreOp::Store:
+				return VK_ATTACHMENT_STORE_OP_STORE;
+				break;
+			case erhi::AttachmentStoreOp::DoNotCare:
+			default:
+				return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				break;
+		}
+	}
+
+	VkPipelineBindPoint MapPipelineBindPoint(PipelineBindPoint bindPoint) {
+		switch (bindPoint)
+		{
+			case erhi::PipelineBindPoint::Graphics:
+			default:
+				return VK_PIPELINE_BIND_POINT_GRAPHICS;
+				break;
+			case erhi::PipelineBindPoint::Compute:
+				return VK_PIPELINE_BIND_POINT_COMPUTE;
+				break;
+		}
 	}
 
 }

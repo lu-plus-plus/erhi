@@ -9,13 +9,14 @@
 namespace erhi::dx12
 {
 	struct Window : IWindow {
-		std::shared_ptr<IMessageCallback> mpMessageCallback;
-
+		DeviceHandle mpDevice;
 		WNDCLASSEXA mWindowClassInfo;
 		ATOM mWindowClassAtom;
 		HWND mWindowHandle;
 
-		Window(WindowDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
+		Window(DeviceHandle pDevice, WindowDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback);
 		virtual ~Window() override;
+
+		virtual ISwapChainHandle CreateSwapChain(SwapChainDesc const & desc) override;
 	};
 }

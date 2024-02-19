@@ -36,7 +36,11 @@ namespace erhi {
 	DeclareHandle(TextureShaderResourceView);
 	DeclareHandle(TextureUnorderedAccessView);
 
+	DeclareHandle(RenderPass);
+	DeclareHandle(FrameBuffer);
+
 	DeclareHandle(Window);
+	DeclareHandle(SwapChain);
 
 	#undef DeclareHandle
 

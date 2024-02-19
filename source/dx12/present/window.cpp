@@ -1,5 +1,6 @@
-#include "erhi/dx12/present/window.hpp"
+#include "erhi/dx12/present/present.hpp"
 #include "erhi/dx12/context/context.hpp"
+#include "erhi/dx12/command/command.hpp"
 
 #include <format>
 
@@ -9,9 +10,10 @@ namespace erhi::dx12
 {
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-	Window::Window(WindowDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) :
-		IWindow(desc), mpMessageCallback(std::move(pMessageCallback)),
-		mWindowClassInfo(), mWindowClassAtom(0), mWindowHandle(nullptr) {
+
+
+	Window::Window(DeviceHandle pDevice, WindowDesc const & desc, std::shared_ptr<IMessageCallback> pMessageCallback) :
+		IWindow(desc), mpDevice(pDevice), mWindowClassInfo(), mWindowClassAtom(0), mWindowHandle(nullptr) {
 		
 		mWindowClassInfo = WNDCLASSEXA{
 			.cbSize = sizeof(WNDCLASSEX),
@@ -58,20 +60,24 @@ namespace erhi::dx12
 	Window::~Window() {
 		if (mWindowHandle) {
 			if (0 == DestroyWindow(mWindowHandle)) {
-				if (mpMessageCallback)
-					mpMessageCallback->Error(std::format("fatal error in destroying window '{}'", mInitDesc.windowName));
+				mpDevice->mpMessageCallback->Error(std::format("fatal error in destroying window '{}'", mInitDesc.windowName));
 				std::exit(EXIT_FAILURE);
 			}
 		}
 
 		if (mWindowClassAtom) {
 			if (0 == UnregisterClassA(mWindowClassInfo.lpszClassName, mWindowClassInfo.hInstance)) {
-				if (mpMessageCallback)
-					mpMessageCallback->Error(std::format("fatal error in unregistering window class '{}'", mWindowClassInfo.lpszClassName));
+				mpDevice->mpMessageCallback->Error(std::format("fatal error in unregistering window class '{}'", mWindowClassInfo.lpszClassName));
 				std::exit(EXIT_FAILURE);
 			}
 		}
 	}
+
+	IWindowHandle Device::CreateNewWindow(WindowDesc const & desc) {
+		return new Window(this, desc, mpMessageCallback);
+	}
+
+
 
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
@@ -96,7 +102,10 @@ namespace erhi::dx12
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 
-	IWindowHandle Device::CreateNewWindow(WindowDesc const & desc) {
-		return new Window(desc, mpMessageCallback);
+
+
+	ISwapChainHandle Window::CreateSwapChain(SwapChainDesc const & desc) {
+		return new SwapChain(mpDevice, this, desc);
 	}
+
 }

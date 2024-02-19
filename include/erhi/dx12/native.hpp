@@ -31,6 +31,8 @@ namespace erhi::dx12 {
 
 	using ID3D12GraphicsCommandListLatest = ID3D12GraphicsCommandList7;
 
+	using IDXGISwapChainLatest = IDXGISwapChain4;
+
 	char const * ErrorCode(HRESULT result);
 
 	void ThrowOnError(HRESULT result, char const * statement, std::source_location const location = std::source_location::current());
@@ -41,3 +43,13 @@ namespace erhi::dx12 {
 #define D3D12CheckResult(stat) if (HRESULT result = (stat); result != S_OK) erhi::dx12::ThrowOnError(result, #stat, std::source_location::current())
 
 #define D3D12ExitOnError(stat) if (HRESULT result = (stat); result != S_OK) erhi::dx12::ExitOnError(result, #stat, std::source_location::current())
+
+
+
+namespace erhi::dx12::mapping {
+
+	D3D12_HEAP_TYPE MapMemoryHeapType(MemoryHeapType heapType);
+
+	DXGI_FORMAT MapFormat(Format format);
+
+}

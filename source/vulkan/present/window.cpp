@@ -1,6 +1,13 @@
 #include "erhi/vulkan/context/context.hpp"
 #include "erhi/vulkan/command/command.hpp"
-#include "erhi/vulkan/present/window.hpp"
+#include "erhi/vulkan/present/present.hpp"
+
+#include <format>
+#include <algorithm>
+
+#include "magic_enum.hpp"
+
+
 
 namespace erhi::vk
 {
@@ -11,6 +18,30 @@ namespace erhi::vk
 		}
 
 		vkCheckResult(glfwCreateWindowSurface(pDevice->mInstance, mpWindow, nullptr, &mSurface));
+
+		vkCheckResult(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*mpDevice->mpPhysicalDevice, mSurface, &mSurfaceCapabilities));
+
+		// format and color space support
+
+		uint32_t formatCount;
+		vkCheckResult(vkGetPhysicalDeviceSurfaceFormatsKHR(*mpDevice->mpPhysicalDevice, mSurface, &formatCount, nullptr));
+
+		if (formatCount != 0) {
+			mSurfaceFormats.resize(formatCount);
+			vkCheckResult(vkGetPhysicalDeviceSurfaceFormatsKHR(*mpDevice->mpPhysicalDevice, mSurface, &formatCount, mSurfaceFormats.data()));
+		}
+
+		// present mode
+
+		uint32_t presentModeCount;
+		vkCheckResult(vkGetPhysicalDeviceSurfacePresentModesKHR(*mpDevice->mpPhysicalDevice, mSurface, &presentModeCount, nullptr));
+
+		if (presentModeCount != 0) {
+			mSurfacePresentModes.resize(presentModeCount);
+			vkCheckResult(vkGetPhysicalDeviceSurfacePresentModesKHR(*mpDevice->mpPhysicalDevice, mSurface, &presentModeCount, mSurfacePresentModes.data()));
+		}
+		
+		// present queue
 
 		auto GetSurfaceSupport = [&] (uint32_t queueFamilyIndex) -> bool {
 			VkBool32 supported = false;
@@ -34,4 +65,11 @@ namespace erhi::vk
 	IWindowHandle Device::CreateNewWindow(WindowDesc const & desc) {
 		return new Window(this, desc);
 	}
+
+
+
+	ISwapChainHandle Window::CreateSwapChain(SwapChainDesc const & desc) {
+		return new SwapChain(mpDevice, this, desc);
+	}
+
 }
