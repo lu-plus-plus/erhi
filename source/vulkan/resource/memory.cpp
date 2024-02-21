@@ -60,14 +60,18 @@ namespace erhi::vk {
 
 
 
-	Texture::Texture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & textureDesc) : ITexture(textureDesc), mpDevice(pDevice), mAllocation(VK_NULL_HANDLE), mImage(VK_NULL_HANDLE) {
+	Texture::Texture(DeviceHandle pDevice, MemoryHeapType heapType, TextureDesc const & textureDesc) : ITexture(textureDesc), mpDevice(pDevice), mAllocation(VK_NULL_HANDLE), mImage(VK_NULL_HANDLE) {
 		VkImageCreateInfo const imageCreate = GetImageCreateInfo(textureDesc);
 		VmaAllocationCreateInfo const allocationCreate = mapping::MapHeapType(heapType);
 		vkCheckResult(vmaCreateImage(pDevice->mAllocator, &imageCreate, &allocationCreate, &mImage, &mAllocation, nullptr));
 	}
 
+	Texture::Texture(DeviceHandle pDevice, VkImage image, TextureDesc const & desc) : ITexture(desc), mpDevice(pDevice), mAllocation(VK_NULL_HANDLE), mImage(image) {}
+
 	Texture::~Texture() {
-		vmaDestroyImage(mpDevice->mAllocator, mImage, mAllocation);
+		if (mAllocation and mImage) {
+			vmaDestroyImage(mpDevice->mAllocator, mImage, mAllocation);
+		}
 	}
 
 

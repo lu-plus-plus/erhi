@@ -48,6 +48,8 @@ void hello_erhi() {
 
 	auto swapChain = window->CreateSwapChain(swapChainDesc);
 
+	auto presentTexture = swapChain->GetTexture(0);
+
  	auto primaryQueue = device->SelectQueue(QueueType::Primary);
 
 	auto vertexBufferDesc = BufferDesc{

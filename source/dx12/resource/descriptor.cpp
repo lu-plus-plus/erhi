@@ -22,7 +22,7 @@ namespace erhi::dx12 {
 	}
 
 	DescriptorHeapBase::DescriptorHeapBase(Device * pDevice, DescriptorHeapDesc const & desc, D3D12_DESCRIPTOR_HEAP_FLAGS flags) :
-		mpDevice(pDevice), mDescriptorSizeInBytes(0) {
+		mpDevice(pDevice), mDescriptorSizeInBytes(0), mHeapStartCPU(0), mHeapStartGPU(0) {
 		
 		D3D12_DESCRIPTOR_HEAP_TYPE const heapType = MapDescriptorHeapType(desc.type);
 

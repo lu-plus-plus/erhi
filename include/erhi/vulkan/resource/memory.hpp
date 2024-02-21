@@ -22,7 +22,8 @@ namespace erhi::vk {
 		VmaAllocation		mAllocation;
 		VkImage				mImage;
 
-		Texture(Device * pDevice, MemoryHeapType heapType, TextureDesc const & desc);
+		Texture(DeviceHandle pDevice, MemoryHeapType heapType, TextureDesc const & desc);
+		Texture(DeviceHandle pDevice, VkImage image, TextureDesc const & desc);
 		virtual ~Texture() override;
 	};
 

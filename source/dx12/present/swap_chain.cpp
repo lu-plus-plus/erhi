@@ -34,8 +34,39 @@ namespace erhi::dx12 {
 		));
 
 		D3D12CheckResult(pSwapChain->QueryInterface(IID_PPV_ARGS(mpSwapChainLatest.GetAddressOf())));
+
+		mSwapChainTextures.resize(desc.bufferCount);
+
+		for (uint32_t i = 0; i < desc.bufferCount; ++i) {
+			ComPtr<ID3D12Resource> pResource;
+			pSwapChain->GetBuffer(i, IID_PPV_ARGS(pResource.GetAddressOf()));
+			
+			auto const d3d12Desc = pResource->GetDesc();
+
+			if (d3d12Desc.Dimension != D3D12_RESOURCE_DIMENSION_TEXTURE2D) {
+				throw std::runtime_error("swap chain buffers' dimension is not 2D texture");
+			}
+
+			TextureDesc const textureDesc = {
+				.dimension = TextureDimension::Texture2D,
+				.extent = { UINT(d3d12Desc.Width), d3d12Desc.Height, 1 },
+				.format = desc.format,
+				.mipLevels = 1,
+				.sampleCount = TextureSampleCount::Count_1,
+				.usage = desc.usageFlags,
+				.tiling = TextureTiling::Linear,
+				.initialLayout = TextureLayout::Undefined,
+				.initialQueueType = QueueType::Primary
+			};
+
+			mSwapChainTextures[i] = new Texture(pResource, textureDesc);
+		}
 	}
 	
 	SwapChain::~SwapChain() = default;
+
+	ITextureHandle SwapChain::GetTexture(uint32_t index) {
+		return mSwapChainTextures[index];
+	}
 
 }

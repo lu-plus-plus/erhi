@@ -1,6 +1,7 @@
 #include "erhi/vulkan/context/context.hpp"
 #include "erhi/vulkan/present/present.hpp"
 #include "erhi/vulkan/command/command.hpp"
+#include "erhi/vulkan/resource/resource.hpp"
 
 #include "magic_enum.hpp"
 
@@ -62,10 +63,50 @@ namespace erhi::vk {
 		};
 
 		vkCheckResult(vkCreateSwapchainKHR(*mpDevice, &createInfo, nullptr, &mSwapChain));
+
+		uint32_t actualImageCount = 0;
+		vkCheckResult(vkGetSwapchainImagesKHR(*mpDevice, mSwapChain, &actualImageCount, nullptr));
+		
+		if (actualImageCount != imageCount) {
+			throw std::runtime_error("image count in swap chain does not match its description");
+		}
+
+		std::vector<VkImage> images(actualImageCount, VK_NULL_HANDLE);
+		vkCheckResult(vkGetSwapchainImagesKHR(*mpDevice, mSwapChain, &actualImageCount, images.data()));
+
+		mImages.resize(actualImageCount);
+
+		for (size_t i = 0; i < actualImageCount; ++i) {
+			TextureDesc const textureDesc = {
+				.dimension = TextureDimension::Texture2D,
+				.extent = { createInfo.imageExtent.width, createInfo.imageExtent.height, 1 },
+				.format = desc.format,
+				.mipLevels = 1,
+				.sampleCount = TextureSampleCount::Count_1,
+				.usage = desc.usageFlags,
+				.tiling = TextureTiling::Linear,
+				.initialLayout = TextureLayout::Undefined,
+				.initialQueueType = QueueType::Primary
+			};
+
+			//TextureViewDesc const textureViewDesc = {
+			//	.dimension = TextureViewDimension::Texture2D,
+			//	.format = desc.format,
+			//	.mostDetailedMipLevel = 0,
+			//	.mipLevelCount = 1,
+			//	.aspectFlags = TextureAspectColor
+			//};
+
+			mImages[i] = new Texture(mpDevice, images[i], textureDesc);
+		}
 	}
 
 	SwapChain::~SwapChain() {
 		vkDestroySwapchainKHR(*mpDevice, mSwapChain, nullptr);
+	}
+
+	ITextureHandle SwapChain::GetTexture(uint32_t index) {
+		return mImages[index];
 	}
 
 }

@@ -6,5 +6,7 @@ namespace erhi {
 
 		ISwapChain(SwapChainDesc const & desc);
 		virtual ~ISwapChain() = 0;
+
+		virtual ITextureHandle GetTexture(uint32_t index) = 0;
 	};
 }

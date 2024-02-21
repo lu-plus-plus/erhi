@@ -142,6 +142,8 @@ namespace erhi::dx12 {
 		D3D12CheckResult(pDevice->mpMemoryAllocator->CreateResource3(&allocationDesc, &resourceDesc, initialLayout, nullptr, 0, nullptr, mpAllocation.GetAddressOf(), IID_PPV_ARGS(mpResource.GetAddressOf())));
 	}
 
+	Texture::Texture(ComPtr<ID3D12Resource> pResource, TextureDesc const & desc) : ITexture(desc), mpAllocation(nullptr), mpResource(pResource) {}
+
 	Texture::~Texture() {
 		mpResource.Reset();
 		mpAllocation.Reset();
