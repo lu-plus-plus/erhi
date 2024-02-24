@@ -388,16 +388,17 @@ namespace erhi {
 
 	struct RenderPassDesc {
 		PipelineBindPoint pipelineBindPoint;
+		uint32_t attachmentCount;
+		AttachmentDesc const * attachments;
 		uint32_t renderTargetAttachmentCount;
-		AttachmentDesc const * renderTargetAttachments;
-		AttachmentDesc const * resolveAttachments;
-		AttachmentDesc const * pDepthStencilAttachment;
+		uint32_t const * renderTargetAttachments;
+		uint32_t const * pDepthStencilAttachment;
 	};
 
 	struct FrameBufferDesc {
 		IRenderPassHandle pRenderPass;
 		uint32_t attachmentCount;
-		ITextureView const * attachments;
+		ITextureViewHandle const * attachments;
 		uint32_t width;
 		uint32_t height;
 	};

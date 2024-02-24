@@ -2,6 +2,8 @@
 
 #include "../common.hpp"
 
+#include <vector>
+
 
 
 namespace erhi {
@@ -33,7 +35,8 @@ namespace erhi {
 	};
 
 	struct IDescriptorSetLayout {
-		DescriptorSetLayoutDesc mDesc;
+		std::vector<DescriptorSetLayoutBinding> mBindings;
+		DescriptorHeapType mDescriptorHeapType;
 
 		IDescriptorSetLayout(DescriptorSetLayoutDesc const & desc);
 		virtual ~IDescriptorSetLayout() = 0;

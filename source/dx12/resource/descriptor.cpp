@@ -22,7 +22,7 @@ namespace erhi::dx12 {
 	}
 
 	DescriptorHeapBase::DescriptorHeapBase(Device * pDevice, DescriptorHeapDesc const & desc, D3D12_DESCRIPTOR_HEAP_FLAGS flags) :
-		mpDevice(pDevice), mDescriptorSizeInBytes(0), mHeapStartCPU(0), mHeapStartGPU(0) {
+		mpDevice(pDevice), mDescriptorSizeInBytes(0), mHeapStartCPU{}, mHeapStartGPU{} {
 		
 		D3D12_DESCRIPTOR_HEAP_TYPE const heapType = MapDescriptorHeapType(desc.type);
 
@@ -205,11 +205,11 @@ namespace erhi::dx12 {
 		auto layout = dynamic_cast<DescriptorSetLayoutHandle>(iLayout);
 		
 		uint64_t totalCount = 0;
-		for (uint32_t i = 0; i < layout->mDesc.bindingCount; ++i) {
-			totalCount += layout->mDesc.bindings[i].descriptorCount;
+		for (auto const & binding : layout->mBindings) {
+			totalCount += binding.descriptorCount;
 		}
 
-		UINT const descriptorSize = GetDescriptorHandleIncrementSize(MapDescriptorHeapType(layout->mDesc.descriptorHeapType));
+		UINT const descriptorSize = GetDescriptorHandleIncrementSize(MapDescriptorHeapType(layout->mDescriptorHeapType));
 
 		return totalCount * descriptorSize;
 	}
@@ -217,14 +217,14 @@ namespace erhi::dx12 {
 	uint64_t Device::GetDescriptorSetLayoutBindingOffset(IDescriptorSetLayoutHandle iLayout, uint64_t binding) {
 		auto layout = dynamic_cast<DescriptorSetLayoutHandle>(iLayout);
 
-		assert(binding < layout->mDesc.bindingCount);
+		assert(binding < layout->mBindings.size());
 
 		uint64_t totalCount = 0;
 		for (uint32_t i = 0; i < binding; ++i) {
-			totalCount += layout->mDesc.bindings[i].descriptorCount;
+			totalCount += layout->mBindings[i].descriptorCount;
 		}
 
-		UINT const descriptorSize = GetDescriptorHandleIncrementSize(MapDescriptorHeapType(layout->mDesc.descriptorHeapType));
+		UINT const descriptorSize = GetDescriptorHandleIncrementSize(MapDescriptorHeapType(layout->mDescriptorHeapType));
 
 		return totalCount * descriptorSize;
 	}

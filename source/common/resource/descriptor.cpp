@@ -11,7 +11,7 @@ namespace erhi {
 	IGPUDescriptorHeap::IGPUDescriptorHeap(DescriptorHeapDesc const & desc) : mDesc(desc) {}
 	IGPUDescriptorHeap::~IGPUDescriptorHeap() = default;
 
-	IDescriptorSetLayout::IDescriptorSetLayout(DescriptorSetLayoutDesc const & desc) : mDesc(desc) {}
+	IDescriptorSetLayout::IDescriptorSetLayout(DescriptorSetLayoutDesc const & desc) : mBindings(desc.bindings, desc.bindings + desc.bindingCount), mDescriptorHeapType(desc.descriptorHeapType) {}
 	IDescriptorSetLayout::~IDescriptorSetLayout() = default;
 
 }

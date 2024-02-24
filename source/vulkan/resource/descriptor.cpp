@@ -35,7 +35,7 @@ namespace erhi::vk
 
 
 
-	TextureView::TextureView(DeviceHandle pDevice, TextureHandle pTexture, TextureViewDesc const & desc) : ITextureView(desc), mImageView(VK_NULL_HANDLE) {
+	TextureView::TextureView(DeviceHandle pDevice, TextureHandle pTexture, TextureViewDesc const & desc) : ITextureView(desc), mpDevice(pDevice), mImageView(VK_NULL_HANDLE) {
 		VkImageViewCreateInfo const createInfo = {
 			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 			.pNext = nullptr,
@@ -58,6 +58,10 @@ namespace erhi::vk
 			}
 		};
 		vkCheckResult(vkCreateImageView(*pDevice, &createInfo, nullptr, &mImageView));
+	}
+
+	TextureView::~TextureView() {
+		vkDestroyImageView(*mpDevice, mImageView, nullptr);
 	}
 
 	ITextureViewHandle Device::CreateTextureView(ITextureHandle pTexture, TextureViewDesc const & desc) {
@@ -90,6 +94,7 @@ namespace erhi::vk
 
 	CPUDescriptorHeap::~CPUDescriptorHeap() {
 		vmaUnmapMemory(mpDevice->mAllocator, mDescriptorBufferAllocation);
+		vmaDestroyBuffer(mpDevice->mAllocator, mDescriptorBuffer, mDescriptorBufferAllocation);
 	}
 
 	ICPUDescriptorHeapHandle Device::CreateCPUDescriptorHeap(DescriptorHeapDesc const & desc) {
@@ -98,7 +103,7 @@ namespace erhi::vk
 
 
 
-	GPUDescriptorHeap::GPUDescriptorHeap(DeviceHandle pDevice, DescriptorHeapDesc const & desc) : IGPUDescriptorHeap(desc), mDescriptorBuffer(VK_NULL_HANDLE), mDescriptorBufferAllocation(VK_NULL_HANDLE) {
+	GPUDescriptorHeap::GPUDescriptorHeap(DeviceHandle pDevice, DescriptorHeapDesc const & desc) : IGPUDescriptorHeap(desc), mpDevice(pDevice), mDescriptorBuffer(VK_NULL_HANDLE), mDescriptorBufferAllocation(VK_NULL_HANDLE) {
 		VkBufferCreateInfo descriptorBufferCreateInfo = mapping::MapBufferCreateInfo(BufferDesc{
 			.usage = 0,
 			.size = desc.sizeInBytes
@@ -114,13 +119,17 @@ namespace erhi::vk
 		vkCheckResult(vmaCreateBuffer(pDevice->mAllocator, &descriptorBufferCreateInfo, &allocationInfo, &mDescriptorBuffer, &mDescriptorBufferAllocation, nullptr));
 	}
 
+	GPUDescriptorHeap::~GPUDescriptorHeap() {
+		vmaDestroyBuffer(mpDevice->mAllocator, mDescriptorBuffer, mDescriptorBufferAllocation);
+	}
+
 	IGPUDescriptorHeapHandle Device::CreateGPUDescriptorHeap(DescriptorHeapDesc const & desc) {
 		return new GPUDescriptorHeap(this, desc);
 	}
 
 
 
-	DescriptorSetLayout::DescriptorSetLayout(Device * pDevice, DescriptorSetLayoutDesc const & desc) : IDescriptorSetLayout(desc), mDescriptorSetLayout(VK_NULL_HANDLE) {
+	DescriptorSetLayout::DescriptorSetLayout(Device * pDevice, DescriptorSetLayoutDesc const & desc) : IDescriptorSetLayout(desc), mpDevice(pDevice), mDescriptorSetLayout(VK_NULL_HANDLE) {
 		std::vector<VkDescriptorSetLayoutBinding> bindings(desc.bindingCount);
 
 		for (size_t i = 0; i < desc.bindingCount; ++i) {
@@ -143,6 +152,10 @@ namespace erhi::vk
 		};
 
 		vkCheckResult(vkCreateDescriptorSetLayout(*pDevice, &layoutCreateInfo, nullptr, &mDescriptorSetLayout));
+	}
+
+	DescriptorSetLayout::~DescriptorSetLayout() {
+		vkDestroyDescriptorSetLayout(*mpDevice, mDescriptorSetLayout, nullptr);
 	}
 
 	IDescriptorSetLayoutHandle Device::CreateDescriptorSetLayout(DescriptorSetLayoutDesc const & desc) {

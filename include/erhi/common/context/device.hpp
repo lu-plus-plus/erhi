@@ -31,6 +31,9 @@ namespace erhi {
 		virtual IDescriptorSetLayoutHandle	CreateDescriptorSetLayout(DescriptorSetLayoutDesc const & desc) = 0;
 		virtual uint64_t					GetDescriptorSetLayoutSize(IDescriptorSetLayoutHandle pLayout) = 0;
 		virtual uint64_t					GetDescriptorSetLayoutBindingOffset(IDescriptorSetLayoutHandle pLayout, uint64_t binding) = 0;
+
+		virtual IRenderPassHandle			CreateRenderPass(RenderPassDesc const & desc) = 0;
+		virtual IFrameBufferHandle			CreateFrameBuffer(FrameBufferDesc const & desc) = 0;
 	};
 
 	namespace vk {

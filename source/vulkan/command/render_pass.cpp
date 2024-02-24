@@ -24,20 +24,18 @@ namespace erhi::vk
 		IRenderPass(desc), mpDevice(pDevice), mRenderPass(VK_NULL_HANDLE) {
 		
 		std::vector<VkAttachmentDescription> attachments;
-		attachments.reserve(desc.renderTargetAttachmentCount + uint32_t(desc.pDepthStencilAttachment != nullptr));
-
-		for (uint32_t i = 0; i < desc.renderTargetAttachmentCount; ++i) {
-			auto const & rhiDesc = desc.renderTargetAttachments[i];
-			attachments.push_back(MapAttachmentDescription(rhiDesc));
+		attachments.reserve(desc.attachmentCount);
+		for (uint32_t i = 0; i < desc.attachmentCount; ++i) {
+			attachments.push_back(MapAttachmentDescription(desc.attachments[i]));
 		}
 
 		std::vector<VkAttachmentReference> colorAttachmentReferences;
 		colorAttachmentReferences.reserve(desc.renderTargetAttachmentCount);
-
 		for (uint32_t i = 0; i < desc.renderTargetAttachmentCount; ++i) {
+			uint32_t const index = desc.renderTargetAttachments[i];
 			VkAttachmentReference const ref = {
-				.attachment = i,
-				.layout = mapping::MapTextureLayout(desc.renderTargetAttachments[i].subpassLayout)
+				.attachment = index,
+				.layout = mapping::MapTextureLayout(desc.attachments[index].subpassLayout)
 			};
 			colorAttachmentReferences.push_back(ref);
 		}
@@ -48,9 +46,9 @@ namespace erhi::vk
 		};
 
 		if (desc.pDepthStencilAttachment) {
-			attachments.push_back(MapAttachmentDescription(*desc.pDepthStencilAttachment));
-			depthStencilReference.attachment = attachments.size() - 1;
-			depthStencilReference.layout = mapping::MapTextureLayout(desc.pDepthStencilAttachment->subpassLayout);
+			uint32_t const index = *desc.pDepthStencilAttachment;
+			depthStencilReference.attachment = index;
+			depthStencilReference.layout = mapping::MapTextureLayout(desc.attachments[index].subpassLayout);
 		}
 
 		VkSubpassDescription const subpass = {
@@ -82,5 +80,9 @@ namespace erhi::vk
 
 	RenderPass::~RenderPass() {
 		vkDestroyRenderPass(*mpDevice, mRenderPass, nullptr);
+	}
+
+	IRenderPassHandle Device::CreateRenderPass(RenderPassDesc const & desc) {
+		return new RenderPass(this, desc);
 	}
 }

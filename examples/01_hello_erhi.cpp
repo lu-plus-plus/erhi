@@ -9,7 +9,7 @@
 #include "erhi/common/utility/stream_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = dx12;
+namespace backend = vk;
 
 
 
@@ -73,7 +73,15 @@ void hello_erhi() {
 
 	auto renderTarget = device->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
 
-	auto depthDesc = TextureDesc{
+	auto renderTargetView = device->CreateTextureView(renderTarget, TextureViewDesc{
+		.dimension = TextureViewDimension::Texture2D,
+		.format = renderTargetDesc.format,
+		.mostDetailedMipLevel = 0,
+		.mipLevelCount = 1,
+		.aspectFlags = TextureAspectColor
+	});
+
+	auto depthStencilDesc = TextureDesc{
 		.dimension = TextureDimension::Texture2D,
 		.extent = { 1920u, 1080u, 1u },
 		.format = Format::D32_Float,
@@ -85,7 +93,73 @@ void hello_erhi() {
 		.initialQueueType = QueueType::Primary
 	};
 
-	auto depthTexture = device->CreateTexture(MemoryHeapType::Default, depthDesc);
+	auto depthStencil = device->CreateTexture(MemoryHeapType::Default, depthStencilDesc);
+
+	auto depthStencilView = device->CreateTextureView(depthStencil, TextureViewDesc{
+		.dimension = TextureViewDimension::Texture2D,
+		.format = depthStencilDesc.format,
+		.mostDetailedMipLevel = 0,
+		.mipLevelCount = 1,
+		.aspectFlags = TextureAspectDepth
+	});
+
+	AttachmentDesc renderTargetAttachment = {
+		.format = renderTargetDesc.format,
+		.sampleCount = renderTargetDesc.sampleCount,
+		.loadOp = AttachmentLoadOp::Clear,
+		.storeOp = AttachmentStoreOp::Store,
+		.stencilLoadOp = AttachmentLoadOp::DoNotCare,
+		.stencilStoreOp = AttachmentStoreOp::DoNotCare,
+		.initialLayout = TextureLayout::RenderTarget,
+		.subpassLayout = TextureLayout::RenderTarget,
+		.finalLayout = TextureLayout::CopySource
+	};
+
+	AttachmentDesc depthStencilAttachment = {
+		.format = depthStencilDesc.format,
+		.sampleCount = depthStencilDesc.sampleCount,
+		.loadOp = AttachmentLoadOp::Clear,
+		.storeOp = AttachmentStoreOp::DoNotCare,
+		.stencilLoadOp = AttachmentLoadOp::DoNotCare,
+		.stencilStoreOp = AttachmentStoreOp::DoNotCare,
+		.initialLayout = TextureLayout::DepthStencilWrite,
+		.subpassLayout = TextureLayout::DepthStencilWrite,
+		.finalLayout = TextureLayout::DepthStencilWrite
+	};
+
+	std::vector<AttachmentDesc> attachments = {
+		renderTargetAttachment,
+		depthStencilAttachment
+	};
+
+	uint32_t renderTargetAttachementIndex = 0;
+	uint32_t depthStencilAttachementIndex = 1;
+
+	RenderPassDesc renderPassDesc = {
+		.pipelineBindPoint = PipelineBindPoint::Graphics,
+		.attachmentCount = uint32_t(attachments.size()),
+		.attachments = attachments.data(),
+		.renderTargetAttachmentCount = 1,
+		.renderTargetAttachments = &renderTargetAttachementIndex,
+		.pDepthStencilAttachment = &depthStencilAttachementIndex
+	};
+
+	auto renderPass = device->CreateRenderPass(renderPassDesc);
+
+	std::vector<ITextureViewHandle> frameBufferAttachments = {
+		renderTargetView,
+		depthStencilView
+	};
+
+	FrameBufferDesc frameBufferDesc = {
+		.pRenderPass = renderPass,
+		.attachmentCount = uint32_t(frameBufferAttachments.size()),
+		.attachments = frameBufferAttachments.data(),
+		.width = renderTargetDesc.extent[0],
+		.height = renderTargetDesc.extent[1]
+	};
+
+	auto frameBuffer = device->CreateFrameBuffer(frameBufferDesc);
 
 	auto commandPool = device->CreateCommandPool(CommandPoolDesc{
 		.queueType = QueueType::Primary,
@@ -113,7 +187,11 @@ void hello_erhi() {
 
 	delete commandList;
 	delete commandPool;
-	delete depthTexture;
+	delete renderPass;
+	delete frameBuffer;
+	delete depthStencilView;
+	delete depthStencil;
+	delete renderTargetView;
 	delete renderTarget;
 	delete vertexBuffer;
 	delete swapChain;

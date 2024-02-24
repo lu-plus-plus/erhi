@@ -8,10 +8,11 @@
 namespace erhi::vk {
 
 	struct TextureView : ITextureView {
+		DeviceHandle mpDevice;
 		VkImageView mImageView;
 
 		TextureView(DeviceHandle pDevice, TextureHandle texture, TextureViewDesc const & desc);
-		virtual ~TextureView() override = default;
+		virtual ~TextureView() override;
 	};
 
 	struct CPUDescriptorHeap : ICPUDescriptorHeap {
@@ -30,18 +31,20 @@ namespace erhi::vk {
 	};
 
 	struct GPUDescriptorHeap : IGPUDescriptorHeap {
+		DeviceHandle mpDevice;
 		VkBuffer mDescriptorBuffer;
 		VmaAllocation mDescriptorBufferAllocation;
 
 		GPUDescriptorHeap(DeviceHandle pDevice, DescriptorHeapDesc const & desc);
-		virtual ~GPUDescriptorHeap() override = default;
+		virtual ~GPUDescriptorHeap() override;
 	};
 
 	struct DescriptorSetLayout : IDescriptorSetLayout {
+		DeviceHandle mpDevice;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 
 		DescriptorSetLayout(Device * pDevice, DescriptorSetLayoutDesc const & desc);
-		virtual ~DescriptorSetLayout() override = default;
+		virtual ~DescriptorSetLayout() override;
 	};
 
 }

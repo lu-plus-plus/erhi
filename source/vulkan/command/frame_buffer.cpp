@@ -8,7 +8,7 @@ namespace erhi::vk {
 		std::vector<VkImageView> attachments;
 		attachments.reserve(desc.attachmentCount);
 		for (size_t i = 0; i < desc.attachmentCount; ++i)
-			attachments.push_back(dynamic_cast<TextureView const *>(desc.attachments)->mImageView);
+			attachments.push_back(dynamic_cast<TextureView const *>(desc.attachments[i])->mImageView);
 		
 		VkFramebufferCreateInfo createInfo = {
 			.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -27,6 +27,10 @@ namespace erhi::vk {
 
 	FrameBuffer::~FrameBuffer() {
 		vkDestroyFramebuffer(*mpDevice, mFrameBuffer, nullptr);
+	}
+
+	IFrameBufferHandle Device::CreateFrameBuffer(FrameBufferDesc const & desc) {
+		return new FrameBuffer(this, desc);
 	}
 
 }
