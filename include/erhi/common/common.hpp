@@ -405,6 +405,28 @@ namespace erhi {
 
 
 
+	// module: shader
+
+	enum class ShaderType {
+		Vertex,
+		Pixel,
+		Compute
+	};
+
+	struct ShaderCompileInfo {
+		uint32_t sourceSizeInBytes;
+		union {
+			char const * sourceCode;
+			wchar_t const * fileName;
+		};
+		ShaderType shaderType;
+		wchar_t const * entryPoint;
+		bool enableDebug;
+		IMessageCallbackHandle pMessageCallback;
+	};
+
+
+
 	// module: present
 
 	struct IWindowMessageCallback {

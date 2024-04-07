@@ -42,6 +42,9 @@ namespace erhi {
 	DeclareHandle(Window);
 	DeclareHandle(SwapChain);
 
+	DeclareHandle(ShaderCompiler);
+	DeclareHandle(ShaderBlob);
+
 	#undef DeclareHandle
 
 }

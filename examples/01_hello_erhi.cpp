@@ -170,7 +170,7 @@ void hello_erhi() {
 		.level = CommandListLevel::Direct
 	});
 
-	commandList->BeginCommands({ CommandListUsageOneTime });
+	commandList->BeginCommands({ .usageFlags = CommandListUsageOneTime });
 
 	commandList->SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 

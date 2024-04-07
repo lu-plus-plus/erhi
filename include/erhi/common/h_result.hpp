@@ -1,5 +1,7 @@
 #pragma once
 
+#include <windows.h>		// for HRESULT
+
 #include "exception.hpp"
 
 namespace erhi::windows {

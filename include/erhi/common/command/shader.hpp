@@ -5,8 +5,19 @@
 
 namespace erhi {
 
+	struct IShaderBlob {
+		IShaderBlob();
+		virtual ~IShaderBlob() = 0;
+
+		virtual void const * data() = 0;
+		virtual size_t sizeInBytes() = 0;
+	};
+
 	struct IShaderCompiler {
 		IShaderCompiler();
+		virtual ~IShaderCompiler() = 0;
+
+		virtual IShaderBlobHandle compile(ShaderCompileInfo const & info) = 0;
 	};
 
 }
