@@ -34,6 +34,8 @@ namespace erhi {
 
 		virtual IRenderPassHandle			CreateRenderPass(RenderPassDesc const & desc) = 0;
 		virtual IFrameBufferHandle			CreateFrameBuffer(FrameBufferDesc const & desc) = 0;
+
+		virtual IShaderCompilerHandle		CreateShaderCompiler(ShaderCompilerDesc const & desc) = 0;
 	};
 
 	namespace vk {

@@ -407,6 +407,9 @@ namespace erhi {
 
 	// module: shader
 
+	struct ShaderCompilerDesc {
+	};
+
 	enum class ShaderType {
 		Vertex,
 		Pixel,

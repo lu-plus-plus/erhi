@@ -51,6 +51,8 @@ namespace erhi::dx12 {
 
 		virtual IRenderPassHandle			CreateRenderPass(RenderPassDesc const & desc) override;
 		virtual IFrameBufferHandle			CreateFrameBuffer(FrameBufferDesc const & desc) override;
+
+		virtual IShaderCompilerHandle		CreateShaderCompiler(ShaderCompilerDesc const & desc) override;
 	};
 
 }

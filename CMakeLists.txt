@@ -167,6 +167,21 @@ target_link_libraries(erhi
 
 
 
+# copy DLLs of DXC to the target directory of erhi
+
+function(copy_dll target dll_path)
+	add_custom_command(TARGET ${target} POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		${dll_path}
+		$<TARGET_FILE_DIR:${target}>
+	)
+endfunction()
+
+copy_dll(erhi ${erhi_package_dir}/dxc/bin/x64/dxcompiler.dll)
+copy_dll(erhi ${erhi_package_dir}/dxc/bin/x64/dxil.dll)
+
+
+
 add_executable(01_hello_erhi
 	${erhi_example_dir}/01_hello_erhi.cpp
 )

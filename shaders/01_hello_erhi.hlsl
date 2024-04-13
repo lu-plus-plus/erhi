@@ -1,19 +1,23 @@
+struct VSInput
+{
+    [[vk::location(0)]] float4 position : POSITION;
+    [[vk::location(1)]] float4 color : COLOR;
+    uint vertexIndex : SV_VertexID;
+};
+
 struct Payload
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
 };
 
-Payload VSMain(
-    [[vk::location(0)]] float4 position : POSITION,
-    [[vk::location(1)]] float4 color : COLOR) {
-    
-    Payload result;
+Payload VSMain(VSInput input) {
+    Payload output;
 
-    result.position = position;
-    result.color = color;
+    output.position = input.position;
+    output.color = input.color;
 
-    return result;
+    return output;
 }
 
 float4 PSMain(Payload input) : SV_TARGET

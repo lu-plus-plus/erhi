@@ -1,3 +1,4 @@
+#include "erhi/dx12/context/context.hpp"
 #include "erhi/dx12/command/command.hpp"
 
 namespace erhi::dx12 {
@@ -6,24 +7,19 @@ namespace erhi::dx12 {
 	ShaderCompiler::~ShaderCompiler() = default;
 
 	IShaderBlobHandle ShaderCompiler::compile(ShaderCompileInfo const & info) {
-		auto GetTarget = [] (ShaderType shaderType) -> wchar_t const * {
-			if (shaderType == ShaderType::Vertex) {
-				return L"vs_6_7";
-			} else if (shaderType == ShaderType::Pixel) {
-				return L"ps_6_7";
-			} else if (shaderType == ShaderType::Compute) {
-				return L"cs_6_7";
-			} else {
-				return nullptr;
-			}
-		};
-
+		// <todo>
+		// a custom way to specify Vulkan qualifiers
+		// </todo>
 		wchar_t const * const extraArguments[] = {
-			L"-T", GetTarget(info.shaderType)
+			L"-Wno-ignored-attributes"
 		};
 		constexpr size_t extraArgumentCount = sizeof(extraArguments) / sizeof(extraArguments[0]);
 		
 		return DxcShaderCompiler::compile(info, extraArgumentCount, extraArguments);
+	}
+
+	IShaderCompilerHandle Device::CreateShaderCompiler(ShaderCompilerDesc const & desc) {
+		return new ShaderCompiler();
 	}
 
 }

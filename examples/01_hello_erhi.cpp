@@ -1,4 +1,8 @@
 #include <iostream>
+#include <source_location>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 
 #include "erhi/common/common.hpp"
 #include "erhi/common/context/context.hpp"
@@ -9,7 +13,7 @@
 #include "erhi/common/utility/stream_message_callback.hpp"
 
 using namespace erhi;
-namespace backend = vk;
+namespace backend = dx12;
 
 
 
@@ -184,6 +188,39 @@ void hello_erhi() {
 	commandList->BindVertexBuffers(0, 1, &vertexBufferView);
 
 	commandList->EndCommands();
+
+	std::filesystem::path const thisPath = std::source_location::current().file_name();
+	auto const shaderPath = thisPath.parent_path().parent_path() / "shaders" / "01_hello_erhi.hlsl";
+	if (not std::filesystem::exists(shaderPath)) {
+		throw std::runtime_error("shader path " + shaderPath.string() + " does not exist");
+	}
+
+	std::ifstream shaderIfs(shaderPath);
+	std::stringstream buffer;
+	buffer << shaderIfs.rdbuf();
+	std::string const shaderSource = buffer.str();
+
+	auto shaderCompiler = device->CreateShaderCompiler(ShaderCompilerDesc{});
+	
+	ShaderCompileInfo const vertexShaderCompileInfo = {
+		.sourceSizeInBytes = uint32_t(shaderSource.size()),
+		.sourceCode = shaderSource.data(),
+		.shaderType = ShaderType::Vertex,
+		.entryPoint = L"VSMain",
+		.enableDebug = true,
+		.pMessageCallback = pMessageCallback.get()
+	};
+	auto vertexShaderBlob = shaderCompiler->compile(vertexShaderCompileInfo);
+
+	ShaderCompileInfo const pixelShaderCompileInfo = {
+		.sourceSizeInBytes = uint32_t(shaderSource.size()),
+		.sourceCode = shaderSource.data(),
+		.shaderType = ShaderType::Pixel,
+		.entryPoint = L"PSMain",
+		.enableDebug = true,
+		.pMessageCallback = pMessageCallback.get()
+	};
+	auto pixelShaderBlob = shaderCompiler->compile(pixelShaderCompileInfo);
 
 	delete commandList;
 	delete commandPool;

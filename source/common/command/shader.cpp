@@ -51,9 +51,25 @@ namespace erhi {
 			WindowsThrowOnError(compiler.mpUtils->LoadFile(info.fileName, nullptr, mpBlobEncoding.GetAddressOf()));
 		}
 
+		auto GetTarget = [] (ShaderType shaderType) -> wchar_t const * {
+			if (shaderType == ShaderType::Vertex) {
+				return L"vs_6_7";
+			}
+			else if (shaderType == ShaderType::Pixel) {
+				return L"ps_6_7";
+			}
+			else if (shaderType == ShaderType::Compute) {
+				return L"cs_6_7";
+			}
+			else {
+				return nullptr;
+			}
+		};
+
 		std::vector<LPCWSTR> arguments = MakeArguments(
 			extraArugmentCount, extraArguments,
 			
+			L"-T", GetTarget(info.shaderType),
 			L"-E", info.entryPoint,
 			DXC_ARG_WARNINGS_ARE_ERRORS,
 			info.enableDebug ? DXC_ARG_DEBUG : DXC_ARG_OPTIMIZATION_LEVEL3
