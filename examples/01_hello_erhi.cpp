@@ -10,10 +10,12 @@
 #include "erhi/common/command/command.hpp"
 #include "erhi/common/resource/resource.hpp"
 
+#include "erhi/common/utility/smart_ptr.hpp"
 #include "erhi/common/utility/stream_message_callback.hpp"
 
+namespace backend = erhi::vk;
+
 using namespace erhi;
-namespace backend = dx12;
 
 
 
@@ -22,15 +24,17 @@ struct WindowMessageCallback : IWindowMessageCallback
 	void OnRender() override {}
 };
 
+
+
 void hello_erhi() {
-	auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Warning);
+	auto pMessageCallback = std::make_shared<StreamMessageCallback>(std::cout, MessageSeverity::Info);
 	
 	DeviceDesc deviceDesc = {
 		.enableDebug = true,
 		.physicalDevicePreference = PhysicalDevicePreference::HighPerformance,
 	};
 
-	auto device = backend::CreateDevice(deviceDesc, pMessageCallback);
+	auto device = to_unique(backend::CreateDevice(deviceDesc, pMessageCallback));
 
 	WindowDesc windowDesc = {
 		.width = 1920,
@@ -41,18 +45,18 @@ void hello_erhi() {
 		.pMessageCallback = WindowMessageCallback()
 	};
 	
-	auto window = device->CreateNewWindow(windowDesc);
+	auto window = to_unique(device->CreateNewWindow(windowDesc));
 
 	SwapChainDesc swapChainDesc = {
-		.pWindow = window,
+		.pWindow = window.get(),
 		.format = Format::B8G8R8A8_UNorm,
 		.bufferCount = 3,
 		.usageFlags = TextureUsageRenderTarget
 	};
 
-	auto swapChain = window->CreateSwapChain(swapChainDesc);
+	auto swapChain = to_unique(window->CreateSwapChain(swapChainDesc));
 
-	auto presentTexture = swapChain->GetTexture(0);
+	auto presentTexture = to_unique(swapChain->GetTexture(0));
 
  	auto primaryQueue = device->SelectQueue(QueueType::Primary);
 
@@ -61,7 +65,7 @@ void hello_erhi() {
 		.size = 4 * 3 * sizeof(float)
 	};
 
-	auto vertexBuffer = device->CreateBuffer(MemoryHeapType::Default, vertexBufferDesc);
+	auto vertexBuffer = to_unique(device->CreateBuffer(MemoryHeapType::Default, vertexBufferDesc));
 
 	auto renderTargetDesc = TextureDesc{
 		.dimension = TextureDimension::Texture2D,
@@ -75,15 +79,15 @@ void hello_erhi() {
 		.initialQueueType = QueueType::Primary
 	};
 
-	auto renderTarget = device->CreateTexture(MemoryHeapType::Default, renderTargetDesc);
+	auto renderTarget = to_unique(device->CreateTexture(MemoryHeapType::Default, renderTargetDesc));
 
-	auto renderTargetView = device->CreateTextureView(renderTarget, TextureViewDesc{
+	auto renderTargetView = to_unique(device->CreateTextureView(renderTarget.get(), TextureViewDesc{
 		.dimension = TextureViewDimension::Texture2D,
 		.format = renderTargetDesc.format,
 		.mostDetailedMipLevel = 0,
 		.mipLevelCount = 1,
 		.aspectFlags = TextureAspectColor
-	});
+	}));
 
 	auto depthStencilDesc = TextureDesc{
 		.dimension = TextureDimension::Texture2D,
@@ -97,15 +101,15 @@ void hello_erhi() {
 		.initialQueueType = QueueType::Primary
 	};
 
-	auto depthStencil = device->CreateTexture(MemoryHeapType::Default, depthStencilDesc);
+	auto depthStencil = to_unique(device->CreateTexture(MemoryHeapType::Default, depthStencilDesc));
 
-	auto depthStencilView = device->CreateTextureView(depthStencil, TextureViewDesc{
+	auto depthStencilView = to_unique(device->CreateTextureView(depthStencil.get(), TextureViewDesc{
 		.dimension = TextureViewDimension::Texture2D,
 		.format = depthStencilDesc.format,
 		.mostDetailedMipLevel = 0,
 		.mipLevelCount = 1,
 		.aspectFlags = TextureAspectDepth
-	});
+	}));
 
 	AttachmentDesc renderTargetAttachment = {
 		.format = renderTargetDesc.format,
@@ -148,38 +152,38 @@ void hello_erhi() {
 		.pDepthStencilAttachment = &depthStencilAttachementIndex
 	};
 
-	auto renderPass = device->CreateRenderPass(renderPassDesc);
+	auto renderPass = to_unique(device->CreateRenderPass(renderPassDesc));
 
 	std::vector<ITextureViewHandle> frameBufferAttachments = {
-		renderTargetView,
-		depthStencilView
+		renderTargetView.get(),
+		depthStencilView.get()
 	};
 
 	FrameBufferDesc frameBufferDesc = {
-		.pRenderPass = renderPass,
+		.pRenderPass = renderPass.get(),
 		.attachmentCount = uint32_t(frameBufferAttachments.size()),
 		.attachments = frameBufferAttachments.data(),
 		.width = renderTargetDesc.extent[0],
 		.height = renderTargetDesc.extent[1]
 	};
 
-	auto frameBuffer = device->CreateFrameBuffer(frameBufferDesc);
+	auto frameBuffer = to_unique(device->CreateFrameBuffer(frameBufferDesc));
 
-	auto commandPool = device->CreateCommandPool(CommandPoolDesc{
+	auto commandPool = to_unique(device->CreateCommandPool(CommandPoolDesc{
 		.queueType = QueueType::Primary,
 		.lifetime = CommandListLifetime::ShortLived
-	});
+	}));
 
-	auto commandList = commandPool->AllocateCommandList(CommandListDesc{
+	auto commandList = to_unique(commandPool->AllocateCommandList(CommandListDesc{
 		.level = CommandListLevel::Direct
-	});
+	}));
 
 	commandList->BeginCommands({ .usageFlags = CommandListUsageOneTime });
 
 	commandList->SetPrimitiveTopology(PrimitiveTopology::TriangleList);
 
-	VertexBufferView vertexBufferView{
-		.pBuffer = vertexBuffer,
+	auto const vertexBufferView = VertexBufferView{
+		.pBuffer = vertexBuffer.get(),
 		.offset = 0,
 		.size = vertexBuffer->mDesc.size,
 		.stride = 12
@@ -195,12 +199,16 @@ void hello_erhi() {
 		throw std::runtime_error("shader path " + shaderPath.string() + " does not exist");
 	}
 
-	std::ifstream shaderIfs(shaderPath);
-	std::stringstream buffer;
-	buffer << shaderIfs.rdbuf();
-	std::string const shaderSource = buffer.str();
+	auto LoadFileAsString = [] (std::filesystem::path const & path) -> std::string {
+		auto fileStream = std::ifstream(path);
+		auto stringStream = std::stringstream();
+		stringStream << fileStream.rdbuf();
+		return stringStream.str();
+	};
 
-	auto shaderCompiler = device->CreateShaderCompiler(ShaderCompilerDesc{});
+	auto const shaderSource = LoadFileAsString(shaderPath);
+
+	auto shaderCompiler = to_unique(device->CreateShaderCompiler(ShaderCompilerDesc{}));
 	
 	ShaderCompileInfo const vertexShaderCompileInfo = {
 		.sourceSizeInBytes = uint32_t(shaderSource.size()),
@@ -210,7 +218,8 @@ void hello_erhi() {
 		.enableDebug = true,
 		.pMessageCallback = pMessageCallback.get()
 	};
-	auto vertexShaderBlob = shaderCompiler->compile(vertexShaderCompileInfo);
+
+	auto vertexShaderBlob = to_unique(shaderCompiler->compile(vertexShaderCompileInfo));
 
 	ShaderCompileInfo const pixelShaderCompileInfo = {
 		.sourceSizeInBytes = uint32_t(shaderSource.size()),
@@ -220,20 +229,8 @@ void hello_erhi() {
 		.enableDebug = true,
 		.pMessageCallback = pMessageCallback.get()
 	};
-	auto pixelShaderBlob = shaderCompiler->compile(pixelShaderCompileInfo);
 
-	delete commandList;
-	delete commandPool;
-	delete renderPass;
-	delete frameBuffer;
-	delete depthStencilView;
-	delete depthStencil;
-	delete renderTargetView;
-	delete renderTarget;
-	delete vertexBuffer;
-	delete swapChain;
-	delete window;
-	delete device;
+	auto pixelShaderBlob = to_unique(shaderCompiler->compile(pixelShaderCompileInfo));
 }
 
 
