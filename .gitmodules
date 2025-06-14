@@ -4,9 +4,6 @@
 [submodule "packages/magic_enum"]
 	path = packages/magic_enum
 	url = https://github.com/Neargye/magic_enum
-[submodule "packages/eflc"]
-	path = packages/eflc
-	url = git@github.com:lu-plus-plus/eflc.git
 [submodule "packages/D3D12MemoryAllocator"]
 	path = packages/D3D12MemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/D3D12MemoryAllocator.git
