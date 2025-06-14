@@ -17,7 +17,7 @@ namespace erhi {
 		IShaderCompiler();
 		virtual ~IShaderCompiler() = 0;
 
-		virtual IShaderBlobHandle compile(ShaderCompileInfo const & info) = 0;
+		virtual IShaderBlobHandle Compile(ShaderCompileInfo const & info) = 0;
 	};
 
 }

@@ -219,7 +219,7 @@ void hello_erhi() {
 		.pMessageCallback = pMessageCallback.get()
 	};
 
-	auto vertexShaderBlob = to_unique(shaderCompiler->compile(vertexShaderCompileInfo));
+	auto vertexShaderBlob = to_unique(shaderCompiler->Compile(vertexShaderCompileInfo));
 
 	ShaderCompileInfo const pixelShaderCompileInfo = {
 		.sourceSizeInBytes = uint32_t(shaderSource.size()),
@@ -230,7 +230,7 @@ void hello_erhi() {
 		.pMessageCallback = pMessageCallback.get()
 	};
 
-	auto pixelShaderBlob = to_unique(shaderCompiler->compile(pixelShaderCompileInfo));
+	auto pixelShaderBlob = to_unique(shaderCompiler->Compile(pixelShaderCompileInfo));
 }
 
 

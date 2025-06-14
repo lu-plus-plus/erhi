@@ -12,7 +12,7 @@ namespace erhi::vk {
 		// type erasure for DXC to avoid its conflicts with GLFW
 		void * pDxcCompiler;
 
-		virtual IShaderBlobHandle compile(ShaderCompileInfo const & info) override;
+		virtual IShaderBlobHandle Compile(ShaderCompileInfo const & info) override;
 	};
 
 }

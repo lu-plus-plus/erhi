@@ -10,7 +10,7 @@ namespace erhi::dx12 {
 		ShaderCompiler();
 		virtual ~ShaderCompiler() override;
 
-		virtual IShaderBlobHandle compile(ShaderCompileInfo const & info) override;
+		virtual IShaderBlobHandle Compile(ShaderCompileInfo const & info) override;
 	};
 
 }

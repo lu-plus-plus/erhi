@@ -6,7 +6,7 @@ namespace erhi::dx12 {
 	ShaderCompiler::ShaderCompiler() = default;
 	ShaderCompiler::~ShaderCompiler() = default;
 
-	IShaderBlobHandle ShaderCompiler::compile(ShaderCompileInfo const & info) {
+	IShaderBlobHandle ShaderCompiler::Compile(ShaderCompileInfo const & info) {
 		// <todo>
 		// a custom way to specify Vulkan qualifiers
 		// </todo>

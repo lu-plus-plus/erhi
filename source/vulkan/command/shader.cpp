@@ -11,7 +11,7 @@ namespace erhi::vk {
 		pDxcCompiler = nullptr;
 	}
 
-	IShaderBlobHandle ShaderCompiler::compile(ShaderCompileInfo const & info) {
+	IShaderBlobHandle ShaderCompiler::Compile(ShaderCompileInfo const & info) {
 		static wchar_t const * extraArguments[] = {
 			L"-spirv",
 			L"-fspv-target-env=vulkan1.3"
